@@ -6,10 +6,14 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "npm run test:unit",
     "test:unit": "vitest",
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write ."
+  },
+  "dependencies": {
+    "marked": "^12.0.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
@@ -23,6 +27,7 @@
     "prettier": "^3.0.0",
     "prettier-plugin-svelte": "^3.0.0",
     "svelte": "^4.0.0",
+    "svelte-check": "^3.0.0",
     "svelte-eslint-parser": "^0.41.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",

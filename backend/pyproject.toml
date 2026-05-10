@@ -1,10 +1,9 @@
 [tool.ruff]
+line-length = 100
 target-version = "py312"
-line-length = 88
 
 [tool.ruff.lint]
-# E/W = pycodestyle, F = pyflakes, I = isort, UP = pyupgrade
-select = ["E", "W", "F", "I", "UP"]
+select = ["E", "F", "I", "N", "UP"]
 # Don't fail on line-length warnings — they're style, not bugs
 ignore = ["E501"]
 fixable = ["ALL"]
@@ -12,3 +11,7 @@ fixable = ["ALL"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
