@@ -45,6 +45,4 @@ class Content(Base):
 
     topic: Mapped["Topic"] = relationship()
     t_level: Mapped["TLevel | None"] = relationship()
-    content_tags: Mapped[list["ContentTag"]] = relationship(
-        cascade="all, delete-orphan"
-    )
+    content_tags: Mapped[list["ContentTag"]] = relationship(cascade="all, delete-orphan")

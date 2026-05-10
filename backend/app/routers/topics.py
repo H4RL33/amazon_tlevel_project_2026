@@ -6,9 +6,7 @@ from app.dependencies.auth import get_current_user
 from app.schemas.topic import TLevelResponse, TopicDetailResponse, TopicResponse
 from app.services import topic_service
 
-router = APIRouter(
-    prefix="/topics", tags=["topics"], dependencies=[Depends(get_current_user)]
-)
+router = APIRouter(prefix="/topics", tags=["topics"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/", response_model=list[TopicResponse], summary="List all topic areas")
@@ -18,9 +16,7 @@ async def list_topics(
     return await topic_service.list_topics(db)
 
 
-@router.get(
-    "/{slug}", response_model=TopicDetailResponse, summary="Get topic with T-levels"
-)
+@router.get("/{slug}", response_model=TopicDetailResponse, summary="Get topic with T-levels")
 async def get_topic(
     slug: str,
     db: AsyncSession = Depends(get_db),

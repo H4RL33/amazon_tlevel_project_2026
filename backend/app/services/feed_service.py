@@ -5,9 +5,7 @@ from app.schemas.content import ContentListResponse
 from app.schemas.feed import ProgressResponse, ProgressUpdateRequest
 
 
-async def get_feed(
-    db: AsyncSession, current_user: User
-) -> list[ContentListResponse]:
+async def get_feed(db: AsyncSession, current_user: User) -> list[ContentListResponse]:
     """
     Return a personalised list of Content items for the current user.
 
@@ -23,9 +21,7 @@ async def get_feed(
     raise NotImplementedError
 
 
-async def get_progress(
-    db: AsyncSession, current_user: User
-) -> list[ProgressResponse]:
+async def get_progress(db: AsyncSession, current_user: User) -> list[ProgressResponse]:
     """
     Return the user's in-progress Content items (progress_pct < 100),
     ordered by last_viewed_at DESC.

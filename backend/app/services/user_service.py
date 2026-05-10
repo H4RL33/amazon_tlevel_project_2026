@@ -27,9 +27,7 @@ async def set_topics(
     raise NotImplementedError
 
 
-async def get_topics(
-    db: AsyncSession, current_user: User
-) -> list[TopicResponse]:
+async def get_topics(db: AsyncSession, current_user: User) -> list[TopicResponse]:
     """
     Return all Topics the current user has expressed interest in.
     Join UserTopicInterest → Topic, filter by current_user.id.

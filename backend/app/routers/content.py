@@ -6,9 +6,7 @@ from app.dependencies.auth import get_current_user
 from app.schemas.content import ContentDetailResponse, ContentListResponse
 from app.services import content_service
 
-router = APIRouter(
-    prefix="/content", tags=["content"], dependencies=[Depends(get_current_user)]
-)
+router = APIRouter(prefix="/content", tags=["content"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/", response_model=list[ContentListResponse], summary="List content")

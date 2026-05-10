@@ -16,9 +16,7 @@ async def get_topic_by_slug(db: AsyncSession, slug: str) -> TopicDetailResponse:
     raise NotImplementedError
 
 
-async def get_t_level(
-    db: AsyncSession, topic_slug: str, t_level_id: int
-) -> TLevelResponse:
+async def get_t_level(db: AsyncSession, topic_slug: str, t_level_id: int) -> TLevelResponse:
     """
     Return a single TLevel by id, scoped to the given topic_slug.
     Raise HTTP 404 if the TLevel does not exist or does not belong to that topic.

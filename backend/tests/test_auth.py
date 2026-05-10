@@ -5,6 +5,7 @@ from httpx import ASGITransport, AsyncClient
 @pytest.fixture
 async def client():
     from app.main import app
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c
 
@@ -27,7 +28,9 @@ async def test_invalid_token_returns_401(client):
 
 async def test_topics_route_requires_auth(client):
     response = await client.get("/topics/")
-    assert response.status_code == 401, f"Expected 401, got {response.status_code} — route may not be registered"
+    assert response.status_code == 401, (
+        f"Expected 401, got {response.status_code} — route may not be registered"
+    )
 
 
 async def test_content_route_requires_auth(client):
