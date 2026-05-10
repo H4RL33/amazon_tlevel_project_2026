@@ -15,8 +15,7 @@
   import AppShell from '$lib/components/AppShell.svelte';
   import { listTopics } from '$lib/api/topics';
   import { getProgress } from '$lib/api/progress';
-  import { apiFetch } from '$lib/api/client';
-  import { ApiError } from '$lib/api/client';
+  import { apiFetch, ApiError } from '$lib/api/client';
   import type { UserResponse } from '$lib/api/types';
   import { currentUser } from '$lib/stores/user';
   import { allTopics } from '$lib/stores/topics';
