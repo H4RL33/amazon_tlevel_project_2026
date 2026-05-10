@@ -12,7 +12,7 @@
        the backend verifies). Extract `email` from payload.given_name / family_name if present.
     4. Call syncUser(firstName, lastName) — use payload.given_name and family_name from the token,
        or fallback to empty strings if not present (user can set them in settings).
-    5. Call getTopics() from $lib/api/topics.ts (GET /users/me/topics).
+    5. Call getUserTopics() from $lib/api/topics.ts (GET /users/me/topics).
        If the result is an empty array: goto('/onboarding').
        Otherwise: goto('/dashboard').
   Error handling:
@@ -26,6 +26,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { exchangeCode, syncUser } from '$lib/api/auth';
+  import { getUserTopics } from '$lib/api/topics';
 
   let error = '';
   let loading = true;

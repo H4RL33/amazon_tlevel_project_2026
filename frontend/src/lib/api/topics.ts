@@ -12,3 +12,7 @@ export async function getTopic(slug: string): Promise<TopicDetailResponse> {
 export async function getTLevel(slug: string, tLevelId: number): Promise<TLevelResponse> {
   return apiFetch<TLevelResponse>(`/topics/${slug}/t-levels/${tLevelId}`);
 }
+
+export async function getUserTopics(): Promise<TopicResponse[]> {
+  return apiFetch<TopicResponse[]>('/users/me/topics');
+}
