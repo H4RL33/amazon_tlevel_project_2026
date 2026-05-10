@@ -70,6 +70,16 @@ jobs:
           pip install pytest pytest-asyncio httpx
 
       - name: Run tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:test@localhost:5432/testdb
+          SECRET_KEY: test-secret-key-for-ci
+          ENVIRONMENT: testing
+          ALLOWED_ORIGINS: http://localhost:5173
+          COGNITO_REGION: eu-west-2
+          COGNITO_USER_POOL_ID: eu-west-2_testpool
+          COGNITO_CLIENT_ID: test-client-id
+          S3_BUCKET_NAME: test-bucket
+          AWS_REGION: eu-west-2
         run: pytest backend/tests/ -v --tb=short
 
   build-and-push:
