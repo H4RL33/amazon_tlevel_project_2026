@@ -7,6 +7,12 @@ on:
   pull_request:
     paths: ['frontend/**']
 
+# Cancel any in-progress run for the same branch when a new push arrives.
+# Prevents concurrent autofix commits racing to push to the same ref.
+concurrency:
+  group: frontend-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:
