@@ -13,14 +13,18 @@ describe('Stores', () => {
   it('user store initialises to null', async () => {
     const { currentUser } = await import('$lib/stores/user');
     let value: unknown;
-    currentUser.subscribe((v) => { value = v; })();
+    currentUser.subscribe((v) => {
+      value = v;
+    })();
     expect(value).toBeNull();
   });
 
   it('allTopics store initialises to empty array', async () => {
     const { allTopics } = await import('$lib/stores/topics');
     let value: unknown;
-    allTopics.subscribe((v) => { value = v; })();
+    allTopics.subscribe((v) => {
+      value = v;
+    })();
     expect(Array.isArray(value)).toBe(true);
     expect(value).toHaveLength(0);
   });

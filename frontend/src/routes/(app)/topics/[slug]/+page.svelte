@@ -27,7 +27,7 @@
   import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 
   // Scaffold: will be assigned in onMount once API is wired up.
-  // eslint-disable-next-line prefer-const
+   
   let topic = null as TopicDetailResponse | null;
   let topicContent: ContentListResponse[] = [];
 

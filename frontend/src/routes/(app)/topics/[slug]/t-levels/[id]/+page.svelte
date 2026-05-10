@@ -27,16 +27,17 @@
   import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 
   // Scaffold: will be assigned in onMount once API is wired up.
-  // eslint-disable-next-line prefer-const
+   
   let tLevel = null as TLevelResponse | null;
-  // eslint-disable-next-line prefer-const
+   
   let topic = null as TopicDetailResponse | null;
   let tLevelContent: ContentListResponse[] = [];
 
   onMount(async () => {
     const { slug, id } = $page.params;
     // TODO: fetch tLevel, topic, and tLevelContent in parallel
-    void slug; void id;
+    void slug;
+    void id;
   });
 
   $: pageTitle = tLevel ? tLevel.name : 'T-Level';
