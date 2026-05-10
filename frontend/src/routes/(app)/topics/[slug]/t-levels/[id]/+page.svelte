@@ -27,9 +27,9 @@
   import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 
   // Scaffold: will be assigned in onMount once API is wired up.
-   
+
   let tLevel = null as TLevelResponse | null;
-   
+
   let topic = null as TopicDetailResponse | null;
   let tLevelContent: ContentListResponse[] = [];
 
