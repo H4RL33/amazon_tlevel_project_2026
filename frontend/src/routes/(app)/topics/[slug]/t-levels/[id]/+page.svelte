@@ -26,16 +26,22 @@
   import TLevelList from '$lib/components/TLevelList.svelte';
   import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 
-  let tLevel: TLevelResponse | null = null;
-  let topic: TopicDetailResponse | null = null;
+  // Scaffold: will be assigned in onMount once API is wired up.
+  // eslint-disable-next-line prefer-const
+  let tLevel = null as TLevelResponse | null;
+  // eslint-disable-next-line prefer-const
+  let topic = null as TopicDetailResponse | null;
   let tLevelContent: ContentListResponse[] = [];
 
   onMount(async () => {
     const { slug, id } = $page.params;
     // TODO: fetch tLevel, topic, and tLevelContent in parallel
+    void slug; void id;
   });
+
+  $: pageTitle = tLevel ? tLevel.name : 'T-Level';
 </script>
 
-<svelte:head><title>{tLevel?.name ?? 'T-Level'} — AWS Academy</title></svelte:head>
+<svelte:head><title>{pageTitle} — AWS Academy</title></svelte:head>
 
 <!-- TODO: Implement two-column layout with Breadcrumb, TLevelList (active), and T-level detail. -->
