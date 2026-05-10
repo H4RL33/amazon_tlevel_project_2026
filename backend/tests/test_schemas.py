@@ -1,13 +1,10 @@
 def test_schemas_importable():
-    from app.schemas.user import UserResponse, UserSyncRequest, UserTopicsRequest
-    from app.schemas.topic import TLevelResponse, TopicDetailResponse, TopicResponse
     from app.schemas.content import (
-        ContentDetailResponse,
-        ContentListResponse,
         ContentType,
-        TagResponse,
     )
-    from app.schemas.feed import ProgressResponse, ProgressUpdateRequest
+    from app.schemas.feed import ProgressUpdateRequest
+    from app.schemas.topic import TopicResponse
+    from app.schemas.user import UserResponse
 
     assert ContentType.article == "article"
     assert ContentType.video == "video"
