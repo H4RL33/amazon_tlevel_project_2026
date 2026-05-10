@@ -15,14 +15,14 @@
   import AppShell from '$lib/components/AppShell.svelte';
   import { listTopics } from '$lib/api/topics';
   import { getProgress } from '$lib/api/progress';
-  import { apiFetch, ApiError } from '$lib/api/client';
+  import { apiFetch, ApiError, TOKEN_KEY } from '$lib/api/client';
   import type { UserResponse } from '$lib/api/types';
   import { currentUser } from '$lib/stores/user';
   import { allTopics } from '$lib/stores/topics';
   import { continueReading } from '$lib/stores/progress';
 
   onMount(async () => {
-    if (!localStorage.getItem('id_token')) {
+    if (!localStorage.getItem(TOKEN_KEY)) {
       goto('/');
       return;
     }
@@ -37,7 +37,7 @@
       continueReading.set(progress);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
-        localStorage.removeItem('id_token');
+        localStorage.removeItem(TOKEN_KEY);
         goto('/');
       }
     }

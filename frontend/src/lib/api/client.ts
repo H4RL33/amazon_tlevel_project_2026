@@ -1,5 +1,7 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
+export const TOKEN_KEY = 'id_token';
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -12,7 +14,7 @@ export class ApiError extends Error {
 
 function getToken(): string | null {
   if (typeof localStorage === 'undefined') return null;
-  return localStorage.getItem('id_token');
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {

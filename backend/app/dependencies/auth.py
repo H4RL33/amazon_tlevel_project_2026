@@ -1,3 +1,4 @@
+import asyncio
 import time
 from typing import Annotated
 
@@ -18,18 +19,22 @@ bearer_scheme = HTTPBearer()
 _jwks_cache: dict = {}
 _jwks_fetched_at: float = 0.0
 _JWKS_TTL = 3600.0
+_jwks_lock = asyncio.Lock()
 
 
 async def _fetch_jwks() -> dict:
     global _jwks_cache, _jwks_fetched_at
-    now = time.monotonic()
-    if _jwks_cache and (now - _jwks_fetched_at) < _JWKS_TTL:
+    if _jwks_cache and (time.monotonic() - _jwks_fetched_at) < _JWKS_TTL:
         return _jwks_cache
-    async with httpx.AsyncClient() as http:
-        r = await http.get(get_settings().cognito_jwks_url)
-        r.raise_for_status()
-    _jwks_cache = r.json()
-    _jwks_fetched_at = now
+    async with _jwks_lock:
+        # Re-check after acquiring lock — another coroutine may have fetched already
+        if _jwks_cache and (time.monotonic() - _jwks_fetched_at) < _JWKS_TTL:
+            return _jwks_cache
+        async with httpx.AsyncClient() as http:
+            r = await http.get(get_settings().cognito_jwks_url)
+            r.raise_for_status()
+        _jwks_cache = r.json()
+        _jwks_fetched_at = time.monotonic()
     return _jwks_cache
 
 

@@ -23,16 +23,13 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
+  import { getCognitoLoginUrl } from '$lib/api/auth';
+  import { TOKEN_KEY } from '$lib/api/client';
 
-  const cognitoLoginUrl =
-    `${import.meta.env.VITE_COGNITO_DOMAIN}/oauth2/authorize` +
-    `?client_id=${import.meta.env.VITE_COGNITO_CLIENT_ID}` +
-    `&response_type=code` +
-    `&scope=openid+profile+email` +
-    `&redirect_uri=${encodeURIComponent(import.meta.env.VITE_COGNITO_REDIRECT_URI)}`;
+  const cognitoLoginUrl = getCognitoLoginUrl();
 
   onMount(() => {
-    if (localStorage.getItem('id_token')) goto('/dashboard');
+    if (localStorage.getItem(TOKEN_KEY)) goto('/dashboard');
   });
 </script>
 

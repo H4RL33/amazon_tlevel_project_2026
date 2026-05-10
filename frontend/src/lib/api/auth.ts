@@ -7,12 +7,22 @@
  * 3. Store id_token in localStorage as 'id_token'
  * 4. Call syncUser(firstName, lastName) to create/find the DB user
  */
-import { apiFetch } from './client';
+import { apiFetch, TOKEN_KEY } from './client';
 import type { UserResponse } from './types';
 
 const COGNITO_DOMAIN = import.meta.env.VITE_COGNITO_DOMAIN as string;
 const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID as string;
 const REDIRECT_URI = import.meta.env.VITE_COGNITO_REDIRECT_URI as string;
+
+export function getCognitoLoginUrl(): string {
+  return (
+    `${COGNITO_DOMAIN}/oauth2/authorize` +
+    `?client_id=${CLIENT_ID}` +
+    `&response_type=code` +
+    `&scope=openid+profile+email` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`
+  );
+}
 
 export interface TokenResponse {
   access_token: string;
@@ -41,7 +51,7 @@ export async function exchangeCode(code: string): Promise<TokenResponse> {
   });
   if (!response.ok) throw new Error(`Token exchange failed: ${response.statusText}`);
   const tokens: TokenResponse = await response.json();
-  localStorage.setItem('id_token', tokens.id_token);
+  localStorage.setItem(TOKEN_KEY, tokens.id_token);
   return tokens;
 }
 
@@ -58,6 +68,6 @@ export async function syncUser(firstName: string, lastName: string): Promise<Use
 
 /** Remove the stored token and redirect to the landing page. */
 export function signOut(): void {
-  localStorage.removeItem('id_token');
+  localStorage.removeItem(TOKEN_KEY);
   window.location.href = '/';
 }

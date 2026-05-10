@@ -1,10 +1,10 @@
 import { apiFetch } from './client';
-import type { ContentDetailResponse, ContentListResponse } from './types';
+import type { ContentDetailResponse, ContentListResponse, ContentType } from './types';
 
 export interface ContentFilters {
   topic?: string;
   t_level_id?: number;
-  content_type?: 'article' | 'audio' | 'video';
+  content_type?: ContentType;
   tag?: string;
 }
 

@@ -1,13 +1,10 @@
-import enum
 from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.models.content import ContentType
 
-class ContentType(str, enum.Enum):
-    article = "article"
-    audio = "audio"
-    video = "video"
+__all__ = ["ContentType", "TagResponse", "ContentListResponse", "ContentDetailResponse"]
 
 
 class TagResponse(BaseModel):
