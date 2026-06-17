@@ -35,4 +35,9 @@ describe('Components', () => {
     const mod = await import('$lib/components/NavLink.svelte');
     expect(mod.default).toBeDefined();
   });
+
+  it('Navbar exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/Navbar.svelte');
+    expect(mod.default).toBeDefined();
+  });
 });
