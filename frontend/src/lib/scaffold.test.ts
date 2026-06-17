@@ -29,3 +29,10 @@ describe('Stores', () => {
     expect(value).toHaveLength(0);
   });
 });
+
+describe('Components', () => {
+  it('NavLink exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/NavLink.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
