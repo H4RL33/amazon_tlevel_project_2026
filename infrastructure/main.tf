@@ -37,6 +37,7 @@ module "compute" {
   s3_policy_arn             = module.storage.s3_policy_arn
   backend_image             = "${module.registry.backend_repo_url}:${var.backend_image_tag}"
   frontend_image            = "${module.registry.frontend_repo_url}:${var.frontend_image_tag}"
+  # aws_db_instance.endpoint already includes port (e.g. host:5432) — do NOT append :${module.database.port}
   database_url              = "postgresql+asyncpg://exeaws26:${var.db_password}@${module.database.endpoint}/exeaws26"
   secret_key                = var.secret_key
   cognito_user_pool_id      = module.auth.user_pool_id
