@@ -25,3 +25,44 @@ resource "aws_iam_policy" "s3_content" {
     }]
   })
 }
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "content" {
+  bucket = aws_s3_bucket.content.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "content" {
+  bucket = aws_s3_bucket.content.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_policy" "content_https_only" {
+  bucket = aws_s3_bucket.content.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "DenyNonHTTPS"
+      Effect    = "Deny"
+      Principal = "*"
+      Action    = "s3:*"
+      Resource = [
+        aws_s3_bucket.content.arn,
+        "${aws_s3_bucket.content.arn}/*",
+      ]
+      Condition = {
+        Bool = {
+          "aws:SecureTransport" = "false"
+        }
+      }
+    }]
+  })
+}
