@@ -126,10 +126,19 @@ resource "aws_security_group" "ecs" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port       = 0
-    to_port         = 65535
+    from_port       = 3000
+    to_port         = 3000
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
+    description     = "Frontend (SvelteKit)"
+  }
+
+  ingress {
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+    description     = "Backend (FastAPI)"
   }
 
   egress {
