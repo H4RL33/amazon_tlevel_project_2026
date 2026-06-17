@@ -6,7 +6,7 @@ from app.routers import auth, content, feed, topics, users
 
 settings = get_settings()
 
-app = FastAPI(title="T-Level AWS Academy API", version="0.1.0")
+app = FastAPI(title="Amazon T-Level Project 2026 API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
