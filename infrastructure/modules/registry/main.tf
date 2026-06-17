@@ -1,15 +1,28 @@
 resource "aws_ecr_repository" "backend" {
   name                 = "exeaws26/backend"
   image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
   tags = { Name = "exeaws26-backend" }
 }
 
 resource "aws_ecr_repository" "frontend" {
   name                 = "exeaws26/frontend"
   image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
   tags = { Name = "exeaws26-frontend" }
 }
 
+# CI/CD must tag images with a "v" prefix (e.g. v1, v1.2.3).
+# Images tagged with other conventions (latest, branch names) are not retained by rule 1
+# and will be expired as untagged images after 1 day by rule 2.
 locals {
   lifecycle_policy = jsonencode({
     rules = [
