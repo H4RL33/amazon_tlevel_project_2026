@@ -23,4 +23,3 @@ class TopicResponse(BaseModel):
 
 class TopicDetailResponse(TopicResponse):
     t_levels: list[TLevelResponse]
-    model_config = {"from_attributes": True}

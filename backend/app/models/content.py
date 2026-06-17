@@ -34,13 +34,11 @@ class Content(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(255))
-    body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    body: Mapped[str | None] = mapped_column(Text)
     content_type: Mapped[ContentType] = mapped_column(Enum(ContentType))
-    media_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    media_url: Mapped[str | None] = mapped_column(String(500))
     topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id"), index=True)
-    t_level_id: Mapped[int | None] = mapped_column(
-        ForeignKey("t_levels.id"), nullable=True, index=True
-    )
+    t_level_id: Mapped[int | None] = mapped_column(ForeignKey("t_levels.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     topic: Mapped["Topic"] = relationship()

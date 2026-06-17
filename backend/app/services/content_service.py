@@ -27,6 +27,15 @@ async def get_content(db: AsyncSession, content_id: int) -> ContentDetailRespons
     raise NotImplementedError
 
 
+async def get_s3_key(db: AsyncSession, content_id: int) -> str:
+    """
+    Return the raw S3 key stored in content.media_url for the given content_id.
+    Raise HTTP 404 if not found. Raise HTTP 422 if media_url is null.
+    Used by the audio-url endpoint to avoid fetching the full content row.
+    """
+    raise NotImplementedError
+
+
 async def get_presigned_url(s3_key: str, expiry_seconds: int = 900) -> str:
     """
     Generate a pre-signed S3 URL for the given S3 key with the given TTL.

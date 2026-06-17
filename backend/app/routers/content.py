@@ -41,6 +41,6 @@ async def get_audio_url(
     content_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
-    item = await content_service.get_content(db, content_id)
-    url = await content_service.get_presigned_url(item.media_url or "")
+    s3_key = await content_service.get_s3_key(db, content_id)
+    url = await content_service.get_presigned_url(s3_key)
     return {"url": url}
