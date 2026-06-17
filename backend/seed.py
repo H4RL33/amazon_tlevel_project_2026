@@ -99,7 +99,8 @@ async def seed() -> None:
 
 async def _seed_topics(session: AsyncSession) -> None:
     for topic_data in TOPICS:
-        t_levels = topic_data.pop("t_levels")
+        t_levels = topic_data["t_levels"]
+        topic_params = {k: v for k, v in topic_data.items() if k != "t_levels"}
 
         await session.execute(
             text("""
@@ -107,7 +108,7 @@ async def _seed_topics(session: AsyncSession) -> None:
                 VALUES (:slug, :name, :description, :accent_colour)
                 ON CONFLICT (slug) DO NOTHING
             """),
-            topic_data,
+            topic_params,
         )
         await session.flush()
 
