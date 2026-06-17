@@ -189,6 +189,48 @@ SvelteKit's `VITE_*` variables are baked into the bundle at build time by Vite �
 
 Both services use the `LATEST` platform version and have deployment circuit breakers enabled (auto-rollback on failed deploy).
 
+**Auto-scaling** — both services register as Application Auto Scaling targets. Each gets a target-tracking policy on average CPU utilisation:
+
+| Service | Min tasks | Max tasks | Scale-out threshold |
+|---|---|---|---|
+| `backend` | 1 | 4 | 70% CPU |
+| `frontend` | 1 | 4 | 70% CPU |
+
+AWS manages the CloudWatch alarms automatically with target-tracking — no alarms are written manually. Scale-in has a 300-second cooldown to avoid thrashing.
+
+Resources per service: `aws_appautoscaling_target` + `aws_appautoscaling_policy`.
+
+---
+
+## Migrations & Seed Data
+
+Neither Alembic migrations nor seed data loading require new Terraform resources. Both run as **one-off ECS tasks** using the backend task definition with a command override, triggered from the CI deploy pipeline after `terraform apply` completes.
+
+**Prerequisites (backend codebase):**
+- `alembic` added to `pyproject.toml` dependencies
+- `alembic.ini` and `backend/migrations/` directory initialised (`alembic init`)
+- Migration versions generated from the existing SQLAlchemy models
+
+**Migration task** — runs `alembic upgrade head` against the production database:
+```
+aws ecs run-task \
+  --cluster exeaws26-prod \
+  --task-definition exeaws26-backend \
+  --launch-type FARGATE \
+  --network-configuration "..." \
+  --overrides '{"containerOverrides":[{"name":"backend","command":["poetry","run","alembic","upgrade","head"]}]}'
+```
+CI waits for the task to stop (`aws ecs wait tasks-stopped`) and checks the exit code before proceeding. A non-zero exit code fails the deploy.
+
+**Seed task** — runs `python seed.py` (or similar) using the same override pattern. Only triggered manually or on first deploy via a CI workflow input (`workflow_dispatch` with a `run_seed` boolean input). Idempotent seed logic is required — running it twice must not duplicate data.
+
+**Updated deploy sequence (after first infrastructure apply):**
+1. `terraform apply` — infrastructure up, ALB DNS known
+2. Build + push backend and frontend images to ECR
+3. `terraform apply` — ECS services updated with new image tags
+4. Run migration task — wait for exit 0
+5. (First deploy only) Run seed task — wait for exit 0
+
 ---
 
 ## Root Variables
@@ -243,8 +285,5 @@ Both jobs use `TF_API_TOKEN` (GitHub secret) to authenticate with Terraform Clou
 
 - HTTPS / ACM / Route 53 (no domain name; upgrade path documented above)
 - Multiple environments (staging, dev)
-- Alembic migrations (run manually or via a one-off ECS task after deploy)
 - CloudFront CDN
-- Auto-scaling ECS services
 - AWS Secrets Manager integration (env vars in task definition are sufficient for now)
-- Seed data loading automation
