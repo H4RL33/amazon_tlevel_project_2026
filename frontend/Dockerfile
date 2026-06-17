@@ -1,10 +1,32 @@
-FROM node:20-alpine
+# ── Build stage ───────────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci
 
-EXPOSE 5173
+COPY . .
 
-CMD ["npm", "run", "dev", "--", "--host"]
+# VITE_* vars are baked into the bundle at build time
+ARG VITE_API_BASE_URL
+ARG VITE_COGNITO_DOMAIN
+ARG VITE_COGNITO_CLIENT_ID
+ARG VITE_COGNITO_REDIRECT_URI
+
+RUN npm run build
+
+# ── Production stage ──────────────────────────────────────────────────────────
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./package.json
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+EXPOSE 3000
+
+CMD ["node", "build/index.js"]

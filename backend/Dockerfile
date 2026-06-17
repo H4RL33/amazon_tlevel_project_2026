@@ -4,9 +4,13 @@ WORKDIR /app
 
 RUN pip install poetry==1.8.5
 
-ENV POETRY_VENVS_IN_PROJECT=1
+ENV POETRY_VIRTUALENVS_IN_PROJECT=1
 
 COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root --no-interaction
+RUN poetry install --no-root --no-interaction --without dev
 
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+COPY . .
+
+EXPOSE 8000
+
+CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
