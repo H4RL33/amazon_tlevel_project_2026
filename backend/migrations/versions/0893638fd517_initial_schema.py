@@ -28,7 +28,6 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("accent_colour", sa.String(length=7), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("slug"),
     )
     op.create_index(op.f("ix_topics_slug"), "topics", ["slug"], unique=True)
 
@@ -51,7 +50,6 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("name"),
     )
     op.create_index(op.f("ix_tags_name"), "tags", ["name"], unique=True)
 
@@ -70,8 +68,6 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("cognito_sub"),
-        sa.UniqueConstraint("email"),
     )
     op.create_index(op.f("ix_users_id"), "users", ["id"], unique=False)
     op.create_index(op.f("ix_users_cognito_sub"), "users", ["cognito_sub"], unique=True)
@@ -135,7 +131,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("progress_pct", sa.Integer(), nullable=False),
+        sa.Column("progress_pct", sa.Integer(), server_default=sa.text("0"), nullable=False),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
         sa.ForeignKeyConstraint(["content_id"], ["content.id"]),
         sa.PrimaryKeyConstraint("user_id", "content_id"),
@@ -159,4 +155,4 @@ def downgrade() -> None:
     op.drop_table("t_levels")
     op.drop_index(op.f("ix_topics_slug"), table_name="topics")
     op.drop_table("topics")
-    sa.Enum(name="contenttype").drop(op.get_bind())
+    op.execute(sa.text("DROP TYPE contenttype"))
