@@ -38,12 +38,12 @@ resource "aws_iam_role_policy_attachment" "ecs_task_s3" {
 
 # ── CloudWatch Log Groups ─────────────────────────────────────────────────────
 resource "aws_cloudwatch_log_group" "backend" {
-  name              = "/ecs/exeaws26-backend"
+  name              = "/ecs/${var.env_name}-backend"
   retention_in_days = 30
 }
 
 resource "aws_cloudwatch_log_group" "frontend" {
-  name              = "/ecs/exeaws26-frontend"
+  name              = "/ecs/${var.env_name}-frontend"
   retention_in_days = 30
 }
 
@@ -55,7 +55,7 @@ resource "aws_ecs_cluster" "main" {
 
 # ── Backend Task Definition ───────────────────────────────────────────────────
 resource "aws_ecs_task_definition" "backend" {
-  family                   = "exeaws26-backend"
+  family                   = "${var.env_name}-backend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -74,10 +74,10 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "DATABASE_URL",          value = var.database_url },
       { name = "SECRET_KEY",            value = var.secret_key },
       { name = "ENVIRONMENT",           value = "production" },
-      { name = "COGNITO_REGION",        value = "eu-west-2" },
+      { name = "COGNITO_REGION",        value = var.aws_region },
       { name = "COGNITO_USER_POOL_ID",  value = var.cognito_user_pool_id },
       { name = "S3_BUCKET_NAME",        value = var.s3_bucket_name },
-      { name = "AWS_REGION",            value = "eu-west-2" },
+      { name = "AWS_REGION",            value = var.aws_region },
       { name = "ALLOWED_ORIGINS",       value = "http://${var.alb_dns_name}" },
     ]
 
@@ -85,7 +85,7 @@ resource "aws_ecs_task_definition" "backend" {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = aws_cloudwatch_log_group.backend.name
-        "awslogs-region"        = "eu-west-2"
+        "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "backend"
       }
     }
@@ -95,13 +95,13 @@ resource "aws_ecs_task_definition" "backend" {
 # ── Frontend Task Definition ──────────────────────────────────────────────────
 # VITE_* vars are baked into the image at build time — no runtime env vars here.
 resource "aws_ecs_task_definition" "frontend" {
-  family                   = "exeaws26-frontend"
+  family                   = "${var.env_name}-frontend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
-  task_role_arn            = aws_iam_role.ecs_task.arn
+  # No task_role_arn: frontend does not access S3 or any AWS service at runtime.
 
   container_definitions = jsonencode([{
     name      = "frontend"
@@ -114,7 +114,7 @@ resource "aws_ecs_task_definition" "frontend" {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = aws_cloudwatch_log_group.frontend.name
-        "awslogs-region"        = "eu-west-2"
+        "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "frontend"
       }
     }
