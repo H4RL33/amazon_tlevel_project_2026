@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models import Base
 
 
-class ContentType(str, enum.Enum):
+class ContentType(enum.StrEnum):
     article = "article"
     audio = "audio"
     video = "video"
