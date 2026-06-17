@@ -18,11 +18,7 @@
     h1-h3 color #fff, a color #1f6feb, code background #21262d, border-radius 3px, padding 0.1rem 0.3rem.
 -->
 <script lang="ts">
-  import { marked } from 'marked';
   import type { ContentDetailResponse } from '$lib/api/types';
-  import AudioPlayer from '$lib/components/AudioPlayer.svelte';
-  import VideoPlayer from '$lib/components/VideoPlayer.svelte';
-  import Card from '$lib/components/Card.svelte';
 
   export let content: ContentDetailResponse;
 </script>
