@@ -30,13 +30,15 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+        VITE_COGNITO_DOMAIN: ""
+        VITE_COGNITO_CLIENT_ID: ""
+        VITE_COGNITO_REDIRECT_URI: http://localhost:3000/auth/callback
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      # Preserve node_modules installed into the image layer.
-      - /app/node_modules
+      - "3000:3000"
     depends_on:
       - backend
 
