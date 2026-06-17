@@ -1,5 +1,6 @@
 resource "aws_cognito_user_pool" "main" {
-  name = "${var.env_name}-user-pool"
+  name                = "${var.env_name}-user-pool"
+  deletion_protection = "ACTIVE"
 
   username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
@@ -36,6 +37,6 @@ resource "aws_cognito_user_pool_client" "main" {
 }
 
 resource "aws_cognito_user_pool_domain" "main" {
-  domain       = "exeaws26"
+  domain       = "exeaws26-${var.env_name}"
   user_pool_id = aws_cognito_user_pool.main.id
 }
