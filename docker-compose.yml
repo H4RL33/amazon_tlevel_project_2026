@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount only source dirs so the Poetry .venv built into the image is preserved.
+      - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
+    env_file: ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      # Preserve node_modules installed into the image layer.
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

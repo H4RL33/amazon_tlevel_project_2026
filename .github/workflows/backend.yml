@@ -1,0 +1,75 @@
+name: Backend
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**']
+  pull_request:
+    paths: ['backend/**']
+
+concurrency:
+  group: backend-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  lint-autofix:
+    name: Lint & Autofix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Autofix — ruff check
+        run: ruff check --fix backend/ || true
+
+      - name: Autofix — ruff format
+        run: ruff format backend/ || true
+
+      - name: Commit autofixes (PRs only)
+        if: github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'style: autofix Python linting [skip ci]'
+          file_pattern: 'backend/**/*.py'
+
+      - name: Report remaining warnings
+        run: ruff check backend/ --output-format=github || true
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint-autofix
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: cd backend && poetry install --no-root --no-interaction
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
+          SECRET_KEY: test-secret-key-for-ci
+          ENVIRONMENT: testing
+          ALLOWED_ORIGINS: http://localhost:5173
+        run: cd backend && poetry run pytest tests/ -v --tb=short
