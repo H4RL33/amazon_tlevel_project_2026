@@ -13,7 +13,7 @@ Create `backend/.env` (if it doesn't already exist):
 
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/app
-SECRET_KEY=change-me-in-production
+SECRET_KEY=changeme
 ENVIRONMENT=development
 ALLOWED_ORIGINS=http://localhost:3000
 ```
@@ -21,7 +21,7 @@ ALLOWED_ORIGINS=http://localhost:3000
 ### 2. Start all services
 
 ```sh
-docker compose up --build
+docker compose up --build -d
 ```
 
 This starts:
@@ -53,4 +53,10 @@ docker compose exec backend poetry run python seed.py
 
 ```sh
 docker compose build --no-cache
+```
+
+### Stopping services
+
+```sh
+docker compose down
 ```
