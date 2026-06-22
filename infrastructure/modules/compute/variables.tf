@@ -24,12 +24,12 @@ variable "s3_policy_arn" {
 
 variable "backend_image" {
   type        = string
-  description = "Full ECR image URI including tag for backend"
+  description = "Full GHCR image URI including tag for backend"
 }
 
 variable "frontend_image" {
   type        = string
-  description = "Full ECR image URI including tag for frontend"
+  description = "Full GHCR image URI including tag for frontend"
 }
 
 variable "database_url" {
