@@ -1,7 +1,7 @@
 <!--
   ProgressBar
   Purpose: Thin horizontal bar showing reading or listening completion.
-  Used in: FeedItem, ContinueReading items, AudioPlayer, VideoPlayer.
+  Used in: AudioPlayer, VideoPlayer, AlbumCard, AlbumProgressWidget, EnrolledAlbumsList.
   Props:
     - pct (number): completion percentage, 0–100
   Styling:
