@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies.auth import get_current_user
 from app.schemas.content import ContentDetailResponse, ContentListResponse
 from app.services import content_service
 
-router = APIRouter(prefix="/content", tags=["content"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/content", tags=["content"])
 
 
 @router.get("/", response_model=list[ContentListResponse], summary="List content")
