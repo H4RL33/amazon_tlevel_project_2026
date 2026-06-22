@@ -26,7 +26,14 @@
   export let user: UserResponse | null;
   export let topics: TopicResponse[];
   export let activePath: string;
+
+
 </script>
+
+<a href="/dashboard">Dashboard</a>
+{#each topics as topic}
+  <a href="/topics/{topic.slug}">{topic.name}</a>
+{/each}
 
 <!-- TODO: Implement sidebar nav. Use <a href=...> links (SvelteKit handles client routing). -->
 <!-- Apply active class when activePath starts with the link's href. -->
