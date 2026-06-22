@@ -24,7 +24,6 @@ jobs:
     if: github.event.inputs.action == 'plan'
     permissions:
       contents: read
-      pull-requests: write
     env:
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
     steps:
