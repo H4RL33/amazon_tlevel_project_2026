@@ -1,7 +1,7 @@
 <!--
   Badge
   Purpose: Small pill label for content type or topic name.
-  Used in: FeedItem (content type), TopicCard (topic name), TLevelListItem (topic).
+  Used in: SnippetCard (content type), PostCard (category labels) — TODO: wire in as those stubs are implemented.
   Props:
     - label (string): text displayed inside the badge
     - colour (string | undefined): hex colour used for background at 20% opacity and text.

@@ -1,7 +1,7 @@
 <!--
   VideoPlayer
   Purpose: Plays video from a pre-signed S3 URL. Reports progress to the API.
-  Used in: ContentBlock (when content_type === 'video').
+  Used in: Snippet reading view (when content_type === 'video').
   Props:
     - contentId (number): the Content item's id
     - src (string): pre-signed S3 URL for the video file

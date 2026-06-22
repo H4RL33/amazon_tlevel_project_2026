@@ -1,7 +1,7 @@
 <!--
   AudioPlayer
   Purpose: Streams audio from a pre-signed S3 URL. Reports progress back to the API.
-  Used in: ContentBlock (when content_type === 'audio').
+  Used in: Snippet reading view (when content_type === 'audio').
   Props:
     - contentId (number): the Content item's id — used when calling updateProgress
     - src (string): pre-signed S3 URL for the audio file

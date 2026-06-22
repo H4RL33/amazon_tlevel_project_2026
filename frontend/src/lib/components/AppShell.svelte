@@ -9,12 +9,12 @@
     the content column scrolls independently.
   Styling:
     background #0d1117 (page background)
-    The sidebar column contains <Sidebar />; the content column contains <slot />.
+    The sidebar column contains <NavSidebar />; the content column contains <slot />.
 -->
 <script lang="ts">
-  import Sidebar from '$lib/components/Sidebar.svelte';
+  import NavSidebar from '$lib/components/NavSidebar.svelte';
   import { currentUser } from '$lib/stores/user';
   import { allTopics } from '$lib/stores/topics';
 </script>
 
-<!-- TODO: Implement two-column grid layout with Sidebar and <slot /> -->
+<!-- TODO: Implement two-column grid layout with NavSidebar and <slot /> -->

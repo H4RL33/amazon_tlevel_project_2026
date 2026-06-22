@@ -1,5 +1,5 @@
 <!--
-  Sidebar
+  NavSidebar
   Purpose: Persistent left navigation showing topic links, branding, user info, and settings.
   Used in: AppShell
   Props:
