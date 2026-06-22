@@ -1,11 +1,17 @@
 variable "backend_image_tag" {
   type        = string
-  description = "ECR image tag to deploy for the backend service"
+  description = "GHCR image tag to deploy for the backend service"
 }
 
 variable "frontend_image_tag" {
   type        = string
-  description = "ECR image tag to deploy for the frontend service"
+  description = "GHCR image tag to deploy for the frontend service"
+}
+
+variable "ghcr_namespace" {
+  type        = string
+  default     = "h4rl33/amazon_tlevel_project_2026"
+  description = "Lowercase '<owner>/<repo>' GHCR namespace images are pushed under (must match the lowercased github.repository the release workflows push to)"
 }
 
 variable "db_password" {

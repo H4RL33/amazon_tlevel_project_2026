@@ -3,16 +3,6 @@ output "alb_dns_name" {
   description = "Public DNS name of the ALB — used for Cognito callback URLs and frontend build args"
 }
 
-output "backend_ecr_url" {
-  value       = module.registry.backend_repo_url
-  description = "ECR repo URL for backend — used in CI docker push"
-}
-
-output "frontend_ecr_url" {
-  value       = module.registry.frontend_repo_url
-  description = "ECR repo URL for frontend — used in CI docker push"
-}
-
 output "cognito_user_pool_id" {
   value       = module.auth.user_pool_id
   description = "Cognito User Pool ID — for backend JWT validation"
