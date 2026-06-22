@@ -1,11 +1,15 @@
 name: Terraform
 
 on:
-  pull_request:
-    paths: ['infrastructure/**']
-  push:
-    branches: [main]
-    paths: ['infrastructure/**']
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to run'
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
 
 concurrency:
   group: terraform-${{ github.head_ref || github.ref_name }}
@@ -17,7 +21,7 @@ jobs:
   plan:
     name: Plan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event.inputs.action == 'plan'
     permissions:
       contents: read
       pull-requests: write
@@ -41,24 +45,13 @@ jobs:
         working-directory: infrastructure
         continue-on-error: true
 
-      - name: Post plan as PR comment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const output = `#### Terraform Plan \`${{ steps.plan.outcome }}\`
-            <details><summary>Show Plan</summary>
-
-            \`\`\`terraform
-            ${{ steps.plan.outputs.stdout }}
-            \`\`\`
-
-            </details>`;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
+      - name: Post plan to job summary
+        run: |
+          echo "#### Terraform Plan \`${{ steps.plan.outcome }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```terraform' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.plan.outputs.stdout }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail if plan failed
         if: steps.plan.outcome == 'failure'
@@ -67,7 +60,7 @@ jobs:
   apply:
     name: Apply
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event.inputs.action == 'apply'
     permissions:
       contents: read
     env:
