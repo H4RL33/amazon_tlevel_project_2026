@@ -29,4 +29,3 @@ class ContentListResponse(BaseModel):
 class ContentDetailResponse(ContentListResponse):
     body: str | None
     media_url: str | None  # Pre-signed S3 URL generated at request time; not stored in DB
-    model_config = {"from_attributes": True}

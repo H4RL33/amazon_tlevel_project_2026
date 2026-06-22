@@ -29,3 +29,20 @@ describe('Stores', () => {
     expect(value).toHaveLength(0);
   });
 });
+
+describe('Components', () => {
+  it('NavLink exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/NavLink.svelte');
+    expect(mod.default).toBeDefined();
+  });
+
+  it('Navbar exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/Navbar.svelte');
+    expect(mod.default).toBeDefined();
+  });
+
+  it('Footer exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/Footer.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});

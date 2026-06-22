@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ENVIRONMENT: str = "development"
     ALLOWED_ORIGINS: str = "http://localhost:5173"
+    COGNITO_REGION: str = "eu-west-2"
+    COGNITO_USER_POOL_ID: str = ""
+    S3_BUCKET_NAME: str = ""
+    AWS_REGION: str = "eu-west-2"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
