@@ -37,19 +37,32 @@ Relationship: `t_level` (one), `sides` (`list["Side"]`, ordered by `Side.positio
 | `title` | `String(200)` | |
 | `position` | `Integer` | Ordering within the Album. |
 
-Relationship: `album` (back-populates `sides`), `contents`
-(`list["Content"]`, ordered by `Content.position`).
+Relationship: `album` (back-populates `sides`), `side_contents`
+(`list["SideContent"]`, ordered by `SideContent.position`).
+
+### `SideContent` (`app/models/album.py`)
+
+A Snippet can be reused across multiple Albums (e.g. a shared intro video), but within
+any single Album it belongs to exactly one Side. That rules out a direct `side_id`
+column on `Content` (which would cap a Snippet at one Side *ever*) — instead, a join
+table:
+
+| Column | Type | Notes |
+|---|---|---|
+| `side_id` | FK → `sides.id`, part of composite PK | |
+| `content_id` | FK → `content.id`, part of composite PK | |
+| `position` | `Integer` | Ordering within this Side. Belongs to the join row, not to `Content`, since the same Snippet can have a different position in a different Side. |
+
+The "one Side per Album" rule isn't expressible as a simple DB constraint (it spans
+the join through `Side.album_id`), so it's enforced in `album_service` at write time:
+adding a Snippet to a Side first removes any existing `SideContent` row for that
+`content_id` whose `Side.album_id` matches — i.e. moving a Snippet to a different Side
+within the same Album is a move, not an addition.
 
 ### `Content` changes (`app/models/content.py`)
 
-Add two nullable columns:
-
-- `side_id: Mapped[int | None]` — FK → `sides.id`, indexed. Nullable because existing
-  seeded Snippets aren't assigned to a Side yet.
-- `position: Mapped[int | None]` — ordering within the Side.
-
-A Snippet belongs to **at most one** Side (no join table — matches how Snippets are
-authored today: written for one place).
+None. `Content` gains a `side_contents: Mapped[list["SideContent"]]` relationship but
+no new columns — Side/position membership lives entirely on `SideContent`.
 
 ### `AlbumEnrolment` (`app/models/album.py`)
 
@@ -60,12 +73,12 @@ authored today: written for one place).
 | `enrolled_at` | `DateTime`, `server_default=func.now()` | |
 
 No status or progress columns. Progress and completion are derived at read time by
-joining `Side → Content → UserContentProgress` and counting completed vs. total
+joining `Side → SideContent → UserContentProgress` and counting completed vs. total
 Snippets in the Album — no denormalised state to keep in sync.
 
 ### Migration
 
-One Alembic migration: `add album, side, album_enrolment tables; add content.side_id, content.position`.
+One Alembic migration: `add album, side, side_content, album_enrolment tables`.
 
 ## API
 
@@ -99,10 +112,14 @@ Fix: remove the router-level dependency.
 ## Service layer
 
 `app/services/album_service.py` — real SQLAlchemy implementation (not stubs), using
-`selectinload` to eager-load `Album.sides` and `Side.contents` for the detail route to
-avoid N+1 queries. Progress is computed by a single aggregate query joining
-`UserContentProgress` against the Album's Content IDs, rather than per-Snippet
-round trips.
+`selectinload` to eager-load `Album.sides` and `Side.side_contents` (plus
+`SideContent.content`) for the detail route to avoid N+1 queries. Progress is
+computed by a single aggregate query joining `UserContentProgress` against the
+Album's Content IDs (gathered via `SideContent`), rather than per-Snippet round trips.
+
+`add_content_to_side(db, side_id, content_id, position)` enforces the one-Side-per-
+Album rule described above: before inserting, it deletes any existing `SideContent`
+row for that `content_id` whose `Side.album_id` matches the target Side's Album.
 
 ## CI fix: Postgres service container
 
@@ -129,6 +146,10 @@ Coverage:
 - Enrol/un-enrol: idempotency (enrolling twice doesn't error or duplicate the row).
 - Anonymous `GET /albums/{id}` succeeds and omits `enrolled`/progress fields.
 - `content.py` Snippet routes are reachable without auth (regression test for the bug fix).
+- A Snippet can belong to Sides in two different Albums simultaneously.
+- Adding a Snippet already in one Side of an Album to a different Side of the *same*
+  Album moves it (one `SideContent` row for that pair afterwards), rather than leaving
+  it in both.
 
 ## Out of scope (deferred to later chapters)
 
