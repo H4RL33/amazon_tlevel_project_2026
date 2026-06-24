@@ -144,3 +144,27 @@ async def unenrol(db: AsyncSession, album_id: int, user: User) -> None:
         )
     )
     await db.commit()
+
+
+async def add_content_to_side(
+    db: AsyncSession,
+    side_id: int,
+    content_id: int,
+    position: int,
+) -> None:
+    side = (await db.execute(select(Side).where(Side.id == side_id))).scalar_one_or_none()
+    if side is None:
+        raise HTTPException(status_code=404, detail="Side not found")
+
+    sibling_side_ids = (
+        (await db.execute(select(Side.id).where(Side.album_id == side.album_id))).scalars().all()
+    )
+
+    await db.execute(
+        delete(SideContent).where(
+            SideContent.content_id == content_id,
+            SideContent.side_id.in_(sibling_side_ids),
+        )
+    )
+    db.add(SideContent(side_id=side_id, content_id=content_id, position=position))
+    await db.commit()

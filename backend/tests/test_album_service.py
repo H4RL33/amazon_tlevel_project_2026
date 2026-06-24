@@ -225,3 +225,81 @@ async def test_unenrol_when_not_enrolled_is_idempotent(db_session: AsyncSession)
     await db_session.commit()
 
     await album_service.unenrol(db_session, album.id, user)  # should not raise
+
+
+async def test_add_content_to_side_creates_membership(db_session: AsyncSession) -> None:
+    t_level = await _make_topic_and_t_level(db_session)
+    album = Album(t_level_id=t_level.id, title="Cloud Computing", description="...", icon="cloud")
+    db_session.add(album)
+    await db_session.flush()
+    side = Side(album_id=album.id, title="Side A", position=0)
+    db_session.add(side)
+    await db_session.flush()
+    content = Content(title="Intro", content_type=ContentType.article, topic_id=t_level.topic_id)
+    db_session.add(content)
+    await db_session.commit()
+
+    await album_service.add_content_to_side(db_session, side.id, content.id, position=0)
+
+    membership = (
+        await db_session.execute(
+            select(SideContent).where(
+                SideContent.side_id == side.id, SideContent.content_id == content.id
+            )
+        )
+    ).scalar_one_or_none()
+    assert membership is not None
+
+
+async def test_add_content_to_side_can_reuse_snippet_across_albums(
+    db_session: AsyncSession,
+) -> None:
+    t_level = await _make_topic_and_t_level(db_session)
+    content = Content(
+        title="Shared intro", content_type=ContentType.video, topic_id=t_level.topic_id
+    )
+    db_session.add(content)
+    await db_session.flush()
+
+    album_1 = Album(t_level_id=t_level.id, title="Album 1", description="...", icon="a")
+    album_2 = Album(t_level_id=t_level.id, title="Album 2", description="...", icon="b")
+    db_session.add_all([album_1, album_2])
+    await db_session.flush()
+    side_1 = Side(album_id=album_1.id, title="Side A", position=0)
+    side_2 = Side(album_id=album_2.id, title="Side A", position=0)
+    db_session.add_all([side_1, side_2])
+    await db_session.commit()
+
+    await album_service.add_content_to_side(db_session, side_1.id, content.id, position=0)
+    await album_service.add_content_to_side(db_session, side_2.id, content.id, position=0)
+
+    count = (
+        await db_session.execute(select(func.count()).where(SideContent.content_id == content.id))
+    ).scalar_one()
+    assert count == 2
+
+
+async def test_add_content_to_side_moves_within_same_album(db_session: AsyncSession) -> None:
+    t_level = await _make_topic_and_t_level(db_session)
+    album = Album(t_level_id=t_level.id, title="Cloud Computing", description="...", icon="cloud")
+    db_session.add(album)
+    await db_session.flush()
+    side_a = Side(album_id=album.id, title="Side A", position=0)
+    side_b = Side(album_id=album.id, title="Side B", position=1)
+    db_session.add_all([side_a, side_b])
+    await db_session.flush()
+    content = Content(title="Intro", content_type=ContentType.article, topic_id=t_level.topic_id)
+    db_session.add(content)
+    await db_session.commit()
+
+    await album_service.add_content_to_side(db_session, side_a.id, content.id, position=0)
+    await album_service.add_content_to_side(db_session, side_b.id, content.id, position=0)
+
+    count = (
+        await db_session.execute(select(func.count()).where(SideContent.content_id == content.id))
+    ).scalar_one()
+    assert count == 1
+    membership = (
+        await db_session.execute(select(SideContent).where(SideContent.content_id == content.id))
+    ).scalar_one()
+    assert membership.side_id == side_b.id
