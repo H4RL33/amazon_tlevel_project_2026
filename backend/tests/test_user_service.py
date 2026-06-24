@@ -142,7 +142,21 @@ async def test_set_avatar_persists_the_key_and_returns_user_response(
     await db_session.commit()
     await db_session.refresh(user)
 
-    response = await user_service.set_avatar(db_session, user, "avatars/1/photo.jpg")
+    key = f"avatars/{user.id}/photo.jpg"
+    response = await user_service.set_avatar(db_session, user, key)
 
-    assert user.avatar_s3_key == "avatars/1/photo.jpg"
+    assert user.avatar_s3_key == key
     assert response.id == user.id
+
+
+async def test_set_avatar_rejects_a_key_outside_the_users_own_prefix(db_session: AsyncSession) -> None:
+    from fastapi import HTTPException
+
+    user = User(cognito_sub="sub-avatar-2", email="avatar2@example.com", first_name="A", last_name="B")
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await user_service.set_avatar(db_session, user, f"avatars/{user.id + 1}/photo.jpg")
+    assert exc_info.value.status_code == 403

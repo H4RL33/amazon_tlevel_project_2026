@@ -125,6 +125,9 @@ def create_avatar_upload_url(
 
 async def set_avatar(db: AsyncSession, current_user: User, avatar_s3_key: str) -> UserResponse:
     """Persist the given S3 key as the current user's avatar and return the updated profile."""
+    if not avatar_s3_key.startswith(f"avatars/{current_user.id}/"):
+        raise HTTPException(status_code=403, detail="avatar_s3_key must belong to the current user")
+
     current_user.avatar_s3_key = avatar_s3_key
     await db.commit()
     await db.refresh(current_user)
