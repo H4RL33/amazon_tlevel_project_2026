@@ -13,12 +13,18 @@ real implementation. `auth_service`, `content_service`, `feed_service`,
 (Post/Like/Save) and the Dynamic Mentor (Bedrock) have no code at all yet — not even
 stubs.
 
-This document sequences the remaining backend work into six components. It is a
+This document sequences the remaining backend work into seven components. It is a
 roadmap, not an implementation plan: each component below gets its own
 brainstorming → design spec → implementation plan → subagent-driven-implementation
 cycle when its turn comes, the same process used for Album/Side. This doc exists so
 that sequencing and cross-component dependencies are decided once, up front, rather
 than re-litigated at the start of each chapter.
+
+> **2026-06-24 update:** Added Component 5, Gamification/XP, surfaced while planning
+> the frontend Dashboard page (see
+> [`2026-06-24-frontend-masterplan.md`](2026-06-24-frontend-masterplan.md)) — the
+> Dashboard needs XP/stats data that nothing in the backend currently produces. The
+> Forum and Dynamic Mentor shift from 5/6 to 6/7 accordingly.
 
 ## Components
 
@@ -70,7 +76,24 @@ Real implementation of `feed_service` (`get_feed`, `get_progress`, `upsert_progr
 **Depends on:** Auth (all three routes require a real user), Content Browsing (the
 feed surfaces `Content` rows).
 
-### 5. The Forum
+### 5. Gamification/XP
+
+CLAUDE.md describes the platform as gamified ("rewarded for how many chunks they
+consume"), and the frontend already has `XPBadge`/`MentorBadge`/`ProgressBar` stub
+components and a Dashboard page intended to show XP-over-time, Albums-enrolled count,
+and Snippets-read count — but nothing in the backend currently models or computes XP.
+This component adds whatever's needed to make those real: most likely XP awarded on
+Snippet completion and/or Album completion (derived from existing
+`UserContentProgress`/`AlbumEnrolment` data rather than a new mutable "current XP"
+column, to avoid denormalised state going stale — consistent with how Album progress
+was computed in the Album/Side chapter), plus a stats endpoint the Dashboard can call.
+Exact XP rules (how much per Snippet, bonuses for Album completion, etc.) are a design
+question for this component's own brainstorming, not decided here.
+
+**Depends on:** Auth, Feed & Progress (XP/stats are derived from progress and
+enrolment data, so this component is naturally sequenced right after it).
+
+### 6. The Forum
 
 New models (`Post`, `Like`, `Save` — no comments, per CLAUDE.md's explicit
 "no comments feature" constraint), a new router, and a new service. Age-gated:
@@ -81,7 +104,7 @@ nice-to-have — sequenced after the core Library-facing components, not before.
 **Depends on:** Auth (age tier drives the gating rules), Content Browsing (posts may
 reference/share Snippets — to be confirmed during that component's own design).
 
-### 6. Dynamic Mentor (Bedrock)
+### 7. Dynamic Mentor (Bedrock)
 
 New chat backend: conversation history persistence, Amazon Bedrock Knowledge
 Base/RAG integration, Socratic-framework prompting. Per CLAUDE.md, student telemetry
@@ -99,11 +122,15 @@ Auth is first because every other component's auth boundary depends on it being 
 not stubbed — building Profiles, Feed, or the Forum against a stub risks rework once
 real JWT validation and age-tier derivation land. Content Browsing comes next because
 it's the most self-contained remaining piece and Feed/Forum both read from it. Feed
-comes before the Forum because it's required MVP scope (item 2) while the Forum is
-explicitly a nice-to-have (item 3). The Dynamic Mentor is last both because it's
-scope item 4 in CLAUDE.md and because it's the most architecturally novel piece
-(Bedrock integration, RAG, consent handling) — better attempted once the rest of the
-auth/data patterns are settled.
+comes before Gamification/XP because XP/stats are computed from progress and
+enrolment data that Feed & Progress establishes. The Forum stays after Gamification
+because it's required MVP scope item 2 (Content/Feed/Profiles) and explicitly-scoped
+item 3 (Forum) ordering from CLAUDE.md, and because Gamification is needed to unblock
+the frontend Dashboard chapter, which is more immediately useful than the
+nice-to-have Forum. The Dynamic Mentor is last both because it's scope item 4 in
+CLAUDE.md and because it's the most architecturally novel piece (Bedrock integration,
+RAG, consent handling) — better attempted once the rest of the auth/data patterns are
+settled.
 
 ## Cross-cutting process notes
 
