@@ -10,35 +10,38 @@
   Layout:
     Topic links -> /topics/[slug] for each topic.
   Styling:
-    background #0a2540, full height, width 240px, padding 1rem 0.75rem,
-    text-primary #c9d1d9, text-muted #8b949e, font-size 0.875rem
-    Active link: bold, accent_colour left border, background rgba(31,111,235,0.1)
+    Floating white PageCard (aside), 288px wide, full height of its row, sticky inner
+    nav content -- same treatment as AlbumSidebar.
 -->
 <script lang="ts">
   import type { TopicResponse } from '$lib/api/types';
+  import PageCard from '$lib/components/PageCard.svelte';
 
   export let topics: TopicResponse[];
   export let activePath: string;
 </script>
 
-<nav class="sidebar">
-  {#each topics as topic}
-    <a href={`/topics/${topic.slug}`} class:active={activePath.startsWith(`/topics/${topic.slug}`)}>
-      {topic.name}
-    </a>
-  {/each}
-</nav>
+<PageCard as="aside" width="288px" padding="1.5rem 1rem">
+  <nav class="sidebar">
+    {#each topics as topic}
+      <a
+        href={`/topics/${topic.slug}`}
+        class:active={activePath.startsWith(`/topics/${topic.slug}`)}
+      >
+        {topic.name}
+      </a>
+    {/each}
+  </nav>
+</PageCard>
 
 <style>
   .sidebar {
-    background: #0a2540;
-    height: 100%;
-    width: 240px;
-    padding: 1rem 0.75rem;
+    position: sticky;
+    top: var(--gap-inner);
   }
 
   a {
-    color: #c9d1d9;
+    color: #232f3e;
     text-decoration: none;
     font-size: 0.875rem;
     padding: 0.5rem 0;
@@ -47,7 +50,7 @@
 
   a:hover,
   a.active {
-    background-color: rgba(31, 111, 235, 0.1);
+    background-color: rgba(31, 111, 235, 0.08);
     border-left: 3px solid #1f6ffb;
     font-weight: bold;
   }
