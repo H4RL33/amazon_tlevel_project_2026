@@ -30,7 +30,7 @@
 </script>
 
 <a class="album-card" href={`/learn/${album.id}`}>
-  <div class="icon">{icon}</div>
+  <div class="icon" aria-hidden="true">{icon}</div>
   <div class="info">
     <h3>{album.title}</h3>
     <p>{album.description}</p>
