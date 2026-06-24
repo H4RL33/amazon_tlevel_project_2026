@@ -8,7 +8,8 @@
   Behaviour:
     If albums is empty, show an empty state: "No Albums available yet."
   Styling:
-    CSS grid, responsive columns (e.g. repeat(auto-fill, minmax(280px, 1fr))), gap 1rem.
+    Flex-wrap row of square AlbumCard tiles, gap matches the global --gap-inner spacing
+    token used everywhere else in this layout.
 -->
 <script lang="ts">
   import AlbumCard from './AlbumCard.svelte';
@@ -31,8 +32,8 @@
 
 <style>
   .album-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-inner);
   }
 </style>
