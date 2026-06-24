@@ -12,12 +12,19 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(init.headers as Record<string, string>),
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...init.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {

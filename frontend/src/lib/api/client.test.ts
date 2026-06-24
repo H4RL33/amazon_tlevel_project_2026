@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { apiFetch, ApiError } from './client';
+import { apiFetch, ApiError, TOKEN_KEY } from './client';
 
 describe('apiFetch', () => {
   afterEach(() => {
@@ -38,5 +38,33 @@ describe('apiFetch', () => {
     expect(err).toBeInstanceOf(Error);
     expect(err.name).toBe('ApiError');
     expect(err.status).toBe(500);
+  });
+});
+
+describe('apiFetch auth header', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
+
+  it('attaches an Authorization header when a token is stored', async () => {
+    localStorage.setItem(TOKEN_KEY, 'stored-token');
+    const mockFetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    await apiFetch('/users/me');
+
+    const [, init] = mockFetch.mock.calls[0];
+    expect(init.headers.Authorization).toBe('Bearer stored-token');
+  });
+
+  it('omits the Authorization header when no token is stored', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    await apiFetch('/topics/');
+
+    const [, init] = mockFetch.mock.calls[0];
+    expect(init.headers.Authorization).toBeUndefined();
   });
 });
