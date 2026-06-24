@@ -15,4 +15,35 @@
   export let index: number;
 </script>
 
-<!-- TODO: Implement "SIDE {index}" label + title + divider line. -->
+<div class="side-header">
+  <span class="label">SIDE {index}</span>
+  <h4>{title}</h4>
+  <hr />
+</div>
+
+<style>
+  .side-header {
+    margin: 1rem 0 0.5rem;
+  }
+
+  .label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: #8b949e;
+    text-transform: uppercase;
+  }
+
+  h4 {
+    margin: 0.25rem 0 0.5rem;
+    color: #c9d1d9;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #21262d;
+    margin: 0;
+  }
+</style>

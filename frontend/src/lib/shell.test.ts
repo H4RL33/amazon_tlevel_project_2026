@@ -55,3 +55,10 @@ describe('AlbumGrid', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('SideHeader', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/SideHeader.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
