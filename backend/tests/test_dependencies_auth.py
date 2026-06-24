@@ -1,7 +1,8 @@
 import time
 
 import pytest
-from jose.utils import base64url_decode, long_to_base64
+from jose.exceptions import JOSEError
+from jose.utils import long_to_base64
 from cryptography.hazmat.primitives.asymmetric import rsa
 from jose import jwt as jose_jwt
 
@@ -79,19 +80,19 @@ async def test_decode_id_token_returns_claims_for_a_valid_token(rsa_key_pair):
 
 async def test_decode_id_token_rejects_expired_token(rsa_key_pair):
     token = _make_token(rsa_key_pair, exp_offset=-3600)
-    with pytest.raises(Exception):
+    with pytest.raises(JOSEError):
         decode_id_token(token)
 
 
 async def test_decode_id_token_rejects_wrong_audience(rsa_key_pair):
     token = _make_token(rsa_key_pair, audience="someone-else")
-    with pytest.raises(Exception):
+    with pytest.raises(JOSEError):
         decode_id_token(token)
 
 
 async def test_decode_id_token_rejects_wrong_issuer(rsa_key_pair):
     token = _make_token(rsa_key_pair, issuer="https://evil.example.com/pool")
-    with pytest.raises(Exception):
+    with pytest.raises(JOSEError):
         decode_id_token(token)
 
 
