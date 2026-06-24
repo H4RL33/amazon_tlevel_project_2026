@@ -69,3 +69,10 @@ describe('AlbumSidebar', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('/learn page', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('../routes/learn/+page.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
