@@ -9,7 +9,7 @@
   a {
     position: relative;
     display: inline-block;
-    color: #ffffff;
+    color: #232f3e;
     text-decoration: none;
     font-family: 'Ubuntu', sans-serif;
   }
