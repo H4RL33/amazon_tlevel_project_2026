@@ -45,7 +45,6 @@
     height: 100%;
     width: 240px;
     padding: 1rem 0.75rem;
-    box-sizing: border-box;
   }
 
   ul {
