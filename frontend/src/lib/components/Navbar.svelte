@@ -3,6 +3,12 @@
   import NavBarAvatar from '$lib/components/NavBarAvatar.svelte';
   import PageCard from '$lib/components/PageCard.svelte';
   import { currentUser } from '$lib/stores/user';
+  import { getCognitoLoginUrl } from '$lib/api/auth';
+
+  async function handleLoginClick(event: MouseEvent) {
+    event.preventDefault();
+    window.location.href = await getCognitoLoginUrl();
+  }
 </script>
 
 <PageCard as="nav" padding="0 1.5rem">
@@ -19,7 +25,7 @@
       {#if $currentUser}
         <NavBarAvatar user={$currentUser} />
       {:else}
-        <NavLink href="/login" label="Log in" />
+        <a href="/login" class="login-link" on:click={handleLoginClick}>Log in</a>
       {/if}
     </div>
   </div>
@@ -50,5 +56,11 @@
     gap: 1.5rem;
     align-items: center;
     overflow: visible;
+  }
+
+  .login-link {
+    color: #232f3e;
+    text-decoration: none;
+    font-family: 'Ubuntu', sans-serif;
   }
 </style>
