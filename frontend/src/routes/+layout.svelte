@@ -4,22 +4,44 @@
   import Footer from '$lib/components/Footer.svelte';
   import { getPagePalette } from '$lib/gradient';
 
-  $: palette = getPagePalette($page.url.pathname);
+  type Layer = { palette: [string, string, string]; visible: boolean };
+
+  const initialPalette = getPagePalette($page.url.pathname);
+  let layers: [Layer, Layer] = [
+    { palette: initialPalette, visible: true },
+    { palette: initialPalette, visible: false },
+  ];
+  let activeIndex = 0;
+
+  $: {
+    const next = getPagePalette($page.url.pathname);
+    if (next.join('|') !== layers[activeIndex].palette.join('|')) {
+      const inactiveIndex = activeIndex === 0 ? 1 : 0;
+      layers[inactiveIndex] = { palette: next, visible: true };
+      layers[activeIndex] = { ...layers[activeIndex], visible: false };
+      activeIndex = inactiveIndex;
+      layers = layers;
+    }
+  }
 </script>
 
 <div class="backdrop" aria-hidden="true">
-  <div
-    class="blob blob-a"
-    style="background: radial-gradient(circle, {palette[0]}, transparent 70%);"
-  ></div>
-  <div
-    class="blob blob-b"
-    style="background: radial-gradient(circle, {palette[1]}, transparent 70%);"
-  ></div>
-  <div
-    class="blob blob-c"
-    style="background: radial-gradient(circle, {palette[2]}, transparent 70%);"
-  ></div>
+  {#each layers as layer, i (i)}
+    <div class="layer" class:visible={layer.visible}>
+      <div
+        class="blob blob-a"
+        style="background: radial-gradient(circle, {layer.palette[0]}, transparent 70%);"
+      ></div>
+      <div
+        class="blob blob-b"
+        style="background: radial-gradient(circle, {layer.palette[1]}, transparent 70%);"
+      ></div>
+      <div
+        class="blob blob-c"
+        style="background: radial-gradient(circle, {layer.palette[2]}, transparent 70%);"
+      ></div>
+    </div>
+  {/each}
 </div>
 
 <div class="shell">
@@ -57,6 +79,17 @@
     z-index: -1;
     overflow: hidden;
     background: #f5f5f0;
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+
+  .layer.visible {
+    opacity: 1;
   }
 
   .blob {
@@ -119,6 +152,10 @@
   @media (prefers-reduced-motion: reduce) {
     .blob {
       animation: none;
+    }
+
+    .layer {
+      transition: none;
     }
   }
 

@@ -54,7 +54,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #a35200;
+    color: #000000;
   }
 
   .column-links {

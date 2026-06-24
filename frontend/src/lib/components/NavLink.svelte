@@ -21,8 +21,8 @@
     bottom: -0.3em;
     width: 100%;
     height: 0.15em;
-    border-radius: 9999px;
-    background: linear-gradient(to right, #ff9900, #ffd700);
+    border-radius: 0;
+    background: #000000;
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.3s ease-in-out;
