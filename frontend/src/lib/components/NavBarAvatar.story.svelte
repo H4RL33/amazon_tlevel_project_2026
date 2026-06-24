@@ -1,8 +1,7 @@
 <script lang="ts">
   import type { Hst } from '@histoire/plugin-svelte';
   import type { UserResponse } from '$lib/api/types';
-  import Navbar from './Navbar.svelte';
-  import { currentUser } from '$lib/stores/user';
+  import NavBarAvatar from './NavBarAvatar.svelte';
 
   export let Hst: Hst;
 
@@ -14,12 +13,12 @@
     last_name: 'Smith',
     created_at: new Date().toISOString(),
   };
-
-  currentUser.set(user);
 </script>
 
-<Hst.Story title="Navbar">
-  <Hst.Variant title="Logged in">
-    <Navbar />
+<Hst.Story title="NavBarAvatar">
+  <Hst.Variant title="Default">
+    <div style="background: #232f3e; padding: 1rem; display: flex; justify-content: flex-end;">
+      <NavBarAvatar {user} />
+    </div>
   </Hst.Variant>
 </Hst.Story>
