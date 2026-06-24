@@ -41,3 +41,10 @@ describe('/login page', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('AlbumCard', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/AlbumCard.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
