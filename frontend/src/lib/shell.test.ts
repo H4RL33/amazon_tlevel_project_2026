@@ -48,3 +48,10 @@ describe('AlbumCard', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('AlbumGrid', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/AlbumGrid.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});

@@ -12,18 +12,10 @@
     CSS grid, responsive columns (e.g. repeat(auto-fill, minmax(280px, 1fr))), gap 1rem.
 -->
 <script lang="ts">
-  /* Changes */
   import AlbumCard from './AlbumCard.svelte';
-  // Album card data 
-  interface Album {
-    id: number;
-    title: string;
-    tagline: string;
-    iconUrl: string;
-    snippetCount: number;
-  }
- // Album card data 
-  export let albums: Album[];
+  import type { AlbumListResponse } from '$lib/api/types';
+
+  export let albums: AlbumListResponse[];
 </script>
 
 {#if albums.length === 0}
@@ -45,6 +37,3 @@
     gap: 1rem;
   }
 </style>
-<!-- Changes -->
-
-<!-- TODO: Render an AlbumCard per album. Show the empty state when albums.length === 0. -->
