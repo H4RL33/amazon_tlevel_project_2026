@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "prepare": "svelte-kit sync || echo ''",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
@@ -10,10 +11,13 @@
     "test": "npm run test:unit",
     "test:unit": "vitest",
     "lint": "prettier --check . && eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "story:dev": "histoire dev",
+    "story:build": "histoire build",
+    "story:preview": "histoire preview"
   },
-  "dependencies": {},
   "devDependencies": {
+    "@histoire/plugin-svelte": "^0.17.17",
     "@sveltejs/adapter-node": "^5.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^3.0.0",
@@ -22,6 +26,7 @@
     "eslint": "^9.0.0",
     "eslint-plugin-svelte": "^2.0.0",
     "globals": "^15.0.0",
+    "histoire": "^0.17.17",
     "prettier": "^3.0.0",
     "prettier-plugin-svelte": "^3.0.0",
     "svelte": "^4.0.0",
