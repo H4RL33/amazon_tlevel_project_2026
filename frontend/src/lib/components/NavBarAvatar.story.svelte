@@ -11,6 +11,7 @@
     email: 'jordan@example.com',
     first_name: 'Jordan',
     last_name: 'Smith',
+    avatar_url: null,
     created_at: new Date().toISOString(),
   };
 </script>

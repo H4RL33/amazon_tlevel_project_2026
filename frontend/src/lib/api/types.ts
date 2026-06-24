@@ -4,6 +4,7 @@ export interface UserResponse {
   email: string;
   first_name: string;
   last_name: string;
+  avatar_url: string | null;
   created_at: string;
 }
 
