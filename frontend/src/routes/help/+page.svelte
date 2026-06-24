@@ -1,16 +1,18 @@
 <script lang="ts">
   import HelpPanel from '$lib/components/HelpPanel.svelte';
+  import PageCard from '$lib/components/PageCard.svelte';
 </script>
 
-<main>
-  <h1>Help</h1>
-  <HelpPanel />
-</main>
+<PageCard as="main">
+  <div class="content">
+    <h1>Help</h1>
+    <HelpPanel />
+  </div>
+</PageCard>
 
 <style>
-  main {
+  .content {
     max-width: 900px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+    margin: 0 auto;
   }
 </style>

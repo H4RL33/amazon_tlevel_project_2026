@@ -1,17 +1,22 @@
-<main>
-  <h1>Sign in</h1>
-  <p>
-    Sign-in is coming soon. In the meantime, you can keep browsing Snippets, Albums, and Topics
-    without an account.
-  </p>
-  <a href="/">Back to Home</a>
-</main>
+<script lang="ts">
+  import PageCard from '$lib/components/PageCard.svelte';
+</script>
+
+<PageCard as="main">
+  <div class="content">
+    <h1>Sign in</h1>
+    <p>
+      Sign-in is coming soon. In the meantime, you can keep browsing Snippets, Albums, and Topics
+      without an account.
+    </p>
+    <a href="/">Back to Home</a>
+  </div>
+</PageCard>
 
 <style>
-  main {
+  .content {
     max-width: 900px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+    margin: 0 auto;
   }
 
   a {

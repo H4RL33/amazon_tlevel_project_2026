@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import AlbumGrid from '$lib/components/AlbumGrid.svelte';
+  import PageCard from '$lib/components/PageCard.svelte';
   import { listAlbums } from '$lib/api/albums';
   import type { AlbumListResponse } from '$lib/api/types';
 
@@ -19,21 +20,22 @@
   });
 </script>
 
-<main>
-  <h1>Learn</h1>
-  {#if loading}
-    <p>Loading...</p>
-  {:else if error}
-    <p>{error}</p>
-  {:else}
-    <AlbumGrid {albums} />
-  {/if}
-</main>
+<PageCard as="main">
+  <div class="content">
+    <h1>Learn</h1>
+    {#if loading}
+      <p>Loading...</p>
+    {:else if error}
+      <p>{error}</p>
+    {:else}
+      <AlbumGrid {albums} />
+    {/if}
+  </div>
+</PageCard>
 
 <style>
-  main {
+  .content {
     max-width: 900px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+    margin: 0 auto;
   }
 </style>
