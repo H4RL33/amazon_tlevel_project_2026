@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import AlbumSidebar from '$lib/components/AlbumSidebar.svelte';
+  import PageCard from '$lib/components/PageCard.svelte';
   import { getAlbumDetail } from '$lib/api/albums';
   import type { AlbumDetailResponse } from '$lib/api/types';
 
@@ -21,29 +22,27 @@
   });
 </script>
 
-<div class="album-page">
-  {#if loading}
-    <main><p>Loading...</p></main>
-  {:else if error || !album}
-    <main><p>{error ?? 'Album not found.'}</p></main>
-  {:else}
+{#if loading}
+  <PageCard as="main">
+    <p>Loading...</p>
+  </PageCard>
+{:else if error || !album}
+  <PageCard as="main">
+    <p>{error ?? 'Album not found.'}</p>
+  </PageCard>
+{:else}
+  <div class="album-page">
     <AlbumSidebar sides={album.sides} activeSnippetId={null} />
-    <main>
+    <PageCard as="main">
       <h1>{album.title}</h1>
       <p>{album.description}</p>
-    </main>
-  {/if}
-</div>
+    </PageCard>
+  </div>
+{/if}
 
 <style>
   .album-page {
     display: flex;
-  }
-
-  main {
-    flex-grow: 1;
-    max-width: 700px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+    gap: var(--gap-inner);
   }
 </style>
