@@ -1,8 +1,11 @@
 import boto3
+from fastapi import HTTPException
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.models.user import User
+from app.models.topic import Topic
+from app.models.user import User, UserTopicInterest
 from app.schemas.topic import TopicResponse
 from app.schemas.user import UserResponse, UserTopicsRequest
 
@@ -34,7 +37,7 @@ async def get_me(db: AsyncSession, current_user: User) -> UserResponse:
     Return the UserResponse for the authenticated user.
     Map the ORM User object to UserResponse (model_config from_attributes handles this).
     """
-    raise NotImplementedError
+    return build_user_response(current_user)
 
 
 async def set_topics(
@@ -48,7 +51,21 @@ async def set_topics(
     - Raise HTTP 422 if any topic_id does not exist in the topics table.
     - Return the updated list of TopicResponse objects.
     """
-    raise NotImplementedError
+    if payload.topic_ids:
+        result = await db.execute(select(Topic.id).where(Topic.id.in_(payload.topic_ids)))
+        found_ids = {row[0] for row in result.all()}
+        missing = set(payload.topic_ids) - found_ids
+        if missing:
+            raise HTTPException(status_code=422, detail=f"Unknown topic_ids: {sorted(missing)}")
+
+    await db.execute(
+        delete(UserTopicInterest).where(UserTopicInterest.user_id == current_user.id)
+    )
+    for topic_id in payload.topic_ids:
+        db.add(UserTopicInterest(user_id=current_user.id, topic_id=topic_id))
+    await db.commit()
+
+    return await get_topics(db, current_user)
 
 
 async def get_topics(db: AsyncSession, current_user: User) -> list[TopicResponse]:
@@ -56,4 +73,9 @@ async def get_topics(db: AsyncSession, current_user: User) -> list[TopicResponse
     Return all Topics the current user has expressed interest in.
     Join UserTopicInterest → Topic, filter by current_user.id.
     """
-    raise NotImplementedError
+    result = await db.execute(
+        select(Topic)
+        .join(UserTopicInterest, UserTopicInterest.topic_id == Topic.id)
+        .where(UserTopicInterest.user_id == current_user.id)
+    )
+    return [TopicResponse.model_validate(topic) for topic in result.scalars().all()]
