@@ -182,16 +182,18 @@ async def _seed_topics(session: AsyncSession) -> None:
         topic_id = result.scalar_one()
 
         for tl in t_levels:
-            await session.execute(
-                text("""
-                    INSERT INTO t_levels (topic_id, name, entry_requirements, how_to_apply)
-                    SELECT :topic_id, :name, :entry_requirements, :how_to_apply
-                    WHERE NOT EXISTS (
-                        SELECT 1 FROM t_levels WHERE topic_id = :topic_id AND name = :name
-                    )
-                """),
-                {**tl, "topic_id": topic_id},
+            result = await session.execute(
+                text("SELECT 1 FROM t_levels WHERE topic_id = :topic_id AND name = :name"),
+                {"topic_id": topic_id, "name": tl["name"]},
             )
+            if result.scalar_one_or_none() is None:
+                await session.execute(
+                    text("""
+                        INSERT INTO t_levels (topic_id, name, entry_requirements, how_to_apply)
+                        VALUES (:topic_id, :name, :entry_requirements, :how_to_apply)
+                    """),
+                    {**tl, "topic_id": topic_id},
+                )
 
     await session.commit()
 
