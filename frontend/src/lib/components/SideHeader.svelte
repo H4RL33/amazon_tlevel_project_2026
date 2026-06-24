@@ -18,7 +18,7 @@
 <div class="side-header">
   <span class="label">SIDE {index}</span>
   <h4>{title}</h4>
-  <hr />
+  <div class="divider" aria-hidden="true"></div>
 </div>
 
 <style>
@@ -41,9 +41,7 @@
     font-weight: 600;
   }
 
-  hr {
-    border: none;
+  .divider {
     border-top: 1px solid #21262d;
-    margin: 0;
   }
 </style>
