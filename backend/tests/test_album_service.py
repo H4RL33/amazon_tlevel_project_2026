@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.album import Album, AlbumEnrolment, Side, SideContent
@@ -152,3 +153,75 @@ async def test_get_album_detail_authenticated_enrolled_full_progress(
     assert detail.completed_count == 1
     assert detail.total_count == 1
     assert detail.progress_pct == 100
+
+
+async def test_enrol_creates_enrolment(db_session: AsyncSession) -> None:
+    album = await _make_album_with_side_and_snippet(db_session)
+    user = await _make_user(db_session)
+    await db_session.commit()
+
+    await album_service.enrol(db_session, album.id, user)
+
+    enrolment = (
+        await db_session.execute(
+            select(AlbumEnrolment).where(
+                AlbumEnrolment.user_id == user.id, AlbumEnrolment.album_id == album.id
+            )
+        )
+    ).scalar_one_or_none()
+    assert enrolment is not None
+
+
+async def test_enrol_twice_is_idempotent(db_session: AsyncSession) -> None:
+    album = await _make_album_with_side_and_snippet(db_session)
+    user = await _make_user(db_session)
+    await db_session.commit()
+
+    await album_service.enrol(db_session, album.id, user)
+    await album_service.enrol(db_session, album.id, user)
+
+    count = (
+        await db_session.execute(
+            select(func.count()).where(
+                AlbumEnrolment.user_id == user.id, AlbumEnrolment.album_id == album.id
+            )
+        )
+    ).scalar_one()
+    assert count == 1
+
+
+async def test_enrol_raises_404_for_missing_album(db_session: AsyncSession) -> None:
+    from fastapi import HTTPException
+
+    user = await _make_user(db_session)
+    await db_session.commit()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await album_service.enrol(db_session, album_id=999, user=user)
+    assert exc_info.value.status_code == 404
+
+
+async def test_unenrol_removes_enrolment(db_session: AsyncSession) -> None:
+    album = await _make_album_with_side_and_snippet(db_session)
+    user = await _make_user(db_session)
+    db_session.add(AlbumEnrolment(user_id=user.id, album_id=album.id))
+    await db_session.commit()
+
+    await album_service.unenrol(db_session, album.id, user)
+
+    enrolment = (
+        await db_session.execute(
+            select(AlbumEnrolment).where(
+                AlbumEnrolment.user_id == user.id, AlbumEnrolment.album_id == album.id
+            )
+        )
+    ).scalar_one_or_none()
+    assert enrolment is None
+
+
+async def test_unenrol_when_not_enrolled_is_idempotent(db_session: AsyncSession) -> None:
+    album = await _make_album_with_side_and_snippet(db_session)
+    user = await _make_user(db_session)
+    await db_session.commit()
+
+    await album_service.unenrol(db_session, album.id, user)  # should not raise

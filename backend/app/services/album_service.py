@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -116,3 +116,31 @@ async def _add_progress_fields(
     detail.completed_count = completed_count
     detail.progress_pct = round(completed_count / total_count * 100)
     return detail
+
+
+async def enrol(db: AsyncSession, album_id: int, user: User) -> None:
+    album = (await db.execute(select(Album).where(Album.id == album_id))).scalar_one_or_none()
+    if album is None:
+        raise HTTPException(status_code=404, detail="Album not found")
+
+    existing = (
+        await db.execute(
+            select(AlbumEnrolment).where(
+                AlbumEnrolment.user_id == user.id, AlbumEnrolment.album_id == album_id
+            )
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        return
+
+    db.add(AlbumEnrolment(user_id=user.id, album_id=album_id))
+    await db.commit()
+
+
+async def unenrol(db: AsyncSession, album_id: int, user: User) -> None:
+    await db.execute(
+        delete(AlbumEnrolment).where(
+            AlbumEnrolment.user_id == user.id, AlbumEnrolment.album_id == album_id
+        )
+    )
+    await db.commit()
