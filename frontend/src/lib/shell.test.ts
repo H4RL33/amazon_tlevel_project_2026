@@ -62,3 +62,10 @@ describe('SideHeader', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('AlbumSidebar', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/AlbumSidebar.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
