@@ -1,4 +1,4 @@
-import { TOKEN_KEY } from './client';
+import { apiFetch, TOKEN_KEY } from './client';
 import type { UserResponse } from './types';
 
 export interface TokenResponse {
@@ -70,23 +70,21 @@ export async function exchangeCode(code: string): Promise<TokenResponse> {
     body: body.toString(),
   });
 
+  if (!response.ok) {
+    throw new Error(`Cognito token exchange failed with status ${response.status}`);
+  }
+
   return response.json() as Promise<TokenResponse>;
 }
 
 export async function syncUser(firstName: string, lastName: string): Promise<UserResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
   const token = localStorage.getItem(TOKEN_KEY);
 
-  const response = await fetch(`${baseUrl}/auth/sync`, {
+  return apiFetch<UserResponse>('/auth/sync', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({ first_name: firstName, last_name: lastName }),
   });
-
-  return response.json() as Promise<UserResponse>;
 }
 
 export function signOut(): void {

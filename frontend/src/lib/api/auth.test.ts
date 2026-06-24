@@ -41,6 +41,16 @@ describe('exchangeCode', () => {
     expect(init.body).toContain('code=auth-code-123');
     expect(init.body).toContain('code_verifier=stored-verifier');
   });
+
+  it('throws when Cognito returns a non-2xx response', async () => {
+    sessionStorage.setItem('pkce_code_verifier', 'stored-verifier');
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ error: 'invalid_grant' }), { status: 400 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    await expect(exchangeCode('bad-code')).rejects.toThrow();
+  });
 });
 
 describe('syncUser', () => {
