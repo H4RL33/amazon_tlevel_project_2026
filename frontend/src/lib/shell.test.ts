@@ -34,3 +34,10 @@ describe('HelpPanel', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('/login page', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('../routes/login/+page.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
