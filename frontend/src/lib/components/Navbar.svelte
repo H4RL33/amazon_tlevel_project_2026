@@ -1,5 +1,7 @@
 <script lang="ts">
   import NavLink from '$lib/components/NavLink.svelte';
+  import NavBarAvatar from '$lib/components/NavBarAvatar.svelte';
+  import { currentUser } from '$lib/stores/user';
 </script>
 
 <nav>
@@ -10,7 +12,13 @@
     <NavLink href="/" label="Home" />
     <NavLink href="/learn" label="Learn" />
     <NavLink href="/topics" label="Topics" />
-    <NavLink href="/dashboard" label="Dashboard" />
+    <NavLink href={$currentUser ? '/library' : '/login'} label="Library" />
+    <NavLink href={$currentUser ? '/dashboard' : '/login'} label="Dashboard" />
+    {#if $currentUser}
+      <NavBarAvatar user={$currentUser} />
+    {:else}
+      <NavLink href="/login" label="Log in" />
+    {/if}
   </div>
 </nav>
 

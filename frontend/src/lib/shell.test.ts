@@ -20,3 +20,10 @@ describe('NavBarAvatar', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('Navbar', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/Navbar.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
