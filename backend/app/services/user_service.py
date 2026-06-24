@@ -1,8 +1,32 @@
+import boto3
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.models.user import User
 from app.schemas.topic import TopicResponse
 from app.schemas.user import UserResponse, UserTopicsRequest
+
+
+def _generate_presigned_get_url(s3_key: str, expiry_seconds: int = 3600) -> str:
+    s3 = boto3.client("s3", region_name=get_settings().AWS_REGION)
+    return s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": get_settings().S3_BUCKET_NAME, "Key": s3_key},
+        ExpiresIn=expiry_seconds,
+    )
+
+
+def build_user_response(user: User) -> UserResponse:
+    avatar_url = _generate_presigned_get_url(user.avatar_s3_key) if user.avatar_s3_key else None
+    return UserResponse(
+        id=user.id,
+        cognito_sub=user.cognito_sub,
+        email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        avatar_url=avatar_url,
+        created_at=user.created_at,
+    )
 
 
 async def get_me(db: AsyncSession, current_user: User) -> UserResponse:

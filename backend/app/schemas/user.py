@@ -14,6 +14,7 @@ class UserResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
+    avatar_url: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
