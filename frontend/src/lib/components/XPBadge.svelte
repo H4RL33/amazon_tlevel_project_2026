@@ -16,6 +16,8 @@
   export let earned = false;
 </script>
 
+<!-- Changes -->
+
 <span
   class="xp-badge"
   class:earned 
@@ -49,6 +51,7 @@
   }
 </style>
 
+<!-- Changes -->
 
 
 
