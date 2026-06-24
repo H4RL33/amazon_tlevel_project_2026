@@ -76,3 +76,10 @@ describe('/learn page', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('/learn/[id] page', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('../routes/learn/[id]/+page.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
