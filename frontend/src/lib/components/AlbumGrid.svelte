@@ -4,8 +4,7 @@
     an account (enrolling requires one, via EnrolButton on the Album view itself).
   Used in: Album discovery page
   Props:
-    - albums (Album[] — TODO: replace with real API type once the Album model exists; same
-      shape AlbumCard expects)
+    - albums (AlbumListResponse[]): same shape AlbumCard expects
   Behaviour:
     If albums is empty, show an empty state: "No Albums available yet."
   Styling:
