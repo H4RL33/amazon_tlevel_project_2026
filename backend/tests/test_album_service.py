@@ -1,16 +1,21 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.album import Album, Side, SideContent
+from app.models.album import Album, AlbumEnrolment, Side, SideContent
 from app.models.content import Content, ContentType
+from app.models.progress import UserContentProgress
 from app.models.t_level import TLevel
 from app.models.topic import Topic
+from app.models.user import User
 from app.services import album_service
 
 
 async def _make_topic_and_t_level(db: AsyncSession) -> TLevel:
     topic = Topic(
-        slug="digital-production", name="Digital Production", description="...", accent_colour="#0066CC"
+        slug="digital-production",
+        name="Digital Production",
+        description="...",
+        accent_colour="#0066CC",
     )
     db.add(topic)
     await db.flush()
@@ -93,3 +98,57 @@ async def test_get_album_detail_anonymous_includes_sides_but_no_progress(
     assert detail.sides[0].snippets[0].title == "What is the cloud?"
     assert detail.enrolled is None
     assert detail.progress_pct is None
+
+
+async def _make_user(db: AsyncSession) -> User:
+    user = User(cognito_sub="sub-1", email="a@example.com", first_name="A", last_name="B")
+    db.add(user)
+    await db.flush()
+    return user
+
+
+async def test_get_album_detail_authenticated_not_enrolled(db_session: AsyncSession) -> None:
+    album = await _make_album_with_side_and_snippet(db_session)
+    user = await _make_user(db_session)
+    await db_session.commit()
+
+    detail = await album_service.get_album_detail(db_session, album.id, current_user=user)
+
+    assert detail.enrolled is False
+    assert detail.progress_pct is None
+
+
+async def test_get_album_detail_authenticated_enrolled_partial_progress(
+    db_session: AsyncSession,
+) -> None:
+    album = await _make_album_with_side_and_snippet(db_session)
+    user = await _make_user(db_session)
+    db_session.add(AlbumEnrolment(user_id=user.id, album_id=album.id))
+    await db_session.commit()
+
+    detail = await album_service.get_album_detail(db_session, album.id, current_user=user)
+
+    assert detail.enrolled is True
+    assert detail.total_count == 1
+    assert detail.completed_count == 0
+    assert detail.progress_pct == 0
+
+
+async def test_get_album_detail_authenticated_enrolled_full_progress(
+    db_session: AsyncSession,
+) -> None:
+    album = await _make_album_with_side_and_snippet(db_session)
+    user = await _make_user(db_session)
+    db_session.add(AlbumEnrolment(user_id=user.id, album_id=album.id))
+
+    await db_session.refresh(album, attribute_names=["sides"])
+    await db_session.refresh(album.sides[0], attribute_names=["side_contents"])
+    content_id = album.sides[0].side_contents[0].content_id
+    db_session.add(UserContentProgress(user_id=user.id, content_id=content_id, progress_pct=100))
+    await db_session.commit()
+
+    detail = await album_service.get_album_detail(db_session, album.id, current_user=user)
+
+    assert detail.completed_count == 1
+    assert detail.total_count == 1
+    assert detail.progress_pct == 100

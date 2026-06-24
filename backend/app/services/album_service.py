@@ -1,10 +1,10 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.album import Album, AlbumEnrolment, Side, SideContent  # noqa: F401
-from app.models.progress import UserContentProgress  # noqa: F401
+from app.models.album import Album, AlbumEnrolment, Side, SideContent
+from app.models.progress import UserContentProgress
 from app.models.t_level import TLevel
 from app.models.topic import Topic
 from app.models.user import User
@@ -88,4 +88,31 @@ async def _add_progress_fields(
     album: Album,
     current_user: User,
 ) -> AlbumDetailResponse:
-    raise NotImplementedError
+    enrolment_stmt = select(AlbumEnrolment).where(
+        AlbumEnrolment.user_id == current_user.id,
+        AlbumEnrolment.album_id == album.id,
+    )
+    enrolment = (await db.execute(enrolment_stmt)).scalar_one_or_none()
+    detail.enrolled = enrolment is not None
+
+    if enrolment is None:
+        return detail
+
+    content_ids = [sc.content_id for side in album.sides for sc in side.side_contents]
+    total_count = len(content_ids)
+    detail.total_count = total_count
+
+    if total_count == 0:
+        detail.completed_count = 0
+        detail.progress_pct = 0
+        return detail
+
+    completed_stmt = select(func.count()).where(
+        UserContentProgress.user_id == current_user.id,
+        UserContentProgress.content_id.in_(content_ids),
+        UserContentProgress.progress_pct == 100,
+    )
+    completed_count = (await db.execute(completed_stmt)).scalar_one()
+    detail.completed_count = completed_count
+    detail.progress_pct = round(completed_count / total_count * 100)
+    return detail
