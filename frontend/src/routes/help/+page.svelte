@@ -1,6 +1,10 @@
+<script lang="ts">
+  import HelpPanel from '$lib/components/HelpPanel.svelte';
+</script>
+
 <main>
   <h1>Help</h1>
-  <p>Coming soon.</p>
+  <HelpPanel />
 </main>
 
 <style>
