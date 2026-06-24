@@ -1,5 +1,7 @@
+import boto3
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.schemas.content import ContentDetailResponse, ContentListResponse
 
 
@@ -39,14 +41,10 @@ async def get_s3_key(db: AsyncSession, content_id: int) -> str:
 async def get_presigned_url(s3_key: str, expiry_seconds: int = 900) -> str:
     """
     Generate a pre-signed S3 URL for the given S3 key with the given TTL.
-
-    Use boto3:
-        import boto3
-        s3 = boto3.client("s3", region_name=get_settings().AWS_REGION)
-        return s3.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": get_settings().S3_BUCKET_NAME, "Key": s3_key},
-            ExpiresIn=expiry_seconds,
-        )
     """
-    raise NotImplementedError
+    s3 = boto3.client("s3", region_name=get_settings().AWS_REGION)
+    return s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": get_settings().S3_BUCKET_NAME, "Key": s3_key},
+        ExpiresIn=expiry_seconds,
+    )
