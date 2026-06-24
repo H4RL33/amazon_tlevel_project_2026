@@ -55,3 +55,32 @@ export interface ProgressResponse {
   progress_pct: number;
   content: ContentListResponse;
 }
+
+export interface AlbumListResponse {
+  id: number;
+  t_level_id: number;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface SnippetSummaryResponse {
+  id: number;
+  title: string;
+  content_type: ContentType;
+}
+
+export interface SideResponse {
+  id: number;
+  title: string;
+  position: number;
+  snippets: SnippetSummaryResponse[];
+}
+
+export interface AlbumDetailResponse extends AlbumListResponse {
+  sides: SideResponse[];
+  enrolled?: boolean;
+  completed_count?: number;
+  total_count?: number;
+  progress_pct?: number;
+}
