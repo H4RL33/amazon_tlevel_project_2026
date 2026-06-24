@@ -14,14 +14,13 @@
     3. Three SnippetCards, laid out horizontally
     4. AgentChat teaser at the bottom
   Styling:
-    Wider than NavSidebar (~320px), background matches dashboard surface, gap 1.5rem between
-    sections.
+    Floating white PageCard (aside), ~320px wide (wider than the nav sidebars since it
+    holds more content), full height of its row, same shadow/colour treatment as every
+    other panel in this layout.
 -->
 <script lang="ts">
   import type { ContentListResponse, UserResponse } from '$lib/api/types';
-  import AlbumCard from '$lib/components/AlbumCard.svelte';
-  import SnippetCard from '$lib/components/SnippetCard.svelte';
-  import AgentChat from '$lib/components/AgentChat.svelte';
+  import PageCard from '$lib/components/PageCard.svelte';
 
   interface Album {
     id: number;
@@ -33,5 +32,7 @@
   export let snippets: ContentListResponse[];
 </script>
 
-<!-- TODO: Implement greeting (time-of-day), then render albums.slice(0, 2) as AlbumCards, -->
-<!-- snippets.slice(0, 3) as SnippetCards, then an AgentChat at the bottom. -->
+<PageCard as="aside" width="320px" padding="1.5rem">
+  <!-- TODO: Implement greeting (time-of-day), then render albums.slice(0, 2) as AlbumCards, -->
+  <!-- snippets.slice(0, 3) as SnippetCards, then an AgentChat at the bottom. -->
+</PageCard>
