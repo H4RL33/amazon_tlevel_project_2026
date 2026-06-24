@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.topic import Topic
 from app.models.user import User
-from app.schemas.user import UserTopicsRequest
+from app.schemas.user import AvatarUploadUrlRequest, UserTopicsRequest
 from app.services import user_service
 from app.services.user_service import build_user_response
 
@@ -101,3 +101,48 @@ async def test_get_topics_returns_only_this_users_interests(db_session: AsyncSes
     result = await user_service.get_topics(db_session, user)
 
     assert [t.id for t in result] == [topic_a.id]
+
+
+async def test_create_avatar_upload_url_rejects_unsupported_content_type() -> None:
+    from fastapi import HTTPException
+
+    user = User(id=1, cognito_sub="sub-1", email="a@example.com", first_name="A", last_name="B")
+    with pytest.raises(HTTPException) as exc_info:
+        user_service.create_avatar_upload_url(user, AvatarUploadUrlRequest(content_type="text/plain"))
+    assert exc_info.value.status_code == 422
+
+
+async def test_create_avatar_upload_url_returns_a_jpg_key_for_jpeg(monkeypatch) -> None:
+    monkeypatch.setattr(
+        user_service,
+        "_generate_presigned_put_url",
+        lambda key, content_type: f"https://example-bucket.s3.amazonaws.com/{key}?put=1",
+    )
+    user = User(id=42, cognito_sub="sub-1", email="a@example.com", first_name="A", last_name="B")
+
+    result = user_service.create_avatar_upload_url(
+        user, AvatarUploadUrlRequest(content_type="image/jpeg")
+    )
+
+    assert result.key.startswith("avatars/42/")
+    assert result.key.endswith(".jpg")
+    assert result.upload_url.endswith("?put=1")
+
+
+async def test_set_avatar_persists_the_key_and_returns_user_response(
+    db_session: AsyncSession, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        user_service,
+        "_generate_presigned_get_url",
+        lambda key: f"https://example-bucket.s3.amazonaws.com/{key}?signed=1",
+    )
+    user = User(cognito_sub="sub-avatar", email="avatar@example.com", first_name="A", last_name="B")
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    response = await user_service.set_avatar(db_session, user, "avatars/1/photo.jpg")
+
+    assert user.avatar_s3_key == "avatars/1/photo.jpg"
+    assert response.id == user.id

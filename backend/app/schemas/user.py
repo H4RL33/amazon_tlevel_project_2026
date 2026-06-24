@@ -22,3 +22,16 @@ class UserResponse(BaseModel):
 
 class UserTopicsRequest(BaseModel):
     topic_ids: list[int]
+
+
+class AvatarUploadUrlRequest(BaseModel):
+    content_type: str
+
+
+class AvatarUploadUrlResponse(BaseModel):
+    upload_url: str
+    key: str
+
+
+class AvatarUpdateRequest(BaseModel):
+    avatar_s3_key: str

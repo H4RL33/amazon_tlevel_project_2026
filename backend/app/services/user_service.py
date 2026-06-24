@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import boto3
 from fastapi import HTTPException
 from sqlalchemy import delete, select
@@ -7,7 +9,18 @@ from app.config import get_settings
 from app.models.topic import Topic
 from app.models.user import User, UserTopicInterest
 from app.schemas.topic import TopicResponse
-from app.schemas.user import UserResponse, UserTopicsRequest
+from app.schemas.user import (
+    AvatarUploadUrlRequest,
+    AvatarUploadUrlResponse,
+    UserResponse,
+    UserTopicsRequest,
+)
+
+_AVATAR_CONTENT_TYPES = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+}
 
 
 def _generate_presigned_get_url(s3_key: str, expiry_seconds: int = 3600) -> str:
@@ -15,6 +28,19 @@ def _generate_presigned_get_url(s3_key: str, expiry_seconds: int = 3600) -> str:
     return s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": get_settings().S3_BUCKET_NAME, "Key": s3_key},
+        ExpiresIn=expiry_seconds,
+    )
+
+
+def _generate_presigned_put_url(s3_key: str, content_type: str, expiry_seconds: int = 300) -> str:
+    s3 = boto3.client("s3", region_name=get_settings().AWS_REGION)
+    return s3.generate_presigned_url(
+        "put_object",
+        Params={
+            "Bucket": get_settings().S3_BUCKET_NAME,
+            "Key": s3_key,
+            "ContentType": content_type,
+        },
         ExpiresIn=expiry_seconds,
     )
 
@@ -79,3 +105,27 @@ async def get_topics(db: AsyncSession, current_user: User) -> list[TopicResponse
         .where(UserTopicInterest.user_id == current_user.id)
     )
     return [TopicResponse.model_validate(topic) for topic in result.scalars().all()]
+
+
+def create_avatar_upload_url(
+    user: User, payload: AvatarUploadUrlRequest
+) -> AvatarUploadUrlResponse:
+    """
+    Validate the requested content type and return a presigned S3 PUT URL
+    plus the key the client should PUT the file to.
+    """
+    extension = _AVATAR_CONTENT_TYPES.get(payload.content_type)
+    if extension is None:
+        raise HTTPException(status_code=422, detail="Unsupported content type for avatar upload")
+
+    key = f"avatars/{user.id}/{uuid4()}.{extension}"
+    upload_url = _generate_presigned_put_url(key, payload.content_type)
+    return AvatarUploadUrlResponse(upload_url=upload_url, key=key)
+
+
+async def set_avatar(db: AsyncSession, current_user: User, avatar_s3_key: str) -> UserResponse:
+    """Persist the given S3 key as the current user's avatar and return the updated profile."""
+    current_user.avatar_s3_key = avatar_s3_key
+    await db.commit()
+    await db.refresh(current_user)
+    return build_user_response(current_user)
