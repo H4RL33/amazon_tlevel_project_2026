@@ -83,3 +83,10 @@ describe('/learn/[id] page', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('PageCard', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/PageCard.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
