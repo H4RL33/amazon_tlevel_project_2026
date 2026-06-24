@@ -27,3 +27,10 @@ describe('Navbar', () => {
     expect(mod.default).toBeDefined();
   });
 });
+
+describe('HelpPanel', () => {
+  it('exports a default Svelte component', async () => {
+    const mod = await import('$lib/components/HelpPanel.svelte');
+    expect(mod.default).toBeDefined();
+  });
+});
