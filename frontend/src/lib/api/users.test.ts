@@ -13,7 +13,9 @@ const user: UserResponse = {
 };
 
 describe('getMe', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it('calls GET /users/me', async () => {
     const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
@@ -27,7 +29,9 @@ describe('getMe', () => {
 });
 
 describe('requestAvatarUploadUrl', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it('POSTs the content type and returns the upload url and key', async () => {
     const body = { upload_url: 'https://example.com/put', key: 'avatars/1/x.png' };
@@ -43,7 +47,9 @@ describe('requestAvatarUploadUrl', () => {
 });
 
 describe('updateAvatar', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it('PATCHes the avatar_s3_key and returns the updated user', async () => {
     const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
