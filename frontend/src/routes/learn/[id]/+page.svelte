@@ -1,17 +1,28 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import AlbumSidebar from '$lib/components/AlbumSidebar.svelte';
   import PageCard from '$lib/components/PageCard.svelte';
   import { getAlbumDetail } from '$lib/api/albums';
-  import type { AlbumDetailResponse } from '$lib/api/types';
+  import { getContent } from '$lib/api/content';
+  import type { AlbumDetailResponse, ContentDetailResponse } from '$lib/api/types';
 
   let album: AlbumDetailResponse | null = null;
   let loading = true;
   let error: string | null = null;
 
-  onMount(async () => {
-    const id = Number($page.params.id);
+  let snippet: ContentDetailResponse | null = null;
+  let snippetLoading = false;
+  let snippetError: string | null = null;
+
+  $: albumId = Number($page.params.id);
+  $: snippetIdParam = $page.url.searchParams.get('snippet');
+  $: activeSnippetId = snippetIdParam ? Number(snippetIdParam) : null;
+
+  $: loadAlbum(albumId);
+  $: loadSnippet(activeSnippetId);
+
+  async function loadAlbum(id: number) {
+    loading = true;
     try {
       album = await getAlbumDetail(id);
     } catch {
@@ -19,7 +30,24 @@
     } finally {
       loading = false;
     }
-  });
+  }
+
+  async function loadSnippet(id: number | null) {
+    if (id === null) {
+      snippet = null;
+      snippetError = null;
+      return;
+    }
+    snippetLoading = true;
+    snippetError = null;
+    try {
+      snippet = await getContent(id);
+    } catch {
+      snippetError = 'Could not load this Snippet right now. Please try again later.';
+    } finally {
+      snippetLoading = false;
+    }
+  }
 </script>
 
 {#if loading}
@@ -32,10 +60,19 @@
   </PageCard>
 {:else}
   <div class="album-page">
-    <AlbumSidebar sides={album.sides} activeSnippetId={null} />
+    <AlbumSidebar sides={album.sides} {activeSnippetId} />
     <PageCard as="main">
-      <h1>{album.title}</h1>
-      <p>{album.description}</p>
+      {#if activeSnippetId === null}
+        <h1>{album.title}</h1>
+        <p>{album.description}</p>
+      {:else if snippetLoading}
+        <p>Loading...</p>
+      {:else if snippetError || !snippet}
+        <p>{snippetError ?? 'Snippet not found.'}</p>
+      {:else}
+        <h1>{snippet.title}</h1>
+        <p>{snippet.body}</p>
+      {/if}
     </PageCard>
   </div>
 {/if}

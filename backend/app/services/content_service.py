@@ -1,8 +1,12 @@
 import boto3
+from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.config import get_settings
-from app.schemas.content import ContentDetailResponse, ContentListResponse
+from app.models.content import Content, ContentTag
+from app.schemas.content import ContentDetailResponse, ContentListResponse, TagResponse
 
 
 async def list_content(
@@ -26,7 +30,28 @@ async def get_content(db: AsyncSession, content_id: int) -> ContentDetailRespons
     pre-signed S3 URL in the media_url field (generated via get_presigned_url).
     Raise HTTP 404 if not found.
     """
-    raise NotImplementedError
+    result = await db.execute(
+        select(Content)
+        .options(selectinload(Content.content_tags).selectinload(ContentTag.tag))
+        .where(Content.id == content_id)
+    )
+    content = result.scalar_one_or_none()
+    if content is None:
+        raise HTTPException(status_code=404, detail="Content not found")
+
+    media_url = await get_presigned_url(content.media_url) if content.media_url else None
+
+    return ContentDetailResponse(
+        id=content.id,
+        title=content.title,
+        content_type=content.content_type,
+        topic_id=content.topic_id,
+        t_level_id=content.t_level_id,
+        tags=[TagResponse.model_validate(ct.tag) for ct in content.content_tags],
+        created_at=content.created_at,
+        body=content.body,
+        media_url=media_url,
+    )
 
 
 async def get_s3_key(db: AsyncSession, content_id: int) -> str:
