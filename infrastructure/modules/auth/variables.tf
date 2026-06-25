@@ -2,7 +2,7 @@ variable "env_name" {
   type = string
 }
 
-variable "alb_dns_name" {
+variable "public_domain" {
   type        = string
-  description = "ALB DNS name — used to build Cognito callback and sign-out URLs"
+  description = "Custom domain pointed at the deployed frontend — used to build Cognito callback and sign-out URLs"
 }

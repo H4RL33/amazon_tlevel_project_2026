@@ -95,6 +95,13 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -194,6 +201,32 @@ resource "aws_lb_target_group" "backend" {
   tags = { Name = "${var.env_name}-tg-backend" }
 }
 
+# ── ACM Certificate ───────────────────────────────────────────────────────────
+# DNS-validated against an externally-managed domain (not Route53) — apply
+# creates the cert request, then waits at aws_acm_certificate_validation
+# until the validation CNAME records (see the acm_validation_records output)
+# have been added at the DNS provider and have propagated.
+resource "aws_acm_certificate" "main" {
+  domain_name               = var.public_domain
+  subject_alternative_names = [var.api_domain]
+  validation_method         = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = { Name = "${var.env_name}-cert" }
+}
+
+resource "aws_acm_certificate_validation" "main" {
+  certificate_arn         = aws_acm_certificate.main.arn
+  validation_record_fqdns = [for o in aws_acm_certificate.main.domain_validation_options : o.resource_record_name]
+
+  timeouts {
+    create = "30m"
+  }
+}
+
 # ── ALB Listeners ─────────────────────────────────────────────────────────────
 resource "aws_lb_listener" "frontend" {
   load_balancer_arn = aws_lb.main.arn
@@ -201,8 +234,12 @@ resource "aws_lb_listener" "frontend" {
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend.arn
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
 }
 
@@ -212,6 +249,35 @@ resource "aws_lb_listener" "backend" {
   protocol          = "HTTP"
 
   default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = aws_acm_certificate_validation.main.certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend.arn
+  }
+}
+
+resource "aws_lb_listener_rule" "api" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 10
+
+  condition {
+    host_header {
+      values = [var.api_domain]
+    }
+  }
+
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.backend.arn
   }

@@ -1,12 +1,14 @@
 module "networking" {
-  source   = "./modules/networking"
-  env_name = var.env_name
+  source        = "./modules/networking"
+  env_name      = var.env_name
+  public_domain = var.public_domain
+  api_domain    = var.api_domain
 }
 
 module "auth" {
-  source       = "./modules/auth"
-  env_name     = var.env_name
-  alb_dns_name = module.networking.alb_dns_name
+  source        = "./modules/auth"
+  env_name      = var.env_name
+  public_domain = var.public_domain
 }
 
 module "storage" {
@@ -38,4 +40,5 @@ module "compute" {
   cognito_user_pool_id = module.auth.user_pool_id
   s3_bucket_name       = module.storage.bucket_name
   alb_dns_name         = module.networking.alb_dns_name
+  public_domain        = var.public_domain
 }

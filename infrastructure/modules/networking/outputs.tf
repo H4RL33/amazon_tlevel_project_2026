@@ -29,3 +29,12 @@ output "frontend_target_group_arn" {
 output "backend_target_group_arn" {
   value = aws_lb_target_group.backend.arn
 }
+
+output "acm_validation_records" {
+  description = "DNS records to add at your DNS provider to validate the ACM certificate"
+  value = [for o in aws_acm_certificate.main.domain_validation_options : {
+    name  = o.resource_record_name
+    type  = o.resource_record_type
+    value = o.resource_record_value
+  }]
+}

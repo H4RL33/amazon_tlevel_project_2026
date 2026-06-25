@@ -55,6 +55,11 @@ variable "alb_dns_name" {
   type = string
 }
 
+variable "public_domain" {
+  type        = string
+  description = "Custom domain pointed at the deployed frontend — included in the backend's CORS allow-list"
+}
+
 variable "aws_region" {
   type    = string
   default = "eu-west-2"

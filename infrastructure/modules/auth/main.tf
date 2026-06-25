@@ -27,8 +27,17 @@ resource "aws_cognito_user_pool_client" "main" {
   allowed_oauth_scopes                 = ["email", "openid", "profile"]
   supported_identity_providers         = ["COGNITO"]
 
-  callback_urls = ["http://${var.alb_dns_name}/auth/callback"]
-  logout_urls   = ["http://${var.alb_dns_name}/"]
+  # Cognito requires HTTPS callback URLs except for localhost. Both are kept:
+  # localhost for manual e2e verification against a local docker-compose
+  # frontend, and the real domain for the deployed ECS frontend.
+  callback_urls = [
+    "http://localhost:3000/auth/callback",
+    "https://${var.public_domain}/auth/callback",
+  ]
+  logout_urls = [
+    "http://localhost:3000/",
+    "https://${var.public_domain}/",
+  ]
 
   explicit_auth_flows = [
     "ALLOW_REFRESH_TOKEN_AUTH",
@@ -37,6 +46,6 @@ resource "aws_cognito_user_pool_client" "main" {
 }
 
 resource "aws_cognito_user_pool_domain" "main" {
-  domain       = "exeaws26-${var.env_name}"
+  domain       = "exeter-livingcampus-${var.env_name}"
   user_pool_id = aws_cognito_user_pool.main.id
 }

@@ -22,3 +22,8 @@ output "rds_endpoint" {
   value       = module.database.endpoint
   description = "RDS endpoint — for manual DB access and debugging"
 }
+
+output "acm_validation_records" {
+  value       = module.networking.acm_validation_records
+  description = "DNS records to add at your DNS provider (e.g. Porkbun) to validate the ACM certificate"
+}
