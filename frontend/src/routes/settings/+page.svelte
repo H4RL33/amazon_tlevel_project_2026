@@ -5,6 +5,7 @@
 
   let uploading = false;
   let error: string | null = null;
+  let status: string | null = null;
   let fileInput: HTMLInputElement;
 
   async function handleFileChange() {
@@ -13,6 +14,7 @@
 
     uploading = true;
     error = null;
+    status = 'Uploading...';
     try {
       const { upload_url, key } = await requestAvatarUploadUrl(file.type);
 
@@ -27,11 +29,14 @@
 
       const updatedUser = await updateAvatar(key);
       currentUser.set(updatedUser);
+      status = 'Profile picture updated.';
     } catch (err) {
       console.error('Avatar upload failed:', err);
       error = 'Could not upload your profile picture. Please try again.';
+      status = null;
     } finally {
       uploading = false;
+      fileInput.value = '';
     }
   }
 </script>
@@ -54,9 +59,7 @@
         on:change={handleFileChange}
         disabled={uploading}
       />
-      {#if uploading}
-        <p>Uploading...</p>
-      {/if}
+      <p aria-live="polite">{status ?? ''}</p>
       {#if error}
         <p role="alert">{error}</p>
       {/if}
