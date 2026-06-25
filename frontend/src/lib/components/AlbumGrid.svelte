@@ -4,20 +4,36 @@
     an account (enrolling requires one, via EnrolButton on the Album view itself).
   Used in: Album discovery page
   Props:
-    - albums (Album[] — TODO: replace with real API type once the Album model exists; same
-      shape AlbumCard expects)
+    - albums (AlbumListResponse[]): same shape AlbumCard expects
   Behaviour:
     If albums is empty, show an empty state: "No Albums available yet."
   Styling:
-    CSS grid, responsive columns (e.g. repeat(auto-fill, minmax(280px, 1fr))), gap 1rem.
+    Flex-wrap row of square AlbumCard tiles, gap matches the global --gap-inner spacing
+    token used everywhere else in this layout.
 -->
 <script lang="ts">
-  interface Album {
-    id: number;
-    title: string;
-  }
+  import AlbumCard from './AlbumCard.svelte';
+  import type { AlbumListResponse } from '$lib/api/types';
 
-  export let albums: Album[];
+  export let albums: AlbumListResponse[];
 </script>
 
-<!-- TODO: Render an AlbumCard per album. Show the empty state when albums.length === 0. -->
+{#if albums.length === 0}
+  <p>No Albums available yet.</p>
+{:else}
+  <div class="album-grid">
+    {#each albums as album}
+      <!-- Code above goes through every item in the albums array, and for each item, calls it album -->
+      <AlbumCard {album} />
+      <!-- Code above is shorthand for <AlbumCard album={album} /> -->
+    {/each}
+  </div>
+{/if}
+
+<style>
+  .album-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-inner);
+  }
+</style>

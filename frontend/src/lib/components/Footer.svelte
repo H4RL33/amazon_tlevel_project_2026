@@ -1,8 +1,9 @@
 <script lang="ts">
   import NavLink from '$lib/components/NavLink.svelte';
+  import PageCard from '$lib/components/PageCard.svelte';
 </script>
 
-<footer>
+<PageCard as="footer" padding="2rem 1.5rem 0">
   <div class="columns">
     <div class="column">
       <h3 class="column-heading">Navigation</h3>
@@ -31,16 +32,9 @@
   <div class="bottom-bar">
     <p>© 2026 Amazon T-Level Project</p>
   </div>
-</footer>
+</PageCard>
 
 <style>
-  footer {
-    background: #232f3e;
-    color: #ffffff;
-    padding: 2rem 1.5rem 0;
-    font-family: 'Ubuntu', sans-serif;
-  }
-
   .columns {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -60,7 +54,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #ff9900;
+    color: #000000;
   }
 
   .column-links {
@@ -71,11 +65,11 @@
   }
 
   .bottom-bar {
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid rgba(35, 47, 62, 0.15);
     padding: 1rem 0;
     text-align: center;
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #5a6472;
   }
 
   .bottom-bar p {

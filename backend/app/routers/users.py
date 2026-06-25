@@ -5,7 +5,13 @@ from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.schemas.topic import TopicResponse
-from app.schemas.user import UserResponse, UserTopicsRequest
+from app.schemas.user import (
+    AvatarUpdateRequest,
+    AvatarUploadUrlRequest,
+    AvatarUploadUrlResponse,
+    UserResponse,
+    UserTopicsRequest,
+)
 from app.services import user_service
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -42,3 +48,28 @@ async def get_topics(
     db: AsyncSession = Depends(get_db),
 ) -> list[TopicResponse]:
     return await user_service.get_topics(db, current_user)
+
+
+@router.post(
+    "/me/avatar-upload-url",
+    response_model=AvatarUploadUrlResponse,
+    summary="Get a presigned S3 PUT URL for an avatar upload",
+)
+async def create_avatar_upload_url(
+    payload: AvatarUploadUrlRequest,
+    current_user: User = Depends(get_current_user),
+) -> AvatarUploadUrlResponse:
+    return user_service.create_avatar_upload_url(current_user, payload)
+
+
+@router.patch(
+    "/me/avatar",
+    response_model=UserResponse,
+    summary="Persist the S3 key of an uploaded avatar",
+)
+async def update_avatar(
+    payload: AvatarUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    return await user_service.set_avatar(db, current_user, payload.avatar_s3_key)

@@ -20,6 +20,46 @@
 <script lang="ts">
   export let currentTier: 'exploring' | 'learning' | 'career';
   export let requiredTier: 'learning' | 'career';
+  /*"export let" creates a reactive prop */
+
+  /* Changes */
+
+  $: message = getMessage(currentTier, requiredTier);
+  /*"$:" is a special syntax for reactive assignments */
+
+  function getMessage(
+    /* code just above this defines a reusable function */
+    current: 'exploring' | 'learning' | 'career',
+    required: 'learning' | 'career'
+  ) {
+    /* code just above this defines the parameters */
+    if (current === 'exploring' && required === 'learning') {
+      return 'Social features unlock once you turn 14.';
+    }
+
+    if (required === 'career') {
+      return 'Posting unlocks once you turn 17.';
+    }
+
+    return '';
+    /* code just above this defines the default return value when no conditions are met */
+  }
 </script>
 
+<div class="age-gate-notice">
+  {message}
+</div>
+
+<!-- Changes -->
+
 <!-- TODO: Implement the messaging logic and banner styling described above. -->
+
+<style>
+  .age-gate-notice {
+    background: #21262d;
+    color: #8b949e;
+    border-radius: 6px;
+    padding: 1rem;
+    text-align: center;
+  }
+</style>

@@ -8,6 +8,11 @@ RUN npm ci
 
 COPY . .
 
+# Generates .svelte-kit/tsconfig.json before the build step needs it —
+# without this, esbuild resolves tsconfig.json's "extends" target before
+# the SvelteKit Vite plugin has run sync, logging a spurious warning.
+RUN npx svelte-kit sync
+
 # VITE_* vars are baked into the bundle at build time
 ARG VITE_API_BASE_URL
 ARG VITE_COGNITO_DOMAIN
