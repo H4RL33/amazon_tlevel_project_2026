@@ -1,3 +1,4 @@
+import { apiFetch } from './client';
 import type { ContentDetailResponse, ContentListResponse, ContentType } from './types';
 
 export interface ContentFilters {
@@ -11,8 +12,8 @@ export async function listContent(_filters: ContentFilters = {}): Promise<Conten
   throw new Error('not implemented');
 }
 
-export async function getContent(_id: number): Promise<ContentDetailResponse> {
-  throw new Error('not implemented');
+export async function getContent(id: number): Promise<ContentDetailResponse> {
+  return apiFetch<ContentDetailResponse>(`/content/${id}`);
 }
 
 export async function getAudioUrl(_id: number): Promise<string> {
