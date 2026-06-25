@@ -1,6 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { exchangeCode, getCognitoLoginUrl, signOut, syncUser } from './auth';
+import { decodeJwtPayload, exchangeCode, getCognitoLoginUrl, signOut, syncUser } from './auth';
 import { TOKEN_KEY } from './client';
+
+function makeUnsignedJwt(payload: Record<string, unknown>): string {
+  const base64url = (json: string) =>
+    btoa(json).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return `${base64url('{"alg":"none"}')}.${base64url(JSON.stringify(payload))}.`;
+}
+
+describe('decodeJwtPayload', () => {
+  it('decodes a base64url-encoded payload regardless of padding/character substitutions', () => {
+    // payloads of varying length exercise every padding case (0/1/2 '=' chars stripped),
+    // and varying content makes - / _ substitutions in the base64url encoding likely
+    const payloads = [
+      { sub: 'a' },
+      { sub: 'ab', given_name: 'Test' },
+      { sub: 'abc', given_name: 'Test', family_name: 'User-Name_123' },
+    ];
+
+    for (const payload of payloads) {
+      expect(decodeJwtPayload(makeUnsignedJwt(payload))).toEqual(payload);
+    }
+  });
+});
 
 describe('getCognitoLoginUrl', () => {
   it('builds a Hosted UI authorize URL with PKCE params and stores the verifier', async () => {

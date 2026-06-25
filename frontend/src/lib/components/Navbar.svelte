@@ -7,7 +7,11 @@
 
   async function handleLoginClick(event: MouseEvent) {
     event.preventDefault();
-    window.location.href = await getCognitoLoginUrl();
+    try {
+      window.location.href = await getCognitoLoginUrl();
+    } catch (err) {
+      console.error('Could not build Cognito login URL:', err);
+    }
   }
 </script>
 

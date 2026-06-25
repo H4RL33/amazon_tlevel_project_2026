@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { exchangeCode, syncUser } from '$lib/api/auth';
+  import { decodeJwtPayload, exchangeCode, syncUser } from '$lib/api/auth';
   import { TOKEN_KEY } from '$lib/api/client';
   import { currentUser } from '$lib/stores/user';
   import PageCard from '$lib/components/PageCard.svelte';
@@ -20,12 +20,13 @@
       const tokens = await exchangeCode(code);
       localStorage.setItem(TOKEN_KEY, tokens.id_token);
 
-      const claims = JSON.parse(atob(tokens.id_token.split('.')[1]));
-      const user = await syncUser(claims.given_name ?? '', claims.family_name ?? '');
+      const claims = decodeJwtPayload(tokens.id_token);
+      const user = await syncUser((claims.given_name as string) ?? '', (claims.family_name as string) ?? '');
       currentUser.set(user);
 
       await goto('/');
-    } catch {
+    } catch (err) {
+      console.error('Cognito sign-in failed:', err);
       error = 'Sign-in failed. Please try again.';
     }
   });
