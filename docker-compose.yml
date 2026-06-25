@@ -34,6 +34,9 @@ services:
       context: ./frontend
       args:
         VITE_API_BASE_URL: http://localhost:8000
+        # Cognito domain/client ID are intentionally blank for local dev — there's no
+        # local Cognito mock, so "Log in with Cognito" is a no-op here by design.
+        # Test the real login flow against the deployed environment instead.
         VITE_COGNITO_DOMAIN: ""
         VITE_COGNITO_CLIENT_ID: ""
         VITE_COGNITO_REDIRECT_URI: http://localhost:3000/auth/callback
