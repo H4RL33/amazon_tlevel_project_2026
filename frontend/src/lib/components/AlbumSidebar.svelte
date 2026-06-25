@@ -12,9 +12,10 @@
     NavLink to the current Album page with a `?snippet=<id>` query param, which the page reads
     to show that Snippet's body in its main PageCard.
   Styling:
-    Floating white PageCard (aside), 288px wide, full height of its row (matches the sibling
-    content card via the parent flex row). Inner nav content is sticky so it stays in view
-    while a taller sibling content card scrolls.
+    Floating white PageCard (aside), fixed 288px wide, stretched to the full height of its
+    row by the parent's flex row (see /learn/[id]'s .album-page styles) and never grows or
+    shrinks. If the Side/Snippet list is taller than that, the card scrolls internally
+    (PageCard's own overflow-y: auto) rather than resizing.
 -->
 <script lang="ts">
   import type { SideResponse } from '$lib/api/types';
@@ -45,11 +46,6 @@
 </PageCard>
 
 <style>
-  .album-sidebar {
-    position: sticky;
-    top: var(--gap-inner);
-  }
-
   ul {
     list-style: none;
     margin: 0;
