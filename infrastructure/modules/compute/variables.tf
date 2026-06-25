@@ -2,8 +2,9 @@ variable "env_name" {
   type = string
 }
 
-variable "private_subnet_ids" {
-  type = list(string)
+variable "public_subnet_ids" {
+  type        = list(string)
+  description = "ECS tasks run here with public IPs (no NAT Gateway) to keep costs down"
 }
 
 variable "sg_ecs_id" {

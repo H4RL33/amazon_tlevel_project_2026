@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "content" {
   bucket = "exeaws26-content-${var.env_name}"
-  tags = { Name = "exeaws26-content-${var.env_name}" }
+  tags   = { Name = "exeaws26-content-${var.env_name}" }
 }
 
 resource "aws_s3_bucket_public_access_block" "content" {
@@ -19,8 +19,8 @@ resource "aws_iam_policy" "s3_content" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
-      Action = ["s3:GetObject", "s3:PutObject"]
+      Effect   = "Allow"
+      Action   = ["s3:GetObject", "s3:PutObject"]
       Resource = "${aws_s3_bucket.content.arn}/*"
     }]
   })
