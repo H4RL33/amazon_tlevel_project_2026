@@ -30,6 +30,16 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      # actions/checkout pins to the SHA that triggered this run, not the live
+      # tip of main. The concurrency group only serializes job execution — it
+      # doesn't stop this job from basing its commit on a now-stale checkout
+      # if a sibling release job already pushed to main while this one was
+      # queued. Reset to the current remote tip before reading/bumping VERSION.
+      - name: Sync with latest main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
       - name: Determine bump type
         id: bump
         run: |
