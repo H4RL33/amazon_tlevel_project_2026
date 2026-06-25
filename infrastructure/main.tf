@@ -1,12 +1,14 @@
 module "networking" {
-  source   = "./modules/networking"
-  env_name = var.env_name
+  source        = "./modules/networking"
+  env_name      = var.env_name
+  public_domain = var.public_domain
+  api_domain    = var.api_domain
 }
 
 module "auth" {
-  source       = "./modules/auth"
-  env_name     = var.env_name
-  alb_dns_name = module.networking.alb_dns_name
+  source        = "./modules/auth"
+  env_name      = var.env_name
+  public_domain = var.public_domain
 }
 
 module "storage" {
@@ -38,4 +40,30 @@ module "compute" {
   cognito_user_pool_id = module.auth.user_pool_id
   s3_bucket_name       = module.storage.bucket_name
   alb_dns_name         = module.networking.alb_dns_name
+  public_domain        = var.public_domain
+}
+
+# ── CD credentials for GitHub Actions ─────────────────────────────────────────
+# Scoped to exactly what release-backend.yml/release-frontend.yml need to force
+# an ECS redeploy after pushing a new :latest image — nothing else.
+resource "aws_iam_user" "github_actions_deploy" {
+  name = "${var.env_name}-github-actions-deploy"
+}
+
+resource "aws_iam_user_policy" "github_actions_ecs_redeploy" {
+  name = "ecs-redeploy"
+  user = aws_iam_user.github_actions_deploy.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ecs:UpdateService", "ecs:DescribeServices"]
+      Resource = [module.compute.backend_service_arn, module.compute.frontend_service_arn]
+    }]
+  })
+}
+
+resource "aws_iam_access_key" "github_actions_deploy" {
+  user = aws_iam_user.github_actions_deploy.name
 }

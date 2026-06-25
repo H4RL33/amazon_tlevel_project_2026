@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "COGNITO_USER_POOL_ID", value = var.cognito_user_pool_id },
       { name = "S3_BUCKET_NAME", value = var.s3_bucket_name },
       { name = "AWS_REGION", value = var.aws_region },
-      { name = "ALLOWED_ORIGINS", value = "http://${var.alb_dns_name}" },
+      { name = "ALLOWED_ORIGINS", value = "https://${var.public_domain},http://${var.alb_dns_name}" },
     ]
 
     logConfiguration = {
