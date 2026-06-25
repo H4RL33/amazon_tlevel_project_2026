@@ -4,9 +4,9 @@
     user's Dashboard, Settings, and Help.
   Used in: NavBar
   Props:
-    - user (UserResponse): current user -- renders initials from first_name/
-      last_name on a coloured circle. (UserResponse has no avatar-image field yet;
-      once one exists, this can branch to an <img> instead.)
+    - user (UserResponse): current user -- renders the uploaded avatar image when
+      user.avatar_url is set, otherwise falls back to initials from first_name/
+      last_name on a coloured circle.
   Behaviour:
     - Clicking the avatar toggles a dropdown panel anchored below-right of the avatar.
     - Dropdown items: "Dashboard" (/dashboard), "Settings" (/settings), "Help" (/help).
@@ -51,7 +51,11 @@
 
 <div class="avatar-container" bind:this={containerEl}>
   <button class="avatar-button" on:click={toggle} aria-label="User menu" aria-expanded={open}>
-    <span class="avatar">{initials}</span>
+    {#if user.avatar_url}
+      <img src={user.avatar_url} alt="" class="avatar avatar-image" />
+    {:else}
+      <span class="avatar">{initials}</span>
+    {/if}
   </button>
 
   {#if open}
@@ -86,6 +90,10 @@
     color: #ffffff;
     font-size: 0.8rem;
     font-weight: 700;
+  }
+
+  .avatar-image {
+    object-fit: cover;
   }
 
   .dropdown {
