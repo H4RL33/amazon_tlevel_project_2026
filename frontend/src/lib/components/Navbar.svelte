@@ -15,7 +15,7 @@
   }
 </script>
 
-<PageCard as="nav" padding="0 1.5rem">
+<PageCard as="nav" padding="0 1.5rem" overflowY="visible">
   <div class="nav-inner">
     <a href="/" class="logo-link">
       <img src="/assets/logo.png" alt="T Level Placements at Amazon" class="logo" />
