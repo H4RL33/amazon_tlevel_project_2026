@@ -58,6 +58,9 @@ def decode_id_token(token: str) -> dict:
             algorithms=["RS256"],
             audience=settings.COGNITO_CLIENT_ID,
             issuer=issuer,
+            # We only ever receive the id_token, never the access_token, so there's
+            # nothing to compare the id_token's at_hash claim against.
+            options={"verify_at_hash": False},
         )
     except JOSEError as exc:
         logger.warning("JWT validation failed: %s: %s", type(exc).__name__, exc)
