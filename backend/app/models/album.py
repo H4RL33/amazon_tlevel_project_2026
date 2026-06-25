@@ -44,9 +44,7 @@ class SideContent(Base):
     __tablename__ = "side_content"
 
     side_id: Mapped[int] = mapped_column(ForeignKey("sides.id"), primary_key=True)
-    content_id: Mapped[int] = mapped_column(
-        ForeignKey("content.id"), primary_key=True, index=True
-    )
+    content_id: Mapped[int] = mapped_column(ForeignKey("content.id"), primary_key=True, index=True)
     position: Mapped[int] = mapped_column(Integer)
 
     side: Mapped["Side"] = relationship(back_populates="side_contents")

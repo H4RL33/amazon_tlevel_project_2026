@@ -1,10 +1,10 @@
 import time
 
 import pytest
-from jose.exceptions import JOSEError
-from jose.utils import long_to_base64
 from cryptography.hazmat.primitives.asymmetric import rsa
 from jose import jwt as jose_jwt
+from jose.exceptions import JOSEError
+from jose.utils import long_to_base64
 
 from app.config import get_settings
 from app.dependencies.auth import decode_id_token, get_current_user, get_current_user_optional
@@ -39,7 +39,9 @@ def _make_token(rsa_key_pair, *, audience=None, issuer=None, exp_offset=3600, su
     private_key, _ = rsa_key_pair
     settings = get_settings()
     pem = private_key.private_bytes(
-        encoding=__import__("cryptography.hazmat.primitives.serialization", fromlist=["Encoding"]).Encoding.PEM,
+        encoding=__import__(
+            "cryptography.hazmat.primitives.serialization", fromlist=["Encoding"]
+        ).Encoding.PEM,
         format=__import__(
             "cryptography.hazmat.primitives.serialization", fromlist=["PrivateFormat"]
         ).PrivateFormat.PKCS8,
@@ -110,7 +112,9 @@ async def test_get_current_user_raises_401_for_missing_header() -> None:
 
 
 async def test_get_current_user_resolves_user_by_cognito_sub(db_session, rsa_key_pair):
-    user = User(cognito_sub="test-sub", email="test@example.com", first_name="Test", last_name="User")
+    user = User(
+        cognito_sub="test-sub", email="test@example.com", first_name="Test", last_name="User"
+    )
     db_session.add(user)
     await db_session.commit()
 

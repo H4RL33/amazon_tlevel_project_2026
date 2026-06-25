@@ -31,7 +31,9 @@ async def _make_album_with_side_and_snippet(db: AsyncSession) -> Album:
     side = Side(album_id=album.id, title="Side A", position=0)
     db.add(side)
     await db.flush()
-    content = Content(title="What is the cloud?", content_type=ContentType.article, topic_id=topic.id)
+    content = Content(
+        title="What is the cloud?", content_type=ContentType.article, topic_id=topic.id
+    )
     db.add(content)
     await db.flush()
     db.add(SideContent(side_id=side.id, content_id=content.id, position=0))

@@ -42,7 +42,10 @@ def test_build_user_response_has_avatar_url_when_avatar_s3_key_is_set(monkeypatc
         created_at=datetime.now(),
     )
     response = build_user_response(user)
-    assert response.avatar_url == "https://example-bucket.s3.amazonaws.com/avatars/1/photo.jpg?signed=1"
+    assert (
+        response.avatar_url
+        == "https://example-bucket.s3.amazonaws.com/avatars/1/photo.jpg?signed=1"
+    )
 
 
 async def _make_topic(db: AsyncSession, slug: str) -> Topic:
@@ -108,7 +111,9 @@ async def test_create_avatar_upload_url_rejects_unsupported_content_type() -> No
 
     user = User(id=1, cognito_sub="sub-1", email="a@example.com", first_name="A", last_name="B")
     with pytest.raises(HTTPException) as exc_info:
-        user_service.create_avatar_upload_url(user, AvatarUploadUrlRequest(content_type="text/plain"))
+        user_service.create_avatar_upload_url(
+            user, AvatarUploadUrlRequest(content_type="text/plain")
+        )
     assert exc_info.value.status_code == 422
 
 
@@ -149,10 +154,14 @@ async def test_set_avatar_persists_the_key_and_returns_user_response(
     assert response.id == user.id
 
 
-async def test_set_avatar_rejects_a_key_outside_the_users_own_prefix(db_session: AsyncSession) -> None:
+async def test_set_avatar_rejects_a_key_outside_the_users_own_prefix(
+    db_session: AsyncSession,
+) -> None:
     from fastapi import HTTPException
 
-    user = User(cognito_sub="sub-avatar-2", email="avatar2@example.com", first_name="A", last_name="B")
+    user = User(
+        cognito_sub="sub-avatar-2", email="avatar2@example.com", first_name="A", last_name="B"
+    )
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)

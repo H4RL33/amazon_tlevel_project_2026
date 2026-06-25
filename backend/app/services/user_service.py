@@ -84,9 +84,7 @@ async def set_topics(
         if missing:
             raise HTTPException(status_code=422, detail=f"Unknown topic_ids: {sorted(missing)}")
 
-    await db.execute(
-        delete(UserTopicInterest).where(UserTopicInterest.user_id == current_user.id)
-    )
+    await db.execute(delete(UserTopicInterest).where(UserTopicInterest.user_id == current_user.id))
     for topic_id in payload.topic_ids:
         db.add(UserTopicInterest(user_id=current_user.id, topic_id=topic_id))
     await db.commit()
