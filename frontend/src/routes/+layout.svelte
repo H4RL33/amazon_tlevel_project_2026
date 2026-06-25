@@ -178,13 +178,20 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     box-sizing: border-box;
     padding: var(--gap-outer);
     gap: var(--gap-inner);
   }
 
+  /* Navbar/Footer keep their own content-driven height (flex's default
+     0 1 auto) and never move. This is the one scrollable region — capped to
+     whatever's left of the 100vh shell via min-height: 0, which overrides
+     flex's default min-height: auto that would otherwise let it grow past
+     that and push the footer down. */
   .content {
-    flex: 1 0 auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
   }
 </style>

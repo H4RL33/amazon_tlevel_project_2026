@@ -78,8 +78,29 @@
 {/if}
 
 <style>
+  /* Fills the layout's scrollable .content region exactly (not more, not
+     less), so the row's height never changes between Albums/Snippets and
+     the page-level scroll never kicks in here — only each card's own
+     overflow-y: auto does, independently. */
   .album-page {
     display: flex;
     gap: var(--gap-inner);
+    height: 100%;
+  }
+
+  /* AlbumSidebar's PageCard: fixed width, never grows or shrinks. Flex's
+     defaults (grow: 0, shrink: 1, basis: auto-from-width) are what let it
+     shrink when the row got tight — pin all three explicitly instead. */
+  .album-page > :global(aside.page-card) {
+    flex: 0 0 288px;
+  }
+
+  /* Main content card: fills exactly the remaining row width. min-width: 0
+     overrides flex's default min-width: auto, which otherwise refuses to
+     shrink below the content's intrinsic width and was why long Snippet
+     bodies could grow this card (and the row) wider than intended. */
+  .album-page > :global(main.page-card) {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 </style>

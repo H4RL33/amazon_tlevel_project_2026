@@ -18,6 +18,9 @@
   Styling:
     background #ffffff, border-radius 0 (square corners), box-shadow
     0 10px 18px -4px rgba(35, 47, 62, 0.35) (the validated "soft directional blur" shadow).
+    overflow-y: auto so that when a caller constrains this card's height (e.g. via
+    flex stretch in a fixed-height row), excess content scrolls inside the card
+    instead of growing it — a no-op when height is left at its natural auto size.
 -->
 <script lang="ts">
   export let as: string = 'div';
@@ -35,5 +38,6 @@
     border-radius: 0;
     box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
     box-sizing: border-box;
+    overflow-y: auto;
   }
 </style>
