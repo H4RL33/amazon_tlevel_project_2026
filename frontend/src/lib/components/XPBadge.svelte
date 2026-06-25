@@ -18,13 +18,15 @@
 
 <!-- Changes -->
 
-<span
-  class="xp-badge"
-  class:earned 
-  aria-label={`${xp} XP ${earned ? 'earned' : 'available'}`}
->
+<span class="xp-badge" class:earned aria-label={`${xp} XP ${earned ? 'earned' : 'available'}`}>
   +{xp} XP
 </span>
+
+<!-- Changes -->
+
+<!-- "<span>" applies styling, scripting, or structure to a specific portion of text or inline content -->
+<!-- TODO: Implement "+{xp} XP" pill with the earned/available styling distinction above. -->
+
 <!-- " class="xp-badge" " applies the CSS class -->
 <!-- " class:earned " is short for class:earned={earned} and checks the value of the variable if its true or values. -->
 <!-- the aria -label is for accessibility -->
@@ -50,10 +52,3 @@
     color: #6b7280;
   }
 </style>
-
-<!-- Changes -->
-
-
-
-<!-- "<span>" applies styling, scripting, or structure to a specific portion of text or inline content -->
-<!-- TODO: Implement "+{xp} XP" pill with the earned/available styling distinction above. -->

@@ -95,7 +95,9 @@ describe('syncUser', () => {
       avatar_url: null,
       created_at: new Date().toISOString(),
     };
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
     vi.stubGlobal('fetch', mockFetch);
 
     const result = await syncUser('A', 'B');

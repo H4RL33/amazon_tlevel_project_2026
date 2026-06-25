@@ -18,13 +18,18 @@ describe('getMe', () => {
   });
 
   it('calls GET /users/me', async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
     vi.stubGlobal('fetch', mockFetch);
 
     const result = await getMe();
 
     expect(result).toEqual(user);
-    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/users/me'), expect.any(Object));
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/users/me'),
+      expect.any(Object)
+    );
   });
 });
 
@@ -35,7 +40,9 @@ describe('requestAvatarUploadUrl', () => {
 
   it('POSTs the content type and returns the upload url and key', async () => {
     const body = { upload_url: 'https://example.com/put', key: 'avatars/1/x.png' };
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
     vi.stubGlobal('fetch', mockFetch);
 
     const result = await requestAvatarUploadUrl('image/png');
@@ -52,7 +59,9 @@ describe('updateAvatar', () => {
   });
 
   it('PATCHes the avatar_s3_key and returns the updated user', async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
     vi.stubGlobal('fetch', mockFetch);
 
     const result = await updateAvatar('avatars/1/x.png');

@@ -21,7 +21,10 @@
       localStorage.setItem(TOKEN_KEY, tokens.id_token);
 
       const claims = decodeJwtPayload(tokens.id_token);
-      const user = await syncUser((claims.given_name as string) ?? '', (claims.family_name as string) ?? '');
+      const user = await syncUser(
+        (claims.given_name as string) ?? '',
+        (claims.family_name as string) ?? ''
+      );
       currentUser.set(user);
 
       await goto('/');

@@ -10,7 +10,9 @@ export async function getMe(): Promise<UserResponse> {
   return apiFetch<UserResponse>('/users/me');
 }
 
-export async function requestAvatarUploadUrl(contentType: string): Promise<AvatarUploadUrlResponse> {
+export async function requestAvatarUploadUrl(
+  contentType: string
+): Promise<AvatarUploadUrlResponse> {
   return apiFetch<AvatarUploadUrlResponse>('/users/me/avatar-upload-url', {
     method: 'POST',
     body: JSON.stringify({ content_type: contentType }),
