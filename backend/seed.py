@@ -89,6 +89,7 @@ TOPICS = [
 
 
 SNIPPETS = [
+    # ── Getting Started ──────────────────────────────────────────────────────
     {
         "title": "What is Cloud Computing?",
         "body": "Cloud computing means renting computing power, storage, and "
@@ -99,6 +100,28 @@ SNIPPETS = [
         "topic_slug": "digital-infrastructure",
     },
     {
+        "title": "Cloud Service Models: IaaS, PaaS, SaaS",
+        "body": "Infrastructure as a Service (IaaS) rents raw virtual machines "
+        "and networking. Platform as a Service (PaaS) goes further, managing "
+        "the operating system and runtime so you just deploy code. Software "
+        "as a Service (SaaS) hands you a finished application — think Gmail "
+        "or Netflix — with nothing to install or manage at all.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "Public, Private, and Hybrid Cloud",
+        "body": "A public cloud (like AWS or Azure) shares physical hardware "
+        "between many customers, kept isolated from each other. A private "
+        "cloud is dedicated to one organisation, often for stricter compliance "
+        "needs. A hybrid cloud combines both, letting a business keep "
+        "sensitive workloads private while bursting into public cloud "
+        "capacity when demand spikes.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    # ── Compute & Virtualisation ──────────────────────────────────────────────
+    {
         "title": "Virtual Private Servers Explained",
         "body": "A Virtual Private Server (VPS) is a virtual machine sold as a "
         "service by a hosting provider. It behaves like a dedicated physical "
@@ -107,6 +130,37 @@ SNIPPETS = [
         "content_type": "article",
         "topic_slug": "digital-infrastructure",
     },
+    {
+        "title": "Servers vs Serverless",
+        "body": "Traditional servers run continuously and you pay for them "
+        "whether or not they're handling requests. Serverless computing runs "
+        "your code only when triggered, and you pay only for the compute time "
+        "actually used.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "Containers and Docker Basics",
+        "body": "A container packages an application together with everything "
+        "it needs to run — code, libraries, settings — so it behaves "
+        "identically on any machine. Docker is the most widely used tool for "
+        "building and running containers, and container orchestrators like "
+        "Kubernetes or AWS ECS manage many containers running across a "
+        "cluster of servers.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "Understanding Auto Scaling",
+        "body": "Auto scaling automatically adds or removes compute capacity "
+        "to match demand. If traffic spikes, more instances launch to share "
+        "the load; when traffic drops, idle instances are terminated to save "
+        "cost. This is one of the main reasons cloud computing can be cheaper "
+        "than buying fixed hardware for peak demand you rarely hit.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    # ── Networking & Security ─────────────────────────────────────────────────
     {
         "title": "Intro to Virtual Private Networks",
         "body": "A Virtual Private Network (VLAN) logically separates devices "
@@ -117,11 +171,88 @@ SNIPPETS = [
         "topic_slug": "digital-infrastructure",
     },
     {
-        "title": "Servers vs Serverless",
-        "body": "Traditional servers run continuously and you pay for them "
-        "whether or not they're handling requests. Serverless computing runs "
-        "your code only when triggered, and you pay only for the compute time "
-        "actually used.",
+        "title": "How DNS Works",
+        "body": "The Domain Name System (DNS) translates human-readable "
+        "domain names like example.com into the numeric IP addresses "
+        "computers actually use to find each other. Without it, you'd have "
+        "to remember a string of numbers for every website you wanted to "
+        "visit.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "Load Balancers Explained",
+        "body": "A load balancer sits in front of a group of servers and "
+        "distributes incoming requests across them, so no single server gets "
+        "overwhelmed. It also detects unhealthy servers and stops sending "
+        "them traffic, which is a major reason cloud applications can stay "
+        "online even when individual servers fail.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "Cloud Security Fundamentals",
+        "body": "Cloud providers secure the physical infrastructure, but "
+        "customers are responsible for securing what they build on top of "
+        "it — this split is called the 'shared responsibility model'. Common "
+        "practices include encrypting data, tightly scoping permissions so "
+        "accounts can only access what they need, and never exposing "
+        "databases directly to the public internet.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    # ── Storage & Databases ───────────────────────────────────────────────────
+    {
+        "title": "Object Storage vs Block Storage",
+        "body": "Block storage splits data into fixed-size chunks and is "
+        "typically attached to a single virtual machine, much like a hard "
+        "drive. Object storage (like Amazon S3) stores whole files as "
+        "objects with metadata, accessible over the internet from anywhere, "
+        "and is what most cloud applications use for images, videos, and "
+        "backups.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "Relational vs NoSQL Databases",
+        "body": "Relational databases (like PostgreSQL) store data in tables "
+        "with strict, predefined relationships between them, enforced by a "
+        "schema. NoSQL databases trade some of that structure for "
+        "flexibility and scale, storing data as documents, key-value pairs, "
+        "or graphs instead — useful when your data doesn't fit neatly into "
+        "rows and columns.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "Data Backups and Disaster Recovery",
+        "body": "A backup is a copy of your data kept somewhere separate, so "
+        "it can be restored if the original is lost or corrupted. Disaster "
+        "recovery goes further, planning for how an entire service recovers "
+        "from a major outage — for example, automatically failing over to a "
+        "backup region in a different part of the world.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    # ── Careers in Cloud Computing ─────────────────────────────────────────────
+    {
+        "title": "Day in the Life of a Cloud Engineer",
+        "body": "A cloud engineer designs, builds, and maintains the "
+        "infrastructure applications run on. A typical day might involve "
+        "writing infrastructure-as-code to provision new resources, "
+        "investigating why a service is running slowly, and reviewing "
+        "security permissions before a new feature goes live.",
+        "content_type": "article",
+        "topic_slug": "digital-infrastructure",
+    },
+    {
+        "title": "AWS, Azure, and Google Cloud: An Overview",
+        "body": "Amazon Web Services (AWS), Microsoft Azure, and Google Cloud "
+        "Platform (GCP) are the three largest cloud providers, each offering "
+        "broadly similar services — compute, storage, databases, "
+        "networking — under different names and pricing. Most cloud "
+        "engineering roles specialise in one provider, though the underlying "
+        "concepts transfer well between them.",
         "content_type": "article",
         "topic_slug": "digital-infrastructure",
     },
@@ -136,13 +267,43 @@ ALBUM = {
     "sides": [
         {
             "title": "Getting Started",
-            "snippet_titles": ["What is Cloud Computing?", "Servers vs Serverless"],
+            "snippet_titles": [
+                "What is Cloud Computing?",
+                "Cloud Service Models: IaaS, PaaS, SaaS",
+                "Public, Private, and Hybrid Cloud",
+            ],
         },
         {
-            "title": "Networking Basics",
+            "title": "Compute & Virtualisation",
             "snippet_titles": [
                 "Virtual Private Servers Explained",
+                "Servers vs Serverless",
+                "Containers and Docker Basics",
+                "Understanding Auto Scaling",
+            ],
+        },
+        {
+            "title": "Networking & Security",
+            "snippet_titles": [
                 "Intro to Virtual Private Networks",
+                "How DNS Works",
+                "Load Balancers Explained",
+                "Cloud Security Fundamentals",
+            ],
+        },
+        {
+            "title": "Storage & Databases",
+            "snippet_titles": [
+                "Object Storage vs Block Storage",
+                "Relational vs NoSQL Databases",
+                "Data Backups and Disaster Recovery",
+            ],
+        },
+        {
+            "title": "Careers in Cloud Computing",
+            "snippet_titles": [
+                "Day in the Life of a Cloud Engineer",
+                "AWS, Azure, and Google Cloud: An Overview",
             ],
         },
     ],
@@ -269,7 +430,17 @@ async def _seed_album(session: AsyncSession) -> None:
         )
         album_id = result.scalar_one()
 
-        for position, side in enumerate(ALBUM["sides"]):
+    # Sides/SideContent are upserted individually so re-running this script
+    # against a DB that already has this Album adds newly-introduced Sides
+    # and Snippets instead of silently skipping them.
+    for position, side in enumerate(ALBUM["sides"]):
+        result = await session.execute(
+            text("SELECT id FROM sides WHERE album_id = :album_id AND title = :title"),
+            {"album_id": album_id, "title": side["title"]},
+        )
+        side_id = result.scalar_one_or_none()
+
+        if side_id is None:
             await session.execute(
                 text("""
                     INSERT INTO sides (album_id, title, position)
@@ -280,15 +451,19 @@ async def _seed_album(session: AsyncSession) -> None:
             await session.flush()
 
             result = await session.execute(
-                text("""
-                    SELECT id FROM sides
-                    WHERE album_id = :album_id AND title = :title AND position = :position
-                """),
-                {"album_id": album_id, "title": side["title"], "position": position},
+                text("SELECT id FROM sides WHERE album_id = :album_id AND title = :title"),
+                {"album_id": album_id, "title": side["title"]},
             )
             side_id = result.scalar_one()
 
-            for snippet_position, title in enumerate(side["snippet_titles"]):
+        for snippet_position, title in enumerate(side["snippet_titles"]):
+            result = await session.execute(
+                text(
+                    "SELECT 1 FROM side_content WHERE side_id = :side_id AND content_id = :content_id"
+                ),
+                {"side_id": side_id, "content_id": content_ids[title]},
+            )
+            if result.scalar_one_or_none() is None:
                 await session.execute(
                     text("""
                         INSERT INTO side_content (side_id, content_id, position)
