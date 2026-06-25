@@ -1,4 +1,5 @@
 import json
+import logging
 import urllib.request
 from functools import lru_cache
 
@@ -11,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.database import get_db
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 
 def _get_jwks() -> dict:
@@ -40,16 +43,25 @@ def decode_id_token(token: str) -> dict:
     jwks = _cached_jwks()
     key = next((k for k in jwks["keys"] if k["kid"] == unverified_header.get("kid")), None)
     if key is None:
+        logger.warning(
+            "No matching JWK for kid=%s; available kids=%s",
+            unverified_header.get("kid"),
+            [k["kid"] for k in jwks["keys"]],
+        )
         raise JOSEError("No matching JWK found for this token's key id")
 
     issuer = f"https://cognito-idp.{settings.COGNITO_REGION}.amazonaws.com/{settings.COGNITO_USER_POOL_ID}"
-    return jwt.decode(
-        token,
-        key,
-        algorithms=["RS256"],
-        audience=settings.COGNITO_CLIENT_ID,
-        issuer=issuer,
-    )
+    try:
+        return jwt.decode(
+            token,
+            key,
+            algorithms=["RS256"],
+            audience=settings.COGNITO_CLIENT_ID,
+            issuer=issuer,
+        )
+    except JOSEError as exc:
+        logger.warning("JWT validation failed: %s: %s", type(exc).__name__, exc)
+        raise
 
 
 async def get_current_user(
