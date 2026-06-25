@@ -1,8 +1,12 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import { getPagePalette } from '$lib/gradient';
+  import { TOKEN_KEY } from '$lib/api/client';
+  import { getMe } from '$lib/api/users';
+  import { currentUser } from '$lib/stores/user';
 
   type Layer = { palette: [string, string, string]; visible: boolean };
 
@@ -12,6 +16,17 @@
     { palette: initialPalette, visible: false },
   ];
   let activeIndex = 0;
+
+  onMount(async () => {
+    if (localStorage.getItem(TOKEN_KEY)) {
+      try {
+        currentUser.set(await getMe());
+      } catch (err) {
+        console.error('Failed to rehydrate current user:', err);
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    }
+  });
 
   $: {
     const next = getPagePalette($page.url.pathname);
