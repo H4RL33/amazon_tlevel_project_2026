@@ -27,7 +27,11 @@
   $: iconPaths = ICON_PATHS[album.icon] ?? DEFAULT_ICON_PATHS;
 </script>
 
-<a class="album-card" href={`/learn/${album.id}`} style={size ? `width: ${size}; height: ${size};` : undefined}>
+<a
+  class="album-card"
+  href={`/learn/${album.id}`}
+  style={size ? `width: ${size}; height: ${size};` : undefined}
+>
   <svg
     class="icon"
     aria-hidden="true"

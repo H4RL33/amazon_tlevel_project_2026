@@ -24,17 +24,9 @@
 </script>
 
 {#if user.avatar_url}
-  <img
-    src={user.avatar_url}
-    alt=""
-    class="avatar"
-    style="width: {size}; height: {size};"
-  />
+  <img src={user.avatar_url} alt="" class="avatar" style="width: {size}; height: {size};" />
 {:else}
-  <span
-    class="avatar initials"
-    style="width: {size}; height: {size}; font-size: {fontSize};"
-  >
+  <span class="avatar initials" style="width: {size}; height: {size}; font-size: {fontSize};">
     {initials}
   </span>
 {/if}

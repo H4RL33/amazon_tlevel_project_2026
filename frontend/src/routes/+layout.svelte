@@ -43,7 +43,11 @@
 
 <div class="backdrop" aria-hidden="true">
   {#each layers as layer, i (i)}
-    <div class="layer" class:visible={layer.visible} class:morphing={morphingBackdrop && i === activeIndex}>
+    <div
+      class="layer"
+      class:visible={layer.visible}
+      class:morphing={morphingBackdrop && i === activeIndex}
+    >
       <div
         class="blob blob-a"
         style="background: radial-gradient(circle, {layer.palette[0]}, transparent 70%);"
@@ -60,7 +64,10 @@
   {/each}
 </div>
 
-<div class="shell" style="--page-p0: {layers[activeIndex].palette[0]}; --page-p1: {layers[activeIndex].palette[1]};">
+<div
+  class="shell"
+  style="--page-p0: {layers[activeIndex].palette[0]}; --page-p1: {layers[activeIndex].palette[1]};"
+>
   <Navbar />
   <div class="content">
     <slot />

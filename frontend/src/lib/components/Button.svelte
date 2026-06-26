@@ -17,13 +17,7 @@
   export let type: 'button' | 'submit' | 'reset' = 'button';
 </script>
 
-<button
-  {type}
-  {disabled}
-  class={variant}
-  on:click
-  {...$$restProps}
->
+<button {type} {disabled} class={variant} on:click {...$$restProps}>
   <slot />
 </button>
 

@@ -48,7 +48,6 @@
     <CTASidebar user={$currentUser} {albums} snippets={[]} />
 
     <div class="right-col">
-
       <!-- Stats row -->
       <div class="stats-row">
         <PageCard padding="0.875rem 1.25rem">
@@ -62,7 +61,9 @@
           <div class="stat">
             <span class="stat-label">📚 Albums Enrolled</span>
             <span class="stat-value">{albums.length}</span>
-            <span class="stat-sub">{albums.length === 1 ? '1 album' : `${albums.length} albums`}</span>
+            <span class="stat-sub"
+              >{albums.length === 1 ? '1 album' : `${albums.length} albums`}</span
+            >
           </div>
         </PageCard>
         <PageCard padding="0.875rem 1.25rem">
@@ -97,15 +98,16 @@
           {/each}
         </div>
       {/if}
-
     </div>
   </div>
-
 {:else}
   <!-- Guest view -->
   <div class="hero">
     <h1>Discover your future with Amazon T-Levels</h1>
-    <p>Explore short-form content, enrol in curated learning Albums, and connect with Amazon mentors — all in one place.</p>
+    <p>
+      Explore short-form content, enrol in curated learning Albums, and connect with Amazon mentors
+      — all in one place.
+    </p>
     <button class="cta" on:click={handleGetStarted}>Get started</button>
   </div>
 

@@ -37,7 +37,6 @@
 
 <PageCard as="aside" width="320px" padding="1.5rem" overflowY="visible">
   <div class="sidebar-inner">
-
     <p class="greeting">Good {timeOfDay}, {user.first_name} 👋</p>
 
     <div class="section">
@@ -70,7 +69,6 @@
     <div class="spacer"></div>
 
     <AgentChat on:submit={handleAgentSubmit} />
-
   </div>
 </PageCard>
 
