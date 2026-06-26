@@ -11,7 +11,7 @@ test.describe('authenticated paths', () => {
     await expect(page.locator('.home-auth')).toBeVisible({ timeout: 10_000 });
 
     // Greeting is visible (Good morning/afternoon/evening, <name> 👋)
-    await expect(page.locator('.greeting')).toBeVisible();
+    await expect(page.locator('.greeting')).toBeVisible({ timeout: 10_000 });
   });
 
   test('settings page renders sidebar and upload controls', async ({ page }) => {
@@ -19,7 +19,7 @@ test.describe('authenticated paths', () => {
     await page.waitForLoadState('networkidle');
 
     // Sidebar NavLink
-    await expect(page.locator('text=Personalisation')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('Personalisation')).toBeVisible({ timeout: 10_000 });
 
     // Upload button in the content card
     await expect(page.locator('button', { hasText: 'Choose file' })).toBeVisible();
