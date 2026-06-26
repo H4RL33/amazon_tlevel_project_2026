@@ -104,6 +104,10 @@ jobs:
               break
             fi
             echo "Waiting for backend... ($i/20)"
+            if [ "$i" -eq 20 ]; then
+              echo "Backend did not become healthy in time"
+              exit 1
+            fi
             sleep 3
           done
 
