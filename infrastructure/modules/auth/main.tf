@@ -42,6 +42,8 @@ resource "aws_cognito_user_pool_client" "main" {
   explicit_auth_flows = [
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",
+    # USER_PASSWORD_AUTH is required for the Playwright e2e auth fixture, which
+    # calls InitiateAuth directly instead of going through the Hosted UI flow.
     "ALLOW_USER_PASSWORD_AUTH",
   ]
 }
