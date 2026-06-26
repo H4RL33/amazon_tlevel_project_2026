@@ -1,0 +1,128 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [main]
+    paths: ['frontend/**']
+  pull_request:
+    branches: [main]
+    paths: ['frontend/**']
+
+concurrency:
+  group: playwright-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache backend Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-backend
+          key: ${{ runner.os }}-buildx-backend-${{ hashFiles('backend/Dockerfile', 'backend/pyproject.toml', 'backend/poetry.lock') }}
+          restore-keys: ${{ runner.os }}-buildx-backend-
+
+      - name: Cache frontend Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-frontend
+          key: ${{ runner.os }}-buildx-frontend-${{ hashFiles('frontend/Dockerfile', 'frontend/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-buildx-frontend-
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          tags: |
+            amazon_tlevel_project_2026-backend:${{ github.sha }}
+            amazon_tlevel_project_2026-backend:latest
+          load: true
+          cache-from: type=local,src=/tmp/.buildx-cache-backend
+          cache-to: type=local,dest=/tmp/.buildx-cache-backend-new,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          tags: |
+            amazon_tlevel_project_2026-frontend:${{ github.sha }}
+            amazon_tlevel_project_2026-frontend:latest
+          load: true
+          build-args: |
+            VITE_API_BASE_URL=http://localhost:8000
+            VITE_COGNITO_DOMAIN=
+            VITE_COGNITO_CLIENT_ID=
+            VITE_COGNITO_REDIRECT_URI=http://localhost:3000/auth/callback
+          cache-from: type=local,src=/tmp/.buildx-cache-frontend
+          cache-to: type=local,dest=/tmp/.buildx-cache-frontend-new,mode=max
+
+      - name: Move caches (prevent unbounded growth)
+        run: |
+          rm -rf /tmp/.buildx-cache-backend /tmp/.buildx-cache-frontend
+          mv /tmp/.buildx-cache-backend-new /tmp/.buildx-cache-backend
+          mv /tmp/.buildx-cache-frontend-new /tmp/.buildx-cache-frontend
+
+      - name: Write backend .env
+        run: |
+          cat > backend/.env <<EOF
+          DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/app
+          SECRET_KEY=${{ secrets.BACKEND_SECRET_KEY }}
+          COGNITO_USER_POOL_ID=eu-west-2_sX50A202h
+          COGNITO_CLIENT_ID=4bkjvav9ur3lat0dr25kht85bh
+          COGNITO_REGION=eu-west-2
+          S3_BUCKET_NAME=dummy-not-used-in-e2e
+          AWS_ACCESS_KEY_ID=dummy
+          AWS_SECRET_ACCESS_KEY=dummy
+          EOF
+
+      - name: Write frontend .env.test
+        run: |
+          cat > frontend/.env.test <<EOF
+          TEST_COGNITO_USER_POOL_ID=eu-west-2_sX50A202h
+          TEST_COGNITO_CLIENT_ID=4bkjvav9ur3lat0dr25kht85bh
+          TEST_COGNITO_USERNAME=${{ secrets.TEST_COGNITO_USERNAME }}
+          TEST_COGNITO_PASSWORD=${{ secrets.TEST_COGNITO_PASSWORD }}
+          EOF
+
+      - name: Start services
+        run: docker compose up -d
+
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:8000/health; then
+              echo "Backend healthy"
+              break
+            fi
+            echo "Waiting for backend... ($i/20)"
+            sleep 3
+          done
+
+      - name: Run migrations
+        run: docker compose exec -T backend poetry run alembic upgrade head
+
+      - name: Seed data
+        run: docker compose exec -T backend poetry run python seed.py
+
+      - name: Install Playwright browsers
+        run: cd frontend && npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: cd frontend && npx playwright test
+
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
