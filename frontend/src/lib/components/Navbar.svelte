@@ -15,7 +15,7 @@
   }
 </script>
 
-<PageCard as="nav" padding="0 1.5rem">
+<PageCard as="nav" padding="0 1.5rem" overflowY="visible">
   <div class="nav-inner">
     <a href="/" class="logo-link">
       <img src="/assets/logo.png" alt="T Level Placements at Amazon" class="logo" />
@@ -25,7 +25,6 @@
       <NavLink href="/learn" label="Learn" />
       <NavLink href="/topics" label="Topics" />
       <NavLink href={$currentUser ? '/library' : '/login'} label="Library" />
-      <NavLink href={$currentUser ? '/dashboard' : '/login'} label="Dashboard" />
       {#if $currentUser}
         <NavBarAvatar user={$currentUser} />
       {:else}
