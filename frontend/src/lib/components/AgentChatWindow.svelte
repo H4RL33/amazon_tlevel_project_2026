@@ -31,8 +31,9 @@
 
   export let messages: ChatMessage[];
   export let onSend: (text: string) => void;
+  export let initialDraft: string = '';
 
-  let draft = '';
+  let draft = initialDraft;
   // Changes -------------
   let message_container: HTMLDivElement | undefined;
   
