@@ -62,12 +62,12 @@
   </button>
 
   {#if open}
-    <div class="dropdown" role="menu">
+    <div class="dropdown">
       <div class="dropdown-item"><NavLink href="/dashboard" label="Dashboard" /></div>
       <div class="dropdown-item"><NavLink href="/settings" label="Settings" /></div>
       <div class="dropdown-item"><NavLink href="/help" label="Help" /></div>
       <hr class="divider" />
-      <button class="sign-out" role="menuitem" on:click={handleSignOut}>Sign out</button>
+      <button class="sign-out" on:click={handleSignOut}>Sign out</button>
     </div>
   {/if}
 </div>
@@ -103,6 +103,12 @@
   .dropdown-item {
     padding: 0.5rem 1rem;
     display: block;
+    font-size: 0.875rem;
+  }
+
+  .dropdown-item :global(a) {
+    display: block;
+    width: 100%;
   }
 
   .divider {
