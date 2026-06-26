@@ -20,10 +20,10 @@
 <script lang="ts">
   export let currentTier: 'exploring' | 'learning' | 'career';
   export let requiredTier: 'learning' | 'career';
-  /*"export let" creates a reactive prop */ 
+  /*"export let" creates a reactive prop */
 
   /* Changes */
-  
+
   $: message = getMessage(currentTier, requiredTier);
   /*"$:" is a special syntax for reactive assignments */
 
@@ -44,12 +44,15 @@
     return '';
     /* code just above this defines the default return value when no conditions are met */
   }
-
 </script>
 
 <div class="age-gate-notice">
   {message}
 </div>
+
+<!-- Changes -->
+
+<!-- TODO: Implement the messaging logic and banner styling described above. -->
 
 <style>
   .age-gate-notice {
@@ -60,7 +63,3 @@
     text-align: center;
   }
 </style>
-
-<!-- Changes -->
-
-<!-- TODO: Implement the messaging logic and banner styling described above. -->

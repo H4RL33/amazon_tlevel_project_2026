@@ -19,3 +19,38 @@
 
 <!-- TODO: Implement button template using variant, disabled, and type props -->
 <!-- Forward click event: on:click -->
+
+<script lang="ts">
+  let primary = '#1f6feb';
+  let secondary = '#21262d';
+  let danger = '#ef4444'
+</script>
+ 
+<button 
+  onclick={() => alert('hello')}
+  style="background-color: {primary}; color: white;">
+  Primary
+</button>
+ 
+<button 
+  onclick={() => alert('hello')}
+  style="background-color: {secondary}; color: white;">
+  Secondary
+</button>
+ 
+<button 
+  onclick={() => alert('hello')}
+  style="background-color: {danger}; color: white;">
+  Danger
+</button>
+ 
+ 
+<style> 
+button {
+  border-radius: 6px; 
+  padding: 0.5rem 1.25rem; 
+  font-size: 1.875rem; 
+  cursor: pointer; 
+} 
+ 
+</style>

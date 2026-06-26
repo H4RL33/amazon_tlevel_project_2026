@@ -5,5 +5,14 @@ export default defineConfig({
   plugins: [sveltekit()],
   test: {
     include: ['src/**/*.{test,spec}.{js,ts}'],
+    environment: 'jsdom',
+    poolOptions: {
+      threads: {
+        execArgv: ['--no-experimental-webstorage'],
+      },
+      forks: {
+        execArgv: ['--no-experimental-webstorage'],
+      },
+    },
   },
 });

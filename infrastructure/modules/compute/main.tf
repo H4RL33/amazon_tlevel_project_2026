@@ -58,8 +58,8 @@ resource "aws_ecs_task_definition" "backend" {
   family                   = "${var.env_name}-backend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "256"
+  memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
   task_role_arn            = aws_iam_role.ecs_task.arn
 
@@ -71,14 +71,14 @@ resource "aws_ecs_task_definition" "backend" {
     portMappings = [{ containerPort = 8000, protocol = "tcp" }]
 
     environment = [
-      { name = "DATABASE_URL",          value = var.database_url },
-      { name = "SECRET_KEY",            value = var.secret_key },
-      { name = "ENVIRONMENT",           value = "production" },
-      { name = "COGNITO_REGION",        value = var.aws_region },
-      { name = "COGNITO_USER_POOL_ID",  value = var.cognito_user_pool_id },
-      { name = "S3_BUCKET_NAME",        value = var.s3_bucket_name },
-      { name = "AWS_REGION",            value = var.aws_region },
-      { name = "ALLOWED_ORIGINS",       value = "http://${var.alb_dns_name}" },
+      { name = "DATABASE_URL", value = var.database_url },
+      { name = "SECRET_KEY", value = var.secret_key },
+      { name = "ENVIRONMENT", value = "production" },
+      { name = "COGNITO_REGION", value = var.aws_region },
+      { name = "COGNITO_USER_POOL_ID", value = var.cognito_user_pool_id },
+      { name = "S3_BUCKET_NAME", value = var.s3_bucket_name },
+      { name = "AWS_REGION", value = var.aws_region },
+      { name = "ALLOWED_ORIGINS", value = "https://${var.public_domain},http://${var.alb_dns_name}" },
     ]
 
     logConfiguration = {
@@ -130,9 +130,9 @@ resource "aws_ecs_service" "backend" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.private_subnet_ids
+    subnets          = var.public_subnet_ids
     security_groups  = [var.sg_ecs_id]
-    assign_public_ip = false
+    assign_public_ip = true
   }
 
   load_balancer {
@@ -159,9 +159,9 @@ resource "aws_ecs_service" "frontend" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.private_subnet_ids
+    subnets          = var.public_subnet_ids
     security_groups  = [var.sg_ecs_id]
-    assign_public_ip = false
+    assign_public_ip = true
   }
 
   load_balancer {

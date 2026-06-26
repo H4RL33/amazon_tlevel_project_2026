@@ -31,3 +31,15 @@ variable "env_name" {
   default     = "prod"
   description = "Environment label used in resource names"
 }
+
+variable "public_domain" {
+  type        = string
+  default     = "tlevels.h4rl3y.xyz"
+  description = "Custom domain pointed at the ALB for the deployed frontend"
+}
+
+variable "api_domain" {
+  type        = string
+  default     = "api.tlevels.h4rl3y.xyz"
+  description = "Custom domain pointed at the ALB for the deployed backend API"
+}

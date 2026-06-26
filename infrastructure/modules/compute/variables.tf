@@ -2,8 +2,9 @@ variable "env_name" {
   type = string
 }
 
-variable "private_subnet_ids" {
-  type = list(string)
+variable "public_subnet_ids" {
+  type        = list(string)
+  description = "ECS tasks run here with public IPs (no NAT Gateway) to keep costs down"
 }
 
 variable "sg_ecs_id" {
@@ -52,6 +53,11 @@ variable "s3_bucket_name" {
 
 variable "alb_dns_name" {
   type = string
+}
+
+variable "public_domain" {
+  type        = string
+  description = "Custom domain pointed at the deployed frontend — included in the backend's CORS allow-list"
 }
 
 variable "aws_region" {
