@@ -17,6 +17,7 @@
   import type { AlbumListResponse } from '$lib/api/types';
 
   export let album: AlbumListResponse;
+  export let size: string | undefined = undefined;
 
   const ICON_PATHS: Record<string, string[]> = {
     cloud: ['M6 18a4 4 0 0 1-.6-7.96A5 5 0 0 1 15 8a4.5 4.5 0 0 1 1 8.9', 'M6 18h10'],
@@ -26,7 +27,7 @@
   $: iconPaths = ICON_PATHS[album.icon] ?? DEFAULT_ICON_PATHS;
 </script>
 
-<a class="album-card" href={`/learn/${album.id}`}>
+<a class="album-card" href={`/learn/${album.id}`} style={size ? `width: ${size}; height: ${size};` : undefined}>
   <svg
     class="icon"
     aria-hidden="true"
