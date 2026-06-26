@@ -86,7 +86,12 @@
       status = 'Profile picture updated.';
     } catch (err) {
       console.error('Avatar upload failed:', err);
-      if (err instanceof Error && err.message === 'Could not process image') {
+      const msg = err instanceof Error ? err.message : '';
+      const isProcessingError =
+        msg === 'Could not get canvas context' ||
+        msg === 'canvas.toBlob returned null' ||
+        msg === 'Image failed to load';
+      if (isProcessingError) {
         error = 'Could not process image. Please try a different file.';
       } else {
         error = 'Could not upload your profile picture. Please try again.';
@@ -121,6 +126,7 @@
         <Button
           variant="primary"
           disabled={uploading}
+          aria-label="Upload profile picture"
           on:click={() => fileInput.click()}
         >
           Choose file
