@@ -3,16 +3,6 @@
   import NavBarAvatar from '$lib/components/NavBarAvatar.svelte';
   import PageCard from '$lib/components/PageCard.svelte';
   import { currentUser } from '$lib/stores/user';
-  import { getCognitoLoginUrl } from '$lib/api/auth';
-
-  async function handleLoginClick(event: MouseEvent) {
-    event.preventDefault();
-    try {
-      window.location.href = await getCognitoLoginUrl();
-    } catch (err) {
-      console.error('Could not build Cognito login URL:', err);
-    }
-  }
 </script>
 
 <PageCard as="nav" padding="0 1.5rem" overflowY="visible">
@@ -28,7 +18,7 @@
       {#if $currentUser}
         <NavBarAvatar user={$currentUser} />
       {:else}
-        <a href="/login" class="login-link" on:click={handleLoginClick}>Log in</a>
+        <NavLink href="/login" label="Log in" />
       {/if}
     </div>
   </div>
@@ -59,21 +49,5 @@
     gap: 1.5rem;
     align-items: center;
     overflow: visible;
-  }
-
-  .login-link {
-    color: #232f3e;
-    text-decoration: none;
-    font-family: 'Ubuntu', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 700;
-    background: #ffffff;
-    box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
-    padding: 0.5rem 1.25rem;
-    transition: opacity 0.15s;
-  }
-
-  .login-link:hover {
-    opacity: 0.88;
   }
 </style>
