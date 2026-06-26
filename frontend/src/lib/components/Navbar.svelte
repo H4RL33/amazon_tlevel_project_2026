@@ -65,5 +65,15 @@
     color: #232f3e;
     text-decoration: none;
     font-family: 'Ubuntu', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: #ffffff;
+    box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
+    padding: 0.5rem 1.25rem;
+    transition: opacity 0.15s;
+  }
+
+  .login-link:hover {
+    opacity: 0.88;
   }
 </style>

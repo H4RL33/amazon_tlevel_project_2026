@@ -124,7 +124,7 @@
           <AvatarBadge user={$currentUser} size="32px" />
         {/if}
         <Button
-          variant="primary"
+          variant="cta"
           disabled={uploading}
           aria-label="Upload profile picture"
           on:click={() => fileInput.click()}
