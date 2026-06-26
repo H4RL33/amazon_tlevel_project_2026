@@ -116,7 +116,7 @@
   }
 
   .layer.morphing {
-    animation: morph-hue 20s linear infinite;
+    animation: morph-hue 8s linear infinite;
   }
 
   @keyframes morph-hue {
@@ -218,5 +218,8 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-inner);
   }
 </style>
