@@ -1,38 +1,137 @@
 <!--
   CTASidebar
-  Purpose: Wide left sidebar on the dashboard with a personalised, time-of-day-aware welcome
-    message, two enrolled AlbumCards, three recommended SnippetCards, and an AgentChat teaser.
-  Used in: /dashboard
+  Purpose: Wide left sidebar on the home page for authenticated users. Personalised greeting,
+    up to 2 enrolled AlbumCards, up to 3 recommended SnippetCards, and an AgentChat teaser
+    pinned to the bottom. Navigates to /library on AgentChat submit, carrying the typed message
+    via the agentDraft store.
+  Used in: / (authenticated branch)
   Props:
-    - user (UserResponse): used to render "Good morning/afternoon/evening, {first_name}"
-    - albums (Album[] — TODO: replace with real API type once the Album model exists; for now
-      whatever shape AlbumCard expects, max 2 items shown)
-    - snippets (ContentListResponse[]): recommended Snippets, max 3 items shown
-  Layout (top to bottom):
-    1. Welcome message (derive greeting from local time-of-day)
-    2. Two AlbumCards, stacked vertically
-    3. Three SnippetCards, laid out horizontally
-    4. AgentChat teaser at the bottom
-  Styling:
-    Floating white PageCard (aside), ~320px wide (wider than the nav sidebars since it
-    holds more content), full height of its row, same shadow/colour treatment as every
-    other panel in this layout.
+    - user (UserResponse): current user — provides first_name for the greeting
+    - albums (AlbumListResponse[]): all albums; first 2 shown. Empty state shown if empty.
+    - snippets (ContentListResponse[]): recommended snippets; first 3 shown. Section omitted if empty.
 -->
 <script lang="ts">
-  import type { ContentListResponse, UserResponse } from '$lib/api/types';
+  import { goto } from '$app/navigation';
+  import type { AlbumListResponse, ContentListResponse, UserResponse } from '$lib/api/types';
+  import { agentDraft } from '$lib/stores/agentDraft';
+  import AgentChat from '$lib/components/AgentChat.svelte';
+  import AlbumCard from '$lib/components/AlbumCard.svelte';
+  import NavLink from '$lib/components/NavLink.svelte';
   import PageCard from '$lib/components/PageCard.svelte';
-
-  interface Album {
-    id: number;
-    title: string;
-  }
+  import SnippetCard from '$lib/components/SnippetCard.svelte';
 
   export let user: UserResponse;
-  export let albums: Album[];
+  export let albums: AlbumListResponse[];
   export let snippets: ContentListResponse[];
+
+  $: hour = new Date().getHours();
+  $: timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+  $: displayedAlbums = albums.slice(0, 2);
+  $: displayedSnippets = snippets.slice(0, 3);
+
+  function handleAgentSubmit(event: CustomEvent<string>) {
+    agentDraft.set(event.detail);
+    goto('/library');
+  }
 </script>
 
-<PageCard as="aside" width="320px" padding="1.5rem">
-  <!-- TODO: Implement greeting (time-of-day), then render albums.slice(0, 2) as AlbumCards, -->
-  <!-- snippets.slice(0, 3) as SnippetCards, then an AgentChat at the bottom. -->
+<PageCard as="aside" width="320px" padding="1.5rem" overflowY="visible">
+  <div class="sidebar-inner">
+
+    <p class="greeting">Good {timeOfDay}, {user.first_name} 👋</p>
+
+    <div class="section">
+      <span class="section-label">Your Albums</span>
+      {#if displayedAlbums.length > 0}
+        <div class="album-row">
+          {#each displayedAlbums as album}
+            <div class="album-slot">
+              <AlbumCard {album} size="100%" />
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <p class="empty-text">Browse Albums to get started</p>
+        <NavLink href="/learn" label="Browse Albums" />
+      {/if}
+    </div>
+
+    {#if displayedSnippets.length > 0}
+      <div class="section">
+        <span class="section-label">Recommended Snippets</span>
+        <div class="snippet-list">
+          {#each displayedSnippets as snippet}
+            <SnippetCard content={snippet} />
+          {/each}
+        </div>
+      </div>
+    {/if}
+
+    <div class="spacer"></div>
+
+    <AgentChat on:submit={handleAgentSubmit} />
+
+  </div>
 </PageCard>
+
+<style>
+  .sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-inner);
+    height: 100%;
+  }
+
+  .greeting {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #232f3e;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5a6472;
+  }
+
+  /* Two AlbumCards side by side, each a square filling its flex slot */
+  .album-row {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-inner);
+  }
+
+  .album-slot {
+    flex: 1;
+    min-width: 0;
+    aspect-ratio: 1;
+  }
+
+  .snippet-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--gap-inner) * 0.5);
+  }
+
+  .empty-text {
+    font-size: 0.875rem;
+    color: #5a6472;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  /* Pushes AgentChat to the bottom of the sidebar */
+  .spacer {
+    flex: 1;
+  }
+</style>
