@@ -16,13 +16,21 @@ export default defineConfig({
   },
   projects: [
     {
-      // Runs auth.setup.ts to obtain a real Cognito token and save storageState.
-      // Produces a single user.json shared by all browser projects (Chromium only for now).
+      // Obtains a real Cognito token via USER_PASSWORD_AUTH and saves storageState.
       name: 'setup',
       testMatch: /auth\.setup\.ts/,
+      timeout: 60_000,
     },
     {
-      name: 'chromium',
+      // Unauthenticated tests — no dependency on setup so they run even if Cognito is unavailable.
+      name: 'chromium-guest',
+      testMatch: /guest\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      // Authenticated tests — require a valid storageState from the setup project.
+      name: 'chromium-auth',
+      testMatch: /auth\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },

@@ -3,10 +3,10 @@ name: Playwright E2E
 on:
   push:
     branches: [main]
-    paths: ['frontend/**']
+    paths: ['frontend/**', 'infrastructure/modules/auth/**']
   pull_request:
     branches: [main]
-    paths: ['frontend/**']
+    paths: ['frontend/**', 'infrastructure/modules/auth/**']
 
 concurrency:
   group: playwright-${{ github.ref }}
@@ -76,8 +76,8 @@ jobs:
           cat > backend/.env <<EOF
           DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/app
           SECRET_KEY=${{ secrets.BACKEND_SECRET_KEY }}
-          COGNITO_USER_POOL_ID=eu-west-2_sX50A202h
-          COGNITO_CLIENT_ID=4bkjvav9ur3lat0dr25kht85bh
+          COGNITO_USER_POOL_ID=${{ vars.COGNITO_USER_POOL_ID }}
+          COGNITO_CLIENT_ID=${{ vars.COGNITO_CLIENT_ID }}
           COGNITO_REGION=eu-west-2
           S3_BUCKET_NAME=dummy-not-used-in-e2e
           AWS_ACCESS_KEY_ID=dummy
@@ -87,14 +87,14 @@ jobs:
       - name: Write frontend .env.test
         run: |
           cat > frontend/.env.test <<EOF
-          TEST_COGNITO_USER_POOL_ID=eu-west-2_sX50A202h
-          TEST_COGNITO_CLIENT_ID=4bkjvav9ur3lat0dr25kht85bh
+          TEST_COGNITO_USER_POOL_ID=${{ vars.COGNITO_USER_POOL_ID }}
+          TEST_COGNITO_CLIENT_ID=${{ vars.COGNITO_CLIENT_ID }}
           TEST_COGNITO_USERNAME=${{ secrets.TEST_COGNITO_USERNAME }}
           TEST_COGNITO_PASSWORD=${{ secrets.TEST_COGNITO_PASSWORD }}
           EOF
 
       - name: Start services
-        run: docker compose up -d
+        run: docker compose up -d --no-build
 
       - name: Wait for backend health
         run: |
@@ -116,6 +116,21 @@ jobs:
 
       - name: Seed data
         run: docker compose exec -T backend poetry run python seed.py
+
+      - name: Wait for frontend
+        run: |
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:3000; then
+              echo "Frontend healthy"
+              break
+            fi
+            echo "Waiting for frontend... ($i/20)"
+            if [ "$i" -eq 20 ]; then
+              echo "Frontend did not become healthy in time"
+              exit 1
+            fi
+            sleep 3
+          done
 
       - name: Install Playwright browsers
         run: cd frontend && npx playwright install --with-deps chromium
