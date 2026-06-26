@@ -17,14 +17,18 @@ test.describe('guest — unauthenticated paths', () => {
     // Navigate to /learn, click the first album card to land on /learn/[id]
     await page.goto('/learn');
     await page.locator('.album-card').first().click();
+    // Wait for SvelteKit client-side navigation to /learn/[id]
+    await page.waitForURL(/\/learn\/.+/);
 
     // AlbumSidebar renders as <aside>
     await expect(page.locator('aside')).toBeVisible({ timeout: 10_000 });
 
     // Click the first NavLink inside the sidebar (a ?snippet= link)
     await page.locator('aside a').first().click();
+    // Wait for the snippet content to load (URL gains ?snippet= param)
+    await page.waitForLoadState('networkidle');
 
     // The main PageCard should now contain non-empty text (the snippet body)
-    await expect(page.locator('main')).not.toBeEmpty();
+    await expect(page.locator('main')).not.toBeEmpty({ timeout: 10_000 });
   });
 });
