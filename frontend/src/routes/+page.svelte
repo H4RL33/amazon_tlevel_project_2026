@@ -163,7 +163,7 @@
   }
 
   .stat-label {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.07em;
     color: #5a6472;
@@ -179,7 +179,7 @@
   }
 
   .stat-sub {
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     color: #5a6472;
     font-family: 'Ubuntu', sans-serif;
   }
@@ -205,7 +205,7 @@
   }
 
   .gate-note {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: #5a6472;
     font-family: 'Ubuntu', sans-serif;
   }

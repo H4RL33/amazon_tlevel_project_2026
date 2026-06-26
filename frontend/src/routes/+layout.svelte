@@ -80,6 +80,10 @@
     box-sizing: border-box;
   }
 
+  :global(html) {
+    font-size: 14px;
+  }
+
   :global(html, body) {
     height: 100%;
   }
@@ -102,6 +106,7 @@
     z-index: -1;
     overflow: hidden;
     background: #f5f5f0;
+    contain: layout style paint;
   }
 
   .layer {
@@ -135,6 +140,7 @@
     border-radius: 50%;
     filter: blur(40px);
     opacity: 0.6;
+    will-change: transform;
   }
 
   .blob-a {
@@ -158,30 +164,42 @@
   @keyframes drift-a {
     0%,
     100% {
-      transform: translate(0, 0);
+      transform: translate3d(0, 0, 0);
     }
     50% {
-      transform: translate(8vmax, 6vmax);
+      transform: translate3d(8vmax, 6vmax, 0);
     }
   }
 
   @keyframes drift-b {
     0%,
     100% {
-      transform: translate(0, 0);
+      transform: translate3d(0, 0, 0);
     }
     50% {
-      transform: translate(-6vmax, 8vmax);
+      transform: translate3d(-6vmax, 8vmax, 0);
     }
   }
 
   @keyframes drift-c {
     0%,
     100% {
-      transform: translate(0, 0);
+      transform: translate3d(0, 0, 0);
     }
     50% {
-      transform: translate(5vmax, -7vmax);
+      transform: translate3d(5vmax, -7vmax, 0);
+    }
+  }
+
+  /* Reduce blur on HiDPI displays — physical pixels are smaller so 40px GPU blur
+     covers a proportionally huge area at 4K, hammering the compositor. */
+  @media (min-resolution: 2dppx) {
+    .blob {
+      filter: blur(20px);
+    }
+
+    .layer.morphing {
+      animation: none;
     }
   }
 
