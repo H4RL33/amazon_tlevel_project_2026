@@ -39,7 +39,12 @@ setup('authenticate test user', async ({ page, request }) => {
   expect(response.ok(), `Cognito InitiateAuth failed: ${await response.text()}`).toBeTruthy();
 
   const body = await response.json();
-  const idToken: string = body.AuthenticationResult.IdToken;
+  const idToken: string | undefined = body?.AuthenticationResult?.IdToken;
+  if (!idToken) {
+    throw new Error(
+      `InitiateAuth returned 200 but no IdToken — Cognito may have issued a challenge (e.g. NEW_PASSWORD_REQUIRED). Ensure the test user has completed the force-change-password step.\nBody: ${JSON.stringify(body)}`
+    );
+  }
 
   // Load the SvelteKit app shell first (localStorage is empty here — layout shows guest view)
   await page.goto('/');
