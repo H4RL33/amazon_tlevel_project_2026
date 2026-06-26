@@ -17,5 +17,36 @@
   export let type: 'button' | 'submit' | 'reset' = 'button';
 </script>
 
-<!-- TODO: Implement button template using variant, disabled, and type props -->
-<!-- Forward click event: on:click -->
+<button {type} {disabled} class={variant} on:click {...$$restProps}>
+  <slot />
+</button>
+
+<style>
+  button {
+    font-family: 'Ubuntu', sans-serif;
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border: none;
+    color: #ffffff;
+    transition: opacity 0.15s;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .primary {
+    background: #1f6feb;
+  }
+
+  .secondary {
+    background: #21262d;
+  }
+
+  .danger {
+    background: #ef4444;
+  }
+</style>

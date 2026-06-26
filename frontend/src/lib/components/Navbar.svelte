@@ -25,7 +25,6 @@
       <NavLink href="/learn" label="Learn" />
       <NavLink href="/topics" label="Topics" />
       <NavLink href={$currentUser ? '/library' : '/login'} label="Library" />
-      <NavLink href={$currentUser ? '/dashboard' : '/login'} label="Dashboard" />
       {#if $currentUser}
         <NavBarAvatar user={$currentUser} />
       {:else}
