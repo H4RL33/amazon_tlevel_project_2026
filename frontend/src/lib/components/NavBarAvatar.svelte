@@ -15,7 +15,7 @@
     NavLink components for nav items, matching button style for Sign out.
 -->
 <script lang="ts">
-  import { goto } from '$app/navigation';
+  import { goto, afterNavigate } from '$app/navigation';
   import { signOut } from '$lib/api/auth';
   import { currentUser } from '$lib/stores/user';
   import type { UserResponse } from '$lib/api/types';
@@ -46,6 +46,10 @@
       close();
     }
   }
+
+  afterNavigate(() => {
+    open = false;
+  });
 
   function handleSignOut() {
     signOut();
