@@ -50,10 +50,10 @@ setup('authenticate test user', async ({ page, request }) => {
   await page.goto('/');
 
   // Inject the real IdToken — same key the app uses (TOKEN_KEY = 'id_token' in client.ts)
-  await page.evaluate(
-    ([key, token]) => window.localStorage.setItem(key, token),
-    [TOKEN_KEY, idToken] as const
-  );
+  await page.evaluate(([key, token]) => window.localStorage.setItem(key, token), [
+    TOKEN_KEY,
+    idToken,
+  ] as const);
 
   // Reload: layout's onMount now reads the token and calls POST /auth/sync
   await page.goto('/');
