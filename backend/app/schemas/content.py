@@ -4,7 +4,18 @@ from pydantic import BaseModel
 
 from app.models.content import ContentType
 
-__all__ = ["ContentType", "TagResponse", "ContentListResponse", "ContentDetailResponse"]
+__all__ = ["ContentType", "TagResponse", "ContentResponse", "ContentListResponse", "ContentDetailResponse"]
+
+
+class ContentResponse(BaseModel):
+    id: int
+    title: str
+    content_type: ContentType
+    media_url: str | None = None
+    topic_id: int
+    t_level_id: int | None = None
+
+    model_config = {"from_attributes": True}
 
 
 class TagResponse(BaseModel):
