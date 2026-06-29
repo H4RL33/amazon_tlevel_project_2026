@@ -1,13 +1,12 @@
 import json
 
-import boto3
 from sqlalchemy import select
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.config import get_settings
-from app.models.album import Album, AlbumEnrolment
+from app.models.album import Album, AlbumEnrolment, Side, SideContent
 from app.models.content import Content
 from app.models.library import UserSnippetSave
 from app.models.user import User
@@ -19,12 +18,42 @@ from app.schemas.library import (
     MentorResponse,
     MentorSource,
 )
-from app.services.embedding_service import embed_text
+from app.services.embedding_service import embed_text, get_bedrock_client
 
 LIBRARY_SEARCH_BOOST = 1.4
 MENTOR_CONTEXT_CHUNKS = 6
 MENTOR_PERSONAL_LIMIT = 5
 MENTOR_GLOBAL_LIMIT = 10
+
+
+def _vec_to_str(vec: list[float]) -> str:
+    return "[" + ",".join(str(v) for v in vec) + "]"
+
+
+async def _get_user_boosted_ids(
+    db: AsyncSession, user: User
+) -> tuple[set[int], set[int]]:
+    """Return (saved_ids, boosted_ids) where boosted_ids = saved_ids | enrolled_content_ids."""
+    saved_ids: set[int] = set(
+        (await db.execute(
+            select(UserSnippetSave.content_id).where(UserSnippetSave.user_id == user.id)
+        )).scalars().all()
+    )
+    enrolled_album_ids: set[int] = set(
+        (await db.execute(
+            select(AlbumEnrolment.album_id).where(AlbumEnrolment.user_id == user.id)
+        )).scalars().all()
+    )
+    enrolled_content_ids: set[int] = set()
+    if enrolled_album_ids:
+        enrolled_content_ids = set(
+            (await db.execute(
+                select(SideContent.content_id)
+                .join(Side, Side.id == SideContent.side_id)
+                .where(Side.album_id.in_(enrolled_album_ids))
+            )).scalars().all()
+        )
+    return saved_ids, saved_ids | enrolled_content_ids
 
 
 async def get_library(db: AsyncSession, user: User) -> LibraryResponse:
@@ -90,29 +119,8 @@ def _apply_boost(
 
 
 async def semantic_search(db: AsyncSession, query: str, user: User) -> list[ContentSearchResult]:
-    from app.models.album import Side, SideContent
-
-    saved_ids_stmt = select(UserSnippetSave.content_id).where(UserSnippetSave.user_id == user.id)
-    saved_ids: set[int] = set((await db.execute(saved_ids_stmt)).scalars().all())
-
-    enrolled_album_ids_stmt = select(AlbumEnrolment.album_id).where(
-        AlbumEnrolment.user_id == user.id
-    )
-    enrolled_album_ids: set[int] = set((await db.execute(enrolled_album_ids_stmt)).scalars().all())
-
-    enrolled_content_ids: set[int] = set()
-    if enrolled_album_ids:
-        enrolled_content_stmt = (
-            select(SideContent.content_id)
-            .join(Side, Side.id == SideContent.side_id)
-            .where(Side.album_id.in_(enrolled_album_ids))
-        )
-        enrolled_content_ids = set((await db.execute(enrolled_content_stmt)).scalars().all())
-
-    boosted_ids = saved_ids | enrolled_content_ids
-
-    query_vec = embed_text(query)
-    query_vec_str = "[" + ",".join(str(v) for v in query_vec) + "]"
+    saved_ids, boosted_ids = await _get_user_boosted_ids(db, user)
+    query_vec_str = _vec_to_str(embed_text(query))
 
     rows = (
         await db.execute(
@@ -141,28 +149,8 @@ async def semantic_search(db: AsyncSession, query: str, user: User) -> list[Cont
 
 
 async def _fetch_mentor_context(db: AsyncSession, query_vec: list[float], user: User) -> list[dict]:
-    vec_str = "[" + ",".join(str(v) for v in query_vec) + "]"
-
-    saved_ids_stmt = select(UserSnippetSave.content_id).where(UserSnippetSave.user_id == user.id)
-    saved_ids = set((await db.execute(saved_ids_stmt)).scalars().all())
-
-    enrolled_album_ids_stmt = select(AlbumEnrolment.album_id).where(
-        AlbumEnrolment.user_id == user.id
-    )
-    enrolled_album_ids = set((await db.execute(enrolled_album_ids_stmt)).scalars().all())
-
-    from app.models.album import Side, SideContent
-
-    enrolled_content_ids: set[int] = set()
-    if enrolled_album_ids:
-        enrolled_content_stmt = (
-            select(SideContent.content_id)
-            .join(Side, Side.id == SideContent.side_id)
-            .where(Side.album_id.in_(enrolled_album_ids))
-        )
-        enrolled_content_ids = set((await db.execute(enrolled_content_stmt)).scalars().all())
-
-    personal_ids = saved_ids | enrolled_content_ids
+    vec_str = _vec_to_str(query_vec)
+    _, personal_ids = await _get_user_boosted_ids(db, user)
 
     personal_rows = []
     if personal_ids:
@@ -235,8 +223,7 @@ async def mentor_query(db: AsyncSession, message: str, user: User) -> MentorResp
         f"Student question: {message}\n\nMentor:"
     )
 
-    client = boto3.client("bedrock-runtime", region_name=settings.AWS_REGION)
-    response = client.invoke_model(
+    response = get_bedrock_client().invoke_model(
         modelId=settings.BEDROCK_GENERATION_MODEL_ID,
         body=json.dumps(
             {
