@@ -28,7 +28,7 @@
   .nav-inner {
     display: flex;
     align-items: center;
-    height: 64px;
+    height: 48px;
     width: 100%;
   }
 
@@ -40,7 +40,7 @@
   }
 
   .logo {
-    height: 40px;
+    height: 28px;
   }
 
   .links {
