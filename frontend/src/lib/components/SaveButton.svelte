@@ -48,17 +48,15 @@
    */
   async function save_item() {
     const endpoint =
-      targetType === "post"
-        ? `/api/posts/${targetId}/save`
-        : `/api/snippets/${targetId}/save`;
+      targetType === 'post' ? `/api/posts/${targetId}/save` : `/api/snippets/${targetId}/save`;
 
     const response = await fetch(endpoint, {
-      method: "POST"
+      method: 'POST',
     });
 
     // Throw an error so toggle_save() can roll back the UI.
     if (!response.ok) {
-      throw new Error("Failed to save");
+      throw new Error('Failed to save');
     }
   }
 
@@ -68,17 +66,15 @@
    */
   async function un_save_item() {
     const endpoint =
-      targetType === "post"
-        ? `/api/posts/${targetId}/save`
-        : `/api/snippets/${targetId}/save`;
+      targetType === 'post' ? `/api/posts/${targetId}/save` : `/api/snippets/${targetId}/save`;
 
     const response = await fetch(endpoint, {
-      method: "DELETE"
+      method: 'DELETE',
     });
 
     // Throw an error so toggle_save() can restore the previous state.
     if (!response.ok) {
-      throw new Error("Failed to unsave");
+      throw new Error('Failed to unsave');
     }
   }
 
@@ -130,6 +126,9 @@
   {/if}
 </button>
 
+<!-- Changes ----------------------------------------->
+<!-- Code may contain bugs -->
+
 <style>
   /* Remove the browser's default button styling. */
   button {
@@ -138,7 +137,9 @@
     padding: 0.5rem;
     cursor: pointer;
     color: #666;
-    transition: color 0.2s ease, transform 0.15s ease;
+    transition:
+      color 0.2s ease,
+      transform 0.15s ease;
   }
 
   /* Slight visual feedback when hovering over the button. */
@@ -158,6 +159,3 @@
     cursor: not-allowed;
   }
 </style>
-
-<!-- Changes ----------------------------------------->
-<!-- Code may contain bugs -->
