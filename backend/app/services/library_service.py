@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy import text as sa_text
@@ -90,7 +91,7 @@ async def get_library(db: AsyncSession, user: User) -> LibraryResponse:
     return LibraryResponse(enrolled_albums=enrolled_albums, saved_snippets=saved_snippets)
 
 
-def _apply_boost(
+def _rank_search_results(
     rows: list,
     boosted_ids: set[int],
     saved_ids: set[int],
@@ -145,10 +146,10 @@ async def semantic_search(db: AsyncSession, query: str, user: User) -> list[Cont
         )
     ).fetchall()
 
-    return _apply_boost(rows, boosted_ids=boosted_ids, saved_ids=saved_ids)
+    return _rank_search_results(rows, boosted_ids=boosted_ids, saved_ids=saved_ids)
 
 
-async def _fetch_mentor_context(db: AsyncSession, query_vec: list[float], user: User) -> list[dict]:
+async def _fetch_mentor_context(db: AsyncSession, query_vec: list[float], user: User) -> list[dict[str, Any]]:
     vec_str = _vec_to_str(query_vec)
     _, personal_ids = await _get_user_boosted_ids(db, user)
 
@@ -186,7 +187,7 @@ async def _fetch_mentor_context(db: AsyncSession, query_vec: list[float], user: 
         )
     ).fetchall()
 
-    merged: dict[int, dict] = {}
+    merged: dict[int, dict[str, Any]] = {}
     for row in global_rows:
         merged[row.id] = {
             "content_id": row.id,
@@ -233,7 +234,10 @@ async def mentor_query(db: AsyncSession, message: str, user: User) -> MentorResp
         ),
     )
     body = json.loads(response["body"].read())
-    reply_text = body["output"]["message"]["content"][0]["text"].strip()
+    try:
+        reply_text = body["output"]["message"]["content"][0]["text"].strip()
+    except (KeyError, IndexError):
+        reply_text = "I'm sorry, I couldn't generate a response right now. Please try again."
 
     sources = [MentorSource(content_id=c["content_id"], title=c["title"]) for c in chunks]
     return MentorResponse(reply=reply_text, sources=sources)

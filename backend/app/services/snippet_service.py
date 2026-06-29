@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -10,11 +11,11 @@ from app.schemas.content import ContentDetailResponse, TagResponse
 
 
 async def save_snippet(db: AsyncSession, content_id: int, user: User) -> None:
-    existing = await db.get(UserSnippetSave, (user.id, content_id))
-    if existing is not None:
-        return
-    db.add(UserSnippetSave(user_id=user.id, content_id=content_id))
-    await db.commit()
+    try:
+        db.add(UserSnippetSave(user_id=user.id, content_id=content_id))
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
 
 
 async def unsave_snippet(db: AsyncSession, content_id: int, user: User) -> None:

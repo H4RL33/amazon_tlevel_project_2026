@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 import boto3
 
@@ -6,10 +7,10 @@ from app.config import get_settings
 
 
 EMBED_DIMENSIONS = 1024
-_client: boto3.client = None
+_client: Any = None
 
 
-def get_bedrock_client() -> boto3.client:
+def get_bedrock_client() -> Any:
     global _client
     if _client is None:
         settings = get_settings()

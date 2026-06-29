@@ -85,10 +85,10 @@ async def test_get_library_returns_empty_when_nothing_saved(
     assert result.saved_snippets == []
 
 
-def test_apply_boost_elevates_saved_content():
+def test_rank_search_results_elevates_saved_content():
     from unittest.mock import MagicMock
 
-    from app.services.library_service import _apply_boost
+    from app.services.library_service import _rank_search_results
 
     row_saved = MagicMock()
     row_saved.id = 1
@@ -104,7 +104,7 @@ def test_apply_boost_elevates_saved_content():
     row_unsaved.album_title = None
     row_unsaved.distance = 0.15  # similarity = 0.85 (higher raw, but not boosted)
 
-    results = _apply_boost([row_saved, row_unsaved], boosted_ids={1}, saved_ids={1})
+    results = _rank_search_results([row_saved, row_unsaved], boosted_ids={1}, saved_ids={1})
 
     assert results[0].content_id == 1
     assert results[0].is_saved is True
@@ -112,10 +112,10 @@ def test_apply_boost_elevates_saved_content():
     assert results[1].is_saved is False
 
 
-def test_apply_boost_deduplicates_by_content_id():
+def test_rank_search_results_deduplicates_by_content_id():
     from unittest.mock import MagicMock
 
-    from app.services.library_service import _apply_boost
+    from app.services.library_service import _rank_search_results
 
     row1 = MagicMock()
     row1.id = 1
@@ -131,15 +131,15 @@ def test_apply_boost_deduplicates_by_content_id():
     row1_dup.album_title = "Album B"
     row1_dup.distance = 0.2
 
-    results = _apply_boost([row1, row1_dup], boosted_ids=set(), saved_ids=set())
+    results = _rank_search_results([row1, row1_dup], boosted_ids=set(), saved_ids=set())
     assert len(results) == 1
     assert results[0].content_id == 1
 
 
-def test_apply_boost_limits_to_10_results():
+def test_rank_search_results_limits_to_10_results():
     from unittest.mock import MagicMock
 
-    from app.services.library_service import _apply_boost
+    from app.services.library_service import _rank_search_results
 
     rows = []
     for i in range(15):
@@ -151,7 +151,7 @@ def test_apply_boost_limits_to_10_results():
         row.distance = i * 0.05
         rows.append(row)
 
-    results = _apply_boost(rows, boosted_ids=set(), saved_ids=set())
+    results = _rank_search_results(rows, boosted_ids=set(), saved_ids=set())
     assert len(results) == 10
 
 
@@ -165,12 +165,14 @@ async def test_mentor_query_returns_reply_and_sources(
     snippet = await _make_snippet(db_session, topic.id, title="Cloud Networking")
     await db_session.commit()
 
-    fake_embed = [0.1] * 1536
+    fake_embed = [0.1] * 1024
     fake_gen_body = json.dumps(
         {
-            "results": [
-                {"outputText": "Networking connects computers.", "completionReason": "FINISH"}
-            ]
+            "output": {
+                "message": {
+                    "content": [{"text": "Networking connects computers."}]
+                }
+            }
         }
     ).encode()
     mock_gen_response = {"body": MagicMock(read=MagicMock(return_value=fake_gen_body))}
@@ -178,12 +180,12 @@ async def test_mentor_query_returns_reply_and_sources(
     with (
         patch("app.services.library_service.embed_text", return_value=fake_embed),
         patch("app.services.library_service._fetch_mentor_context") as mock_ctx,
-        patch("app.services.library_service.boto3.client") as mock_bedrock,
+        patch("app.services.library_service.get_bedrock_client") as mock_get_client,
     ):
         mock_ctx.return_value = [
             {"content_id": snippet.id, "title": snippet.title, "body": snippet.body or ""}
         ]
-        mock_bedrock.return_value.invoke_model.return_value = mock_gen_response
+        mock_get_client.return_value.invoke_model.return_value = mock_gen_response
 
         from app.services.library_service import mentor_query
 
@@ -192,3 +194,44 @@ async def test_mentor_query_returns_reply_and_sources(
     assert "Networking" in result.reply
     assert len(result.sources) >= 1
     assert result.sources[0].title == "Cloud Networking"
+
+
+def test_rank_search_results_empty_rows():
+    from app.services.library_service import _rank_search_results
+
+    results = _rank_search_results([], boosted_ids=set(), saved_ids=set())
+    assert results == []
+
+
+async def test_get_user_boosted_ids_empty(db_session: AsyncSession, current_user: User) -> None:
+    from app.services.library_service import _get_user_boosted_ids
+
+    saved_ids, boosted_ids = await _get_user_boosted_ids(db_session, current_user)
+    assert saved_ids == set()
+    assert boosted_ids == set()
+
+
+async def test_get_user_boosted_ids_with_save(db_session: AsyncSession, current_user: User) -> None:
+    topic = await _make_topic(db_session)
+    snippet = await _make_snippet(db_session, topic.id)
+    db_session.add(UserSnippetSave(user_id=current_user.id, content_id=snippet.id))
+    await db_session.commit()
+
+    from app.services.library_service import _get_user_boosted_ids
+
+    saved_ids, boosted_ids = await _get_user_boosted_ids(db_session, current_user)
+    assert snippet.id in saved_ids
+    assert snippet.id in boosted_ids
+
+
+async def test_fetch_mentor_context_no_personal_content(
+    db_session: AsyncSession, current_user: User
+) -> None:
+    from unittest.mock import patch
+
+    with patch("app.services.library_service.embed_text", return_value=[0.0] * 1024):
+        from app.services.library_service import _fetch_mentor_context
+
+        result = await _fetch_mentor_context(db_session, [0.0] * 1024, current_user)
+
+    assert isinstance(result, list)

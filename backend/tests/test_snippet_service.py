@@ -112,6 +112,19 @@ async def test_get_snippet_returns_is_saved_false_for_unauthenticated(
     assert result.is_saved is False
 
 
+async def test_get_snippet_returns_is_saved_false_for_authenticated_user_who_has_not_saved(
+    db_session: AsyncSession, current_user: User
+) -> None:
+    topic = await _make_topic(db_session)
+    snippet = await _make_snippet(db_session, topic.id)
+    await db_session.commit()
+
+    from app.services.snippet_service import get_snippet
+
+    result = await get_snippet(db_session, snippet.id, user=current_user)
+    assert result.is_saved is False
+
+
 async def test_get_snippet_returns_is_saved_true_when_saved(
     db_session: AsyncSession, current_user: User
 ) -> None:

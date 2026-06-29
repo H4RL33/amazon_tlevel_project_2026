@@ -15,6 +15,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import get_settings
+from app.services.embedding_service import embed_text
 
 TOPICS = [
     {
@@ -486,8 +487,6 @@ async def embed_content() -> None:
     if settings.SKIP_EMBEDDINGS:
         print("SKIP_EMBEDDINGS=true, skipping embedding phase.")
         return
-
-    from app.services.embedding_service import embed_text
 
     engine = create_async_engine(settings.DATABASE_URL)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
