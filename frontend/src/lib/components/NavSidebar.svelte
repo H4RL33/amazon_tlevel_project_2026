@@ -23,38 +23,3 @@
     // Current page path (pass this from your layout/page)
     export let currentPath = "/";
 </script>
-
-<nav class="sidebar" aria-label="Sidebar Navigation">
-    {#each items as item}
-        <a
-            href={item.href}
-            class:active={currentPath === item.href}
-        >
-            {item.label}
-        </a>
-    {/each}
-</nav>
-
-<style>
-  .sidebar {
-    position: sticky;
-    top: var(--gap-inner);
-  }
-
-  a {
-    color: #232f3e;
-    text-decoration: none;
-    font-size: 0.875rem;
-    padding: 0.5rem 0.75rem;
-    display: block;
-    border-left: 3px solid transparent;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-  }
-
-  a:hover,
-  a.active {
-    background-color: rgba(31, 111, 235, 0.08);
-    border-left: 3px solid #1f6ffb;
-    font-weight: bold;
-  }
-</style>
