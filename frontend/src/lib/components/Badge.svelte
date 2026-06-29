@@ -20,7 +20,7 @@
 
   // Main badge colour.
   // Defaults to AWS blue if no colour is provided.
-  export let colour: string = "#1f6feb";
+  export let colour: string = '#1f6feb';
 
   // Reactive variable.
   // Whenever 'colour' changes, 'background' is recalculated.
@@ -34,13 +34,14 @@
   - Background uses the colour at 20% opacity.
   - Text uses the full solid colour.
 -->
-<span
-  class="badge"
-  style:background-color={background}
-  style:color={colour}
->
+<span class="badge" style:background-color={background} style:color={colour}>
   {label}
 </span>
+
+<!-- Changes ----------------------------------->
+<!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
+
+<!-- TODO: Implement badge template. Use inline style for dynamic colour. -->
 
 <style>
   .badge {
@@ -59,8 +60,3 @@
     letter-spacing: 0.03em;
   }
 </style>
-
-<!-- Changes ----------------------------------->
- <!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
-
-<!-- TODO: Implement badge template. Use inline style for dynamic colour. -->
