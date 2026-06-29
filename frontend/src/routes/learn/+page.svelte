@@ -92,7 +92,7 @@
       <div class="sections">
         {#each sections as section}
           <section id={section.id}>
-            <PageCard padding="0.875rem 1.25rem">
+            <PageCard padding="0.875rem 1.25rem" overflowY="hidden">
               <h2 class="section-heading">{section.heading}</h2>
             </PageCard>
             <PageCard as="div" padding="1.5rem">
