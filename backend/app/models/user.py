@@ -23,6 +23,9 @@ class User(Base):
     progress: Mapped[list["UserContentProgress"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    saved_snippets: Mapped[list["UserSnippetSave"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class UserTopicInterest(Base):
