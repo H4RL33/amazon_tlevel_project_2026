@@ -11,8 +11,69 @@
     font-size 0.8rem, color #8b949e, separator ' / ' between items,
     last item color #c9d1d9 (non-linked, current page)
 -->
+<!--
+  Breadcrumb
+  Displays the user's current location within the site hierarchy.
+
+  Props:
+    - crumbs: Ordered list of breadcrumb items.
+      The final item represents the current page and is displayed as plain text.
+-->
+
 <script lang="ts">
+  // Breadcrumb items to display.
+  // Each item contains:
+  // - label: Text shown to the user.
+  // - href: Link destination (ignored for the final item).
   export let crumbs: Array<{ label: string; href: string }>;
 </script>
 
+<nav aria-label="Breadcrumb">
+  {#each crumbs as crumb, index}
+    {#if index < crumbs.length - 1}
+      <!--
+        Render all breadcrumb items except the last as links.
+      -->
+      <a href={crumb.href}>{crumb.label}</a>
+
+      <!-- Separator between breadcrumb items. -->
+      <span class="separator"> / </span>
+    {:else}
+      <!--
+        The final breadcrumb represents the current page.
+        It is displayed as plain text instead of a link.
+      -->
+      <span class="current">{crumb.label}</span>
+    {/if}
+  {/each}
+</nav>
+
+<style>
+  /* Container for the breadcrumb navigation. */
+  nav {
+    font-size: 0.8rem;
+    color: #8b949e;
+  }
+
+  /* Style for breadcrumb links. */
+  a {
+    color: #8b949e;
+    text-decoration: none;
+  }
+
+  /* Underline links when hovered for accessibility. */
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Separator between breadcrumb items. */
+  .separator {
+    color: #8b949e;
+  }
+
+  /* Current page styling. */
+  .current {
+    color: #c9d1d9;
+  }
+</style>
 <!-- TODO: Render crumbs separated by '/'. Make all items except the last into <a> links. -->
