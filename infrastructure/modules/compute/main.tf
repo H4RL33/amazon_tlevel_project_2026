@@ -47,7 +47,7 @@ resource "aws_iam_role_policy" "ecs_task_bedrock" {
       Action = ["bedrock:InvokeModel"]
       Resource = [
         "arn:aws:bedrock:${var.aws_region}::foundation-model/amazon.titan-embed-text-v1",
-        "arn:aws:bedrock:${var.aws_region}::foundation-model/amazon.nova-lite-v2:0",
+        "arn:aws:bedrock:${var.aws_region}::foundation-model/amazon.nova-2-lite-v1:0",
       ]
     }]
   })
@@ -97,7 +97,7 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "S3_BUCKET_NAME", value = var.s3_bucket_name },
       { name = "AWS_REGION", value = var.aws_region },
       { name = "BEDROCK_EMBEDDING_MODEL_ID", value = "amazon.titan-embed-text-v1" },
-      { name = "BEDROCK_GENERATION_MODEL_ID", value = "amazon.nova-lite-v2:0" },
+      { name = "BEDROCK_GENERATION_MODEL_ID", value = "amazon.nova-2-lite-v1:0" },
       { name = "ALLOWED_ORIGINS", value = "https://${var.public_domain},http://${var.alb_dns_name}" },
     ]
 
