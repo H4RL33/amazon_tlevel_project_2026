@@ -82,6 +82,7 @@ jobs:
           S3_BUCKET_NAME=dummy-not-used-in-e2e
           AWS_ACCESS_KEY_ID=dummy
           AWS_SECRET_ACCESS_KEY=dummy
+          SKIP_EMBEDDINGS=true
           EOF
 
       - name: Write frontend .env.test
