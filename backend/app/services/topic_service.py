@@ -1,11 +1,14 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.topic import Topic
 from app.schemas.topic import TLevelResponse, TopicDetailResponse, TopicResponse
 
 
 async def list_topics(db: AsyncSession) -> list[TopicResponse]:
     """Return all Topic rows ordered by name."""
-    raise NotImplementedError
+    result = await db.execute(select(Topic).order_by(Topic.name))
+    return [TopicResponse.model_validate(t) for t in result.scalars().all()]
 
 
 async def get_topic_by_slug(db: AsyncSession, slug: str) -> TopicDetailResponse:
