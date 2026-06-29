@@ -25,12 +25,12 @@
 <script lang="ts">
   import { updateProgress } from '$lib/api/progress';
   import ProgressBar from '$lib/components/ProgressBar.svelte';
-  
+
   // ID of the content item whose progress should be updated.
   export let contentId: number;
   // Pre-signed S3 URL of the audio file.
   export let src: string;
-  
+
   // Current playback progress (0–100).
   let progressPct = 0;
 
@@ -48,9 +48,7 @@
     if (!audio.duration) return;
 
     // Calculate playback progress as a whole percentage.
-    progressPct = Math.floor(
-      (audio.currentTime / audio.duration) * 100
-    );
+    progressPct = Math.floor((audio.currentTime / audio.duration) * 100);
 
     // Only report progress every 5%.
     if (progressPct - lastReported >= 5) {
@@ -59,12 +57,12 @@
       try {
         await updateProgress(contentId, progressPct);
       } catch (err) {
-        console.error("Failed to update progress:", err);
+        console.error('Failed to update progress:', err);
       }
     }
   }
 
-   /**
+  /**
    * Marks the audio as fully completed when playback ends.
    */
   async function handleEnded() {
@@ -73,18 +71,17 @@
     try {
       await updateProgress(contentId, 100);
     } catch (err) {
-      console.error("Failed to update completion:", err);
+      console.error('Failed to update completion:', err);
     }
   }
 </script>
 
 <!-- HTML audio player -->
-<audio 
-   controls
-   src={src}
-   on:timeupdate={handleTimeUpdate}
-   on:ended={handleEnded}
-/>
+<audio controls {src} on:timeupdate={handleTimeUpdate} on:ended={handleEnded} />
+
+<!-- Template ---------------------------------------------->
+<!-- Changes ----------------------------------------------->
+<!-- Code may contain bugs or be incomplete, may need updating. -->
 
 <style>
   audio {
@@ -99,8 +96,3 @@
     border-radius: 8px;
   }
 </style>
-
-<!-- Template ---------------------------------------------->
-<!-- Changes ----------------------------------------------->
-<!-- Code may contain bugs or be incomplete, may need updating. -->
-
