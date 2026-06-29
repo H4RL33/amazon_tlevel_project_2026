@@ -41,7 +41,7 @@ class Content(Base):
     topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id"), index=True)
     t_level_id: Mapped[int | None] = mapped_column(ForeignKey("t_levels.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536), nullable=True)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1024), nullable=True)
     embedding_generated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     topic: Mapped["Topic"] = relationship()

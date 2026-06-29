@@ -9,7 +9,7 @@ Designed to be invoked as a one-off ECS task in production.
 
 import asyncio
 import sys
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -506,7 +506,7 @@ async def embed_content() -> None:
                     "UPDATE content SET embedding = :vec, embedding_generated_at = :now "
                     "WHERE id = :id"
                 ),
-                {"vec": str(vec), "now": datetime.now(timezone.utc), "id": row.id},
+                {"vec": str(vec), "now": datetime.utcnow(), "id": row.id},
             )
         await session.commit()
         print("Snippets embedded.")
@@ -524,7 +524,7 @@ async def embed_content() -> None:
                     "UPDATE albums SET embedding = :vec, embedding_generated_at = :now "
                     "WHERE id = :id"
                 ),
-                {"vec": str(vec), "now": datetime.now(timezone.utc), "id": row.id},
+                {"vec": str(vec), "now": datetime.utcnow(), "id": row.id},
             )
         await session.commit()
         print("Albums embedded.")
