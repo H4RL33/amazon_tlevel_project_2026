@@ -8,6 +8,8 @@ Designed to be invoked as a one-off ECS task in production.
 """
 
 import asyncio
+import sys
+from datetime import datetime, timezone
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -479,5 +481,60 @@ async def _seed_album(session: AsyncSession) -> None:
     await session.commit()
 
 
+async def embed_content() -> None:
+    settings = get_settings()
+    if settings.SKIP_EMBEDDINGS:
+        print("SKIP_EMBEDDINGS=true, skipping embedding phase.")
+        return
+
+    from app.services.embedding_service import embed_text
+
+    engine = create_async_engine(settings.DATABASE_URL)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with session_factory() as session:
+        result = await session.execute(
+            text("SELECT id, title, body FROM content WHERE embedding_generated_at IS NULL")
+        )
+        rows = result.fetchall()
+        print(f"Embedding {len(rows)} snippet(s)...")
+        for row in rows:
+            input_text = f"{row.title}\n\n{row.body or ''}"
+            vec = embed_text(input_text)
+            await session.execute(
+                text(
+                    "UPDATE content SET embedding = :vec, embedding_generated_at = :now "
+                    "WHERE id = :id"
+                ),
+                {"vec": str(vec), "now": datetime.now(timezone.utc), "id": row.id},
+            )
+        await session.commit()
+        print("Snippets embedded.")
+
+        result = await session.execute(
+            text("SELECT id, title, description FROM albums WHERE embedding_generated_at IS NULL")
+        )
+        rows = result.fetchall()
+        print(f"Embedding {len(rows)} album(s)...")
+        for row in rows:
+            input_text = f"{row.title}\n\n{row.description}"
+            vec = embed_text(input_text)
+            await session.execute(
+                text(
+                    "UPDATE albums SET embedding = :vec, embedding_generated_at = :now "
+                    "WHERE id = :id"
+                ),
+                {"vec": str(vec), "now": datetime.now(timezone.utc), "id": row.id},
+            )
+        await session.commit()
+        print("Albums embedded.")
+
+    await engine.dispose()
+
+
 if __name__ == "__main__":
-    asyncio.run(seed())
+    if "--embed-only" in sys.argv:
+        asyncio.run(embed_content())
+    else:
+        asyncio.run(seed())
+        asyncio.run(embed_content())
