@@ -33,7 +33,7 @@
   <h2>{title}</h2>
 
   <!-- Show overall progress-->
-  <ProgressBar value={progressPct} />
+  <ProgressBar pct={progressPct} />
 </div>
 
 <!-- Changes ------------------------------------------------>

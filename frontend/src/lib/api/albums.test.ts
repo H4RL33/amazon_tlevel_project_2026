@@ -12,6 +12,7 @@ describe('listAlbums', () => {
       {
         id: 1,
         t_level_id: 1,
+        topic_id: 1,
         title: 'Cloud Computing Fundamentals',
         description: '...',
         icon: 'cloud',
@@ -38,6 +39,7 @@ describe('getAlbumDetail', () => {
     const album: AlbumDetailResponse = {
       id: 1,
       t_level_id: 1,
+      topic_id: 1,
       title: 'Cloud Computing Fundamentals',
       description: '...',
       icon: 'cloud',
