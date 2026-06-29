@@ -3,15 +3,15 @@
   import PageCard from '$lib/components/PageCard.svelte';
 </script>
 
-<PageCard as="footer" padding="2rem 1.5rem 0">
+<PageCard as="footer" padding="2rem 1.5rem 0" overflowY="hidden">
   <div class="columns">
     <div class="column">
       <h3 class="column-heading">Navigation</h3>
       <div class="column-links">
         <NavLink href="/" label="Home" />
         <NavLink href="/learn" label="Learn" />
-        <NavLink href="/topics" label="Topics" />
-        <NavLink href="/dashboard" label="Dashboard" />
+        <NavLink href="/t-levels" label="T-Levels" />
+        <NavLink href="/" label="Home" />
       </div>
     </div>
     <div class="column">
