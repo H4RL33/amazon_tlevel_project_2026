@@ -14,25 +14,26 @@
     nav content -- same treatment as AlbumSidebar.
 -->
 <script lang="ts">
-  import type { TopicResponse } from '$lib/api/types';
-  import PageCard from '$lib/components/PageCard.svelte';
+    export let items = [
+        { label: "Home", href: "/" },
+        { label: "About", href: "/about" },
+        { label: "Contact", href: "/contact" }
+    ];
 
-  export let topics: TopicResponse[];
-  export let activePath: string;
+    // Current page path (pass this from your layout/page)
+    export let currentPath = "/";
 </script>
 
-<PageCard as="aside" width="288px" padding="1.5rem 1rem">
-  <nav class="sidebar">
-    {#each topics as topic}
-      <a
-        href={`/topics/${topic.slug}`}
-        class:active={activePath.startsWith(`/topics/${topic.slug}`)}
-      >
-        {topic.name}
-      </a>
+<nav class="sidebar" aria-label="Sidebar Navigation">
+    {#each items as item}
+        <a
+            href={item.href}
+            class:active={currentPath === item.href}
+        >
+            {item.label}
+        </a>
     {/each}
-  </nav>
-</PageCard>
+</nav>
 
 <style>
   .sidebar {
@@ -44,8 +45,10 @@
     color: #232f3e;
     text-decoration: none;
     font-size: 0.875rem;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0.75rem;
     display: block;
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
   a:hover,
