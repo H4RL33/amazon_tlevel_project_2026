@@ -6,7 +6,12 @@ from sqlalchemy.orm import selectinload
 from app.models.t_level import TLevel
 from app.models.topic import Topic
 from app.schemas.album import AlbumListResponse
-from app.schemas.topic import TLevelResponse, TLevelWithAlbumsResponse, TopicDetailResponse, TopicResponse
+from app.schemas.topic import (
+    TLevelResponse,
+    TLevelWithAlbumsResponse,
+    TopicDetailResponse,
+    TopicResponse,
+)
 
 
 async def list_topics(db: AsyncSession) -> list[TopicResponse]:

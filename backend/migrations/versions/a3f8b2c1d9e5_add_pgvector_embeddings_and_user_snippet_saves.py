@@ -23,16 +23,27 @@ def upgrade() -> None:
 
     op.add_column("content", sa.Column("embedding", sa.Text, nullable=True))
     op.add_column("content", sa.Column("embedding_generated_at", sa.DateTime, nullable=True))
-    op.execute("ALTER TABLE content ALTER COLUMN embedding TYPE vector(1536) USING embedding::vector")
+    op.execute(
+        "ALTER TABLE content ALTER COLUMN embedding TYPE vector(1536) USING embedding::vector"
+    )
 
     op.add_column("albums", sa.Column("embedding", sa.Text, nullable=True))
     op.add_column("albums", sa.Column("embedding_generated_at", sa.DateTime, nullable=True))
-    op.execute("ALTER TABLE albums ALTER COLUMN embedding TYPE vector(1536) USING embedding::vector")
+    op.execute(
+        "ALTER TABLE albums ALTER COLUMN embedding TYPE vector(1536) USING embedding::vector"
+    )
 
     op.create_table(
         "user_snippet_saves",
-        sa.Column("user_id", sa.Integer, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("content_id", sa.Integer, sa.ForeignKey("content.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column(
+            "user_id", sa.Integer, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+        ),
+        sa.Column(
+            "content_id",
+            sa.Integer,
+            sa.ForeignKey("content.id", ondelete="CASCADE"),
+            primary_key=True,
+        ),
         sa.Column("saved_at", sa.DateTime, server_default=sa.func.now(), nullable=False),
     )
 

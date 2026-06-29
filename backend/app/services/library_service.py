@@ -1,7 +1,8 @@
 import json
 
 import boto3
-from sqlalchemy import select, text as sa_text
+from sqlalchemy import select
+from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -88,22 +89,16 @@ def _apply_boost(
     return results[:10]
 
 
-async def semantic_search(
-    db: AsyncSession, query: str, user: User
-) -> list[ContentSearchResult]:
+async def semantic_search(db: AsyncSession, query: str, user: User) -> list[ContentSearchResult]:
     from app.models.album import Side, SideContent
 
-    saved_ids_stmt = select(UserSnippetSave.content_id).where(
-        UserSnippetSave.user_id == user.id
-    )
+    saved_ids_stmt = select(UserSnippetSave.content_id).where(UserSnippetSave.user_id == user.id)
     saved_ids: set[int] = set((await db.execute(saved_ids_stmt)).scalars().all())
 
     enrolled_album_ids_stmt = select(AlbumEnrolment.album_id).where(
         AlbumEnrolment.user_id == user.id
     )
-    enrolled_album_ids: set[int] = set(
-        (await db.execute(enrolled_album_ids_stmt)).scalars().all()
-    )
+    enrolled_album_ids: set[int] = set((await db.execute(enrolled_album_ids_stmt)).scalars().all())
 
     enrolled_content_ids: set[int] = set()
     if enrolled_album_ids:
@@ -112,9 +107,7 @@ async def semantic_search(
             .join(Side, Side.id == SideContent.side_id)
             .where(Side.album_id.in_(enrolled_album_ids))
         )
-        enrolled_content_ids = set(
-            (await db.execute(enrolled_content_stmt)).scalars().all()
-        )
+        enrolled_content_ids = set((await db.execute(enrolled_content_stmt)).scalars().all())
 
     boosted_ids = saved_ids | enrolled_content_ids
 
@@ -147,14 +140,10 @@ async def semantic_search(
     return _apply_boost(rows, boosted_ids=boosted_ids, saved_ids=saved_ids)
 
 
-async def _fetch_mentor_context(
-    db: AsyncSession, query_vec: list[float], user: User
-) -> list[dict]:
+async def _fetch_mentor_context(db: AsyncSession, query_vec: list[float], user: User) -> list[dict]:
     vec_str = "[" + ",".join(str(v) for v in query_vec) + "]"
 
-    saved_ids_stmt = select(UserSnippetSave.content_id).where(
-        UserSnippetSave.user_id == user.id
-    )
+    saved_ids_stmt = select(UserSnippetSave.content_id).where(UserSnippetSave.user_id == user.id)
     saved_ids = set((await db.execute(saved_ids_stmt)).scalars().all())
 
     enrolled_album_ids_stmt = select(AlbumEnrolment.album_id).where(
@@ -171,9 +160,7 @@ async def _fetch_mentor_context(
             .join(Side, Side.id == SideContent.side_id)
             .where(Side.album_id.in_(enrolled_album_ids))
         )
-        enrolled_content_ids = set(
-            (await db.execute(enrolled_content_stmt)).scalars().all()
-        )
+        enrolled_content_ids = set((await db.execute(enrolled_content_stmt)).scalars().all())
 
     personal_ids = saved_ids | enrolled_content_ids
 
@@ -238,9 +225,7 @@ async def mentor_query(db: AsyncSession, message: str, user: User) -> MentorResp
     query_vec = embed_text(message)
     chunks = await _fetch_mentor_context(db, query_vec, user)
 
-    context_text = "\n\n".join(
-        f"{c['title']}: {c['body'][:500]}" for c in chunks
-    )
+    context_text = "\n\n".join(f"{c['title']}: {c['body'][:500]}" for c in chunks)
 
     prompt = (
         "You are the Dynamic Mentor for Living Campus, an Amazon T-Level education platform.\n"
@@ -253,10 +238,12 @@ async def mentor_query(db: AsyncSession, message: str, user: User) -> MentorResp
     client = boto3.client("bedrock-runtime", region_name=settings.AWS_REGION)
     response = client.invoke_model(
         modelId=settings.BEDROCK_GENERATION_MODEL_ID,
-        body=json.dumps({
-            "messages": [{"role": "user", "content": [{"text": prompt}]}],
-            "inferenceConfig": {"maxTokens": 512, "temperature": 0.7, "topP": 0.9},
-        }),
+        body=json.dumps(
+            {
+                "messages": [{"role": "user", "content": [{"text": prompt}]}],
+                "inferenceConfig": {"maxTokens": 512, "temperature": 0.7, "topP": 0.9},
+            }
+        ),
     )
     body = json.loads(response["body"].read())
     reply_text = body["output"]["message"]["content"][0]["text"].strip()

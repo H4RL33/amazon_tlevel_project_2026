@@ -4,7 +4,13 @@ from pydantic import BaseModel
 
 from app.models.content import ContentType
 
-__all__ = ["ContentType", "TagResponse", "ContentResponse", "ContentListResponse", "ContentDetailResponse"]
+__all__ = [
+    "ContentType",
+    "TagResponse",
+    "ContentResponse",
+    "ContentListResponse",
+    "ContentDetailResponse",
+]
 
 
 class ContentResponse(BaseModel):

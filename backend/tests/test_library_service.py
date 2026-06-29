@@ -1,4 +1,3 @@
-import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.album import Album, AlbumEnrolment
@@ -52,6 +51,7 @@ async def test_get_library_returns_enrolled_albums(
     await db_session.commit()
 
     from app.services.library_service import get_library
+
     result = await get_library(db_session, current_user)
 
     assert len(result.enrolled_albums) == 1
@@ -67,6 +67,7 @@ async def test_get_library_returns_saved_snippets(
     await db_session.commit()
 
     from app.services.library_service import get_library
+
     result = await get_library(db_session, current_user)
 
     assert len(result.saved_snippets) == 1
@@ -77,6 +78,7 @@ async def test_get_library_returns_empty_when_nothing_saved(
     db_session: AsyncSession, current_user: User
 ) -> None:
     from app.services.library_service import get_library
+
     result = await get_library(db_session, current_user)
 
     assert result.enrolled_albums == []
@@ -85,6 +87,7 @@ async def test_get_library_returns_empty_when_nothing_saved(
 
 def test_apply_boost_elevates_saved_content():
     from unittest.mock import MagicMock
+
     from app.services.library_service import _apply_boost
 
     row_saved = MagicMock()
@@ -111,6 +114,7 @@ def test_apply_boost_elevates_saved_content():
 
 def test_apply_boost_deduplicates_by_content_id():
     from unittest.mock import MagicMock
+
     from app.services.library_service import _apply_boost
 
     row1 = MagicMock()
@@ -134,6 +138,7 @@ def test_apply_boost_deduplicates_by_content_id():
 
 def test_apply_boost_limits_to_10_results():
     from unittest.mock import MagicMock
+
     from app.services.library_service import _apply_boost
 
     rows = []
@@ -161,9 +166,13 @@ async def test_mentor_query_returns_reply_and_sources(
     await db_session.commit()
 
     fake_embed = [0.1] * 1536
-    fake_gen_body = json.dumps({
-        "results": [{"outputText": "Networking connects computers.", "completionReason": "FINISH"}]
-    }).encode()
+    fake_gen_body = json.dumps(
+        {
+            "results": [
+                {"outputText": "Networking connects computers.", "completionReason": "FINISH"}
+            ]
+        }
+    ).encode()
     mock_gen_response = {"body": MagicMock(read=MagicMock(return_value=fake_gen_body))}
 
     with (
@@ -177,6 +186,7 @@ async def test_mentor_query_returns_reply_and_sources(
         mock_bedrock.return_value.invoke_model.return_value = mock_gen_response
 
         from app.services.library_service import mentor_query
+
         result = await mentor_query(db_session, "What is networking?", current_user)
 
     assert "Networking" in result.reply

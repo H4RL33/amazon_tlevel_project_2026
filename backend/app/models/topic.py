@@ -13,6 +13,4 @@ class Topic(Base):
     description: Mapped[str] = mapped_column(Text)
     accent_colour: Mapped[str] = mapped_column(String(7))
 
-    t_levels: Mapped[list["TLevel"]] = relationship(
-        back_populates="topic", order_by="TLevel.id"
-    )
+    t_levels: Mapped[list["TLevel"]] = relationship(back_populates="topic", order_by="TLevel.id")

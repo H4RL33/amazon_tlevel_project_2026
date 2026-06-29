@@ -14,6 +14,4 @@ class TLevel(Base):
     how_to_apply: Mapped[str] = mapped_column(Text)
 
     topic: Mapped["Topic"] = relationship(back_populates="t_levels")
-    albums: Mapped[list["Album"]] = relationship(
-        back_populates="t_level", order_by="Album.id"
-    )
+    albums: Mapped[list["Album"]] = relationship(back_populates="t_level", order_by="Album.id")
