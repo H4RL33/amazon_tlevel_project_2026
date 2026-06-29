@@ -72,8 +72,8 @@
   <div class="content">
     <slot />
   </div>
-  <Footer />
 </div>
+<Footer />
 
 <style>
   :global(*, *::before, *::after) {
@@ -84,8 +84,8 @@
     font-size: 14px;
   }
 
-  :global(html, body) {
-    height: 100%;
+  :global(html) {
+    min-height: 100%;
   }
 
   :global(body) {
@@ -120,44 +120,43 @@
     opacity: 1;
   }
 
-  .layer.morphing {
-    animation: morph-hue 8s linear infinite;
-  }
-
-  @keyframes morph-hue {
-    from {
-      filter: hue-rotate(0deg);
-    }
-    to {
-      filter: hue-rotate(360deg);
-    }
-  }
-
   .blob {
     position: absolute;
-    width: 70vmax;
-    height: 70vmax;
+    width: 85vmax;
+    height: 85vmax;
     border-radius: 50%;
-    filter: blur(40px);
+    filter: blur(20px);
     opacity: 0.6;
-    will-change: transform;
   }
 
   .blob-a {
     top: -15%;
     left: -15%;
-    animation: drift-a 28s ease-in-out infinite;
   }
 
   .blob-b {
     top: -10%;
     right: -20%;
-    animation: drift-b 34s ease-in-out infinite;
   }
 
   .blob-c {
     bottom: -20%;
     left: 15%;
+  }
+
+  .layer.morphing .blob {
+    will-change: transform;
+  }
+
+  .layer.morphing .blob-a {
+    animation: drift-a 28s ease-in-out infinite;
+  }
+
+  .layer.morphing .blob-b {
+    animation: drift-b 34s ease-in-out infinite;
+  }
+
+  .layer.morphing .blob-c {
     animation: drift-c 40s ease-in-out infinite;
   }
 
@@ -191,29 +190,16 @@
     }
   }
 
-  /* Reduce blur on HiDPI displays — physical pixels are smaller so 40px GPU blur
-     covers a proportionally huge area at 4K, hammering the compositor. */
-  @media (min-resolution: 2dppx) {
-    .blob {
-      filter: blur(20px);
-    }
-
-    .layer.morphing {
-      animation: none;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .blob {
+    .blob,
+    .layer.morphing .blob-a,
+    .layer.morphing .blob-b,
+    .layer.morphing .blob-c {
       animation: none;
     }
 
     .layer {
       transition: none;
-    }
-
-    .layer.morphing {
-      animation: none;
     }
   }
 
@@ -221,7 +207,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100dvh;
     box-sizing: border-box;
     padding: var(--gap-outer);
     gap: var(--gap-inner);

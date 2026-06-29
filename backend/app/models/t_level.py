@@ -13,4 +13,5 @@ class TLevel(Base):
     entry_requirements: Mapped[str] = mapped_column(Text)
     how_to_apply: Mapped[str] = mapped_column(Text)
 
-    topic: Mapped["Topic"] = relationship()
+    topic: Mapped["Topic"] = relationship(back_populates="t_levels")
+    albums: Mapped[list["Album"]] = relationship(back_populates="t_level", order_by="Album.id")

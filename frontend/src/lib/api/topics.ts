@@ -1,17 +1,18 @@
+import { apiFetch } from './client';
 import type { TLevelResponse, TopicDetailResponse, TopicResponse } from './types';
 
 export async function listTopics(): Promise<TopicResponse[]> {
-  throw new Error('not implemented');
+  return apiFetch<TopicResponse[]>('/topics/');
 }
 
-export async function getTopic(_slug: string): Promise<TopicDetailResponse> {
-  throw new Error('not implemented');
+export async function getTopic(slug: string): Promise<TopicDetailResponse> {
+  return apiFetch<TopicDetailResponse>(`/topics/${slug}`);
 }
 
-export async function getTLevel(_slug: string, _tLevelId: number): Promise<TLevelResponse> {
-  throw new Error('not implemented');
+export async function getTLevel(slug: string, tLevelId: number): Promise<TLevelResponse> {
+  return apiFetch<TLevelResponse>(`/topics/${slug}/t-levels/${tLevelId}`);
 }
 
 export async function getUserTopics(): Promise<TopicResponse[]> {
-  throw new Error('not implemented');
+  return apiFetch<TopicResponse[]>('/users/me/topics');
 }

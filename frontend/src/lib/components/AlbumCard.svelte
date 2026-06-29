@@ -1,22 +1,21 @@
 <!--
   AlbumCard
-  Purpose: Square icon-tile used to open an Album — a curated, course-like set of Snippets
-    forming a learning pathway. Requires an account to enrol.
-  Used in: AlbumGrid (and later: CTASidebar, EnrolledAlbumsList, once those chapters land)
+  Purpose: Square icon-tile for Albums or Topics. In album mode (album prop set), links to
+    /learn/[id] and shows album title. In topic mode (href + label set, no album), links to
+    the provided href with the provided label. Used in AlbumGrid, CTASidebar, and the
+    /t-levels index page.
   Props:
-    - album (AlbumListResponse): the Album to display
-  Layout:
-    A square tile: a large centred line-icon (looked up from album.icon) with the Album's
-    title beneath it. No description or progress indicator on the card face — those live
-    on the Album detail page.
-  Styling:
-    White background, square corners, soft directional-blur drop shadow
-    (0 10px 18px -4px rgba(35, 47, 62, 0.35)), ~190px square.
+    - album (AlbumListResponse | undefined): the Album to display. Optional.
+    - href (string | undefined): overrides the link destination when set.
+    - label (string | undefined): overrides the displayed title when set.
+    - size (string | undefined): CSS size override (width and height), e.g. "100%".
 -->
 <script lang="ts">
   import type { AlbumListResponse } from '$lib/api/types';
 
-  export let album: AlbumListResponse;
+  export let album: AlbumListResponse | undefined = undefined;
+  export let href: string | undefined = undefined;
+  export let label: string | undefined = undefined;
   export let size: string | undefined = undefined;
 
   const ICON_PATHS: Record<string, string[]> = {
@@ -24,12 +23,14 @@
   };
   const DEFAULT_ICON_PATHS = ['M4 4h16v16H4z'];
 
-  $: iconPaths = ICON_PATHS[album.icon] ?? DEFAULT_ICON_PATHS;
+  $: resolvedHref = href ?? (album ? `/learn/${album.id}` : '/');
+  $: resolvedLabel = label ?? album?.title ?? '';
+  $: iconPaths = album ? (ICON_PATHS[album.icon] ?? DEFAULT_ICON_PATHS) : DEFAULT_ICON_PATHS;
 </script>
 
 <a
   class="album-card"
-  href={`/learn/${album.id}`}
+  href={resolvedHref}
   style={size ? `width: ${size}; height: ${size};` : undefined}
 >
   <svg
@@ -48,7 +49,7 @@
       <path {d} />
     {/each}
   </svg>
-  <h3>{album.title}</h3>
+  <h3>{resolvedLabel}</h3>
 </a>
 
 <style>

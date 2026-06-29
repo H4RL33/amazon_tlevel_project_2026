@@ -36,6 +36,23 @@ resource "aws_iam_role_policy_attachment" "ecs_task_s3" {
   policy_arn = var.s3_policy_arn
 }
 
+resource "aws_iam_role_policy" "ecs_task_bedrock" {
+  name = "${var.env_name}-ecs-task-bedrock-policy"
+  role = aws_iam_role.ecs_task.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = ["bedrock:InvokeModel"]
+      Resource = [
+        "arn:aws:bedrock:${var.aws_region}::foundation-model/amazon.titan-embed-text-v1",
+        "arn:aws:bedrock:${var.aws_region}::foundation-model/amazon.nova-2-lite-v1:0",
+      ]
+    }]
+  })
+}
+
 # ── CloudWatch Log Groups ─────────────────────────────────────────────────────
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/ecs/${var.env_name}-backend"
@@ -79,6 +96,8 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "COGNITO_CLIENT_ID", value = var.cognito_client_id },
       { name = "S3_BUCKET_NAME", value = var.s3_bucket_name },
       { name = "AWS_REGION", value = var.aws_region },
+      { name = "BEDROCK_EMBEDDING_MODEL_ID", value = "amazon.titan-embed-text-v1" },
+      { name = "BEDROCK_GENERATION_MODEL_ID", value = "amazon.nova-2-lite-v1:0" },
       { name = "ALLOWED_ORIGINS", value = "https://${var.public_domain},http://${var.alb_dns_name}" },
     ]
 

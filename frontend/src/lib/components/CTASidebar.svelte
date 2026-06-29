@@ -13,7 +13,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import type { AlbumListResponse, ContentListResponse, UserResponse } from '$lib/api/types';
-  import { agentDraft } from '$lib/stores/agentDraft';
   import AgentChat from '$lib/components/AgentChat.svelte';
   import AlbumCard from '$lib/components/AlbumCard.svelte';
   import NavLink from '$lib/components/NavLink.svelte';
@@ -30,12 +29,11 @@
   $: displayedSnippets = snippets.slice(0, 3);
 
   function handleAgentSubmit(event: CustomEvent<string>) {
-    agentDraft.set(event.detail);
-    goto('/library');
+    goto(`/library?q=${encodeURIComponent(event.detail)}`);
   }
 </script>
 
-<PageCard as="aside" width="320px" padding="1.5rem" overflowY="visible">
+<PageCard as="aside" width="280px" padding="1.5rem" overflowY="visible">
   <div class="sidebar-inner">
     <p class="greeting">Good {timeOfDay}, {user.first_name} 👋</p>
 
@@ -113,6 +111,7 @@
     flex: 1;
     min-width: 0;
     aspect-ratio: 1;
+    max-height: 90px;
   }
 
   .snippet-list {

@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17-alpine
+    image: ankane/pgvector:latest
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -17,6 +17,7 @@ services:
       start_period: 10s
 
   backend:
+    image: amazon_tlevel_project_2026-backend:latest
     build: ./backend
     ports:
       - "8000:8000"
@@ -30,6 +31,7 @@ services:
         condition: service_healthy
 
   frontend:
+    image: amazon_tlevel_project_2026-frontend:latest
     build:
       context: ./frontend
       args:

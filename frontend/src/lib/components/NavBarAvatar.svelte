@@ -67,7 +67,6 @@
 
   {#if open}
     <div class="dropdown">
-      <div class="dropdown-item"><NavLink href="/dashboard" label="Dashboard" /></div>
       <div class="dropdown-item"><NavLink href="/settings" label="Settings" /></div>
       <div class="dropdown-item"><NavLink href="/help" label="Help" /></div>
       <hr class="divider" />
