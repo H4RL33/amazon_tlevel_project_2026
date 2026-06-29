@@ -62,7 +62,7 @@
             }
           }
         },
-        { rootMargin: '0px 0px -75% 0px', threshold: 0 },
+        { rootMargin: '0px 0px -75% 0px', threshold: 0 }
       );
 
       const sectionEls = document.querySelectorAll('.sections section[id]');

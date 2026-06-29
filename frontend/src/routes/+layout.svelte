@@ -72,8 +72,8 @@
   <div class="content">
     <slot />
   </div>
-  <Footer />
 </div>
+<Footer />
 
 <style>
   :global(*, *::before, *::after) {
@@ -84,8 +84,8 @@
     font-size: 14px;
   }
 
-  :global(html, body) {
-    height: 100%;
+  :global(html) {
+    min-height: 100%;
   }
 
   :global(body) {
@@ -207,7 +207,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100dvh;
     box-sizing: border-box;
     padding: var(--gap-outer);
     gap: var(--gap-inner);
