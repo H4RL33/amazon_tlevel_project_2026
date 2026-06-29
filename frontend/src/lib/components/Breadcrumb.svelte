@@ -47,6 +47,7 @@
     {/if}
   {/each}
 </nav>
+<!-- TODO: Render crumbs separated by '/'. Make all items except the last into <a> links. -->
 
 <style>
   /* Container for the breadcrumb navigation. */
@@ -76,4 +77,3 @@
     color: #c9d1d9;
   }
 </style>
-<!-- TODO: Render crumbs separated by '/'. Make all items except the last into <a> links. -->
