@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { listAlbums } from '$lib/api/albums';
-  import { listTopics } from '$lib/api/topics';
-  import type { AlbumListResponse, TopicResponse } from '$lib/api/types';
+  import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
+  import { getTopic } from '$lib/api/topics';
+  import type { TLevelWithAlbumsResponse, AlbumListResponse } from '$lib/api/types';
   import AlbumGrid from '$lib/components/AlbumGrid.svelte';
   import NavSidebar from '$lib/components/NavSidebar.svelte';
   import PageCard from '$lib/components/PageCard.svelte';
@@ -14,6 +15,7 @@
   }
 
   let sections: Section[] = [];
+  let topicName = '';
   let loading = true;
   let error: string | null = null;
   let activeHref = '';
@@ -23,25 +25,26 @@
 
   onMount(() => {
     (async () => {
+      const slug = $page.params.slug ?? '';
+
       try {
-        const [topics, albums] = await Promise.all([listTopics(), listAlbums()]);
+        const topic = await getTopic(slug);
+        topicName = topic.name;
 
-        const albumsByTopic = new Map<number, AlbumListResponse[]>();
-        for (const album of albums) {
-          const list = albumsByTopic.get(album.topic_id) ?? [];
-          list.push(album);
-          albumsByTopic.set(album.topic_id, list);
-        }
-
-        sections = topics
-          .filter((t: TopicResponse) => albumsByTopic.has(t.id))
-          .map((t: TopicResponse) => ({
-            id: t.slug,
+        sections = topic.t_levels
+          .filter((t: TLevelWithAlbumsResponse) => t.albums.length > 0)
+          .map((t: TLevelWithAlbumsResponse) => ({
+            id: `t-level-${t.id}`,
             heading: t.name,
-            albums: albumsByTopic.get(t.id) ?? [],
+            albums: t.albums,
           }));
-      } catch {
-        error = 'Could not load content right now. Please try again later.';
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
+        if (status === 404) {
+          goto('/t-levels');
+          return;
+        }
+        error = 'Could not load this T-Level area. Please try again later.';
       } finally {
         loading = false;
       }
@@ -84,7 +87,7 @@
       </PageCard>
     {:else if sections.length === 0}
       <PageCard as="main" padding="1.5rem">
-        <p class="status">No albums available yet.</p>
+        <p class="status">No albums available in {topicName} yet.</p>
       </PageCard>
     {:else}
       <div class="sections">
