@@ -50,6 +50,7 @@
     {/if}
   {/each}
 </nav>
+<!-- TODO: Render crumbs separated by '/'. Make all items except the last into <a> links. -->
 
 <style>
   /* Container for the breadcrumb navigation. */
@@ -80,6 +81,6 @@
   }
 </style>
 
+<!-- TODO: Render crumbs separated by '/'. Make all items except the last into <a> links. -->
 <!-- Changes ----------------------------------->
 <!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
-<!-- TODO: Render crumbs separated by '/'. Make all items except the last into <a> links. -->
