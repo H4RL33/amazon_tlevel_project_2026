@@ -12,7 +12,7 @@
 <script lang="ts">
   import PageCard from '$lib/components/PageCard.svelte';
 
-  export let links: { label: string; href: string }[];
+  export let links: { label: string; href: string }[] = [];
   export let activeHref: string = '';
 </script>
 
@@ -36,15 +36,15 @@
     color: #232f3e;
     text-decoration: none;
     font-size: 0.875rem;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0.5rem;
+    border-left: 3px solid transparent;
     display: block;
   }
 
   a:hover,
   a.active {
     background-color: rgba(31, 111, 235, 0.08);
-    border-left: 3px solid #1f6ffb;
+    border-left-color: #1f6ffb;
     font-weight: bold;
-    padding-left: 0.5rem;
   }
 </style>
