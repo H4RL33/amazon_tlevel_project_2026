@@ -11,7 +11,6 @@
         <NavLink href="/" label="Home" />
         <NavLink href="/learn" label="Learn" />
         <NavLink href="/t-levels" label="T-Levels" />
-        <NavLink href="/" label="Home" />
       </div>
     </div>
     <div class="column">
