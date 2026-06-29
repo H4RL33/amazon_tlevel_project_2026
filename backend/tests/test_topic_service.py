@@ -1,8 +1,10 @@
 import pytest
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.topic import Topic
+from app.models.album import Album
 from app.models.t_level import TLevel
+from app.models.topic import Topic
 from app.services import topic_service
 
 
@@ -42,9 +44,6 @@ async def test_list_topics_returns_empty_list_when_no_topics(db_session: AsyncSe
     assert result == []
 
 
-from app.models.album import Album
-
-
 async def test_get_topic_by_slug_returns_topic_with_t_levels_and_albums(
     db_session: AsyncSession,
 ) -> None:
@@ -70,16 +69,6 @@ async def test_get_topic_by_slug_returns_topic_with_t_levels_and_albums(
     assert result.t_levels[0].albums[0].topic_id == topic.id
 
 
-async def test_get_topic_by_slug_raises_404_for_unknown_slug(db_session: AsyncSession) -> None:
-    from fastapi import HTTPException
-    import pytest
-
-    with pytest.raises(HTTPException) as exc_info:
-        await topic_service.get_topic_by_slug(db_session, "nonexistent")
-
-    assert exc_info.value.status_code == 404
-
-
 async def test_get_topic_by_slug_returns_empty_t_levels_when_none(
     db_session: AsyncSession,
 ) -> None:
@@ -90,3 +79,11 @@ async def test_get_topic_by_slug_returns_empty_t_levels_when_none(
 
     assert result.slug == "finance"
     assert result.t_levels == []
+
+
+async def test_get_topic_by_slug_raises_404_for_unknown_slug(db_session: AsyncSession) -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        await topic_service.get_topic_by_slug(db_session, "nonexistent")
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "Topic not found"
