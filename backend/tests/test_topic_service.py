@@ -87,3 +87,36 @@ async def test_get_topic_by_slug_raises_404_for_unknown_slug(db_session: AsyncSe
 
     assert exc_info.value.status_code == 404
     assert exc_info.value.detail == "Topic not found"
+
+
+async def test_get_t_level_returns_t_level_scoped_to_topic(db_session: AsyncSession) -> None:
+    topic = await _make_topic(db_session, slug="digital", name="Digital")
+    t_level = await _make_t_level(db_session, topic.id, name="Cloud Computing")
+    await db_session.commit()
+
+    result = await topic_service.get_t_level(db_session, "digital", t_level.id)
+
+    assert result.id == t_level.id
+    assert result.name == "Cloud Computing"
+    assert result.topic_id == topic.id
+
+
+async def test_get_t_level_raises_404_for_wrong_topic_slug(db_session: AsyncSession) -> None:
+    topic = await _make_topic(db_session, slug="digital", name="Digital")
+    t_level = await _make_t_level(db_session, topic.id)
+    await db_session.commit()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await topic_service.get_t_level(db_session, "business", t_level.id)
+
+    assert exc_info.value.status_code == 404
+
+
+async def test_get_t_level_raises_404_for_nonexistent_id(db_session: AsyncSession) -> None:
+    await _make_topic(db_session, slug="digital", name="Digital")
+    await db_session.commit()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await topic_service.get_t_level(db_session, "digital", 9999)
+
+    assert exc_info.value.status_code == 404

@@ -65,4 +65,13 @@ async def get_t_level(db: AsyncSession, topic_slug: str, t_level_id: int) -> TLe
     Return a single TLevel by id, scoped to the given topic_slug.
     Raise HTTP 404 if the TLevel does not exist or does not belong to that topic.
     """
-    raise NotImplementedError
+    stmt = (
+        select(TLevel)
+        .join(Topic, TLevel.topic_id == Topic.id)
+        .where(TLevel.id == t_level_id, Topic.slug == topic_slug)
+    )
+    result = await db.execute(stmt)
+    t_level = result.scalar_one_or_none()
+    if t_level is None:
+        raise HTTPException(status_code=404, detail="T-Level not found")
+    return TLevelResponse.model_validate(t_level)
