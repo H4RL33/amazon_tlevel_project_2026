@@ -35,7 +35,7 @@
   }
 </script>
 
-<PageCard as="aside" width="320px" padding="1.5rem" overflowY="visible">
+<PageCard as="aside" width="280px" padding="1.5rem" overflowY="visible">
   <div class="sidebar-inner">
     <p class="greeting">Good {timeOfDay}, {user.first_name} 👋</p>
 
@@ -113,6 +113,7 @@
     flex: 1;
     min-width: 0;
     aspect-ratio: 1;
+    max-height: 90px;
   }
 
   .snippet-list {
