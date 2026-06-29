@@ -13,7 +13,7 @@
     <div class="links">
       <NavLink href="/" label="Home" />
       <NavLink href="/learn" label="Learn" />
-      <NavLink href="/topics" label="Topics" />
+      <NavLink href="/t-levels" label="T-Levels" />
       <NavLink href={$currentUser ? '/library' : '/login'} label="Library" />
       {#if $currentUser}
         <NavBarAvatar user={$currentUser} />
