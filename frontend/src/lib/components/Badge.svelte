@@ -38,11 +38,6 @@
   {label}
 </span>
 
-<!-- Changes ----------------------------------->
-<!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
-
-<!-- TODO: Implement badge template. Use inline style for dynamic colour. -->
-
 <style>
   .badge {
     /* Allow the badge to size itself to its content. */
@@ -60,3 +55,7 @@
     letter-spacing: 0.03em;
   }
 </style>
+
+<!-- Changes ----------------------------------->
+<!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
+<!-- TODO: Implement badge template. Use inline style for dynamic colour. -->

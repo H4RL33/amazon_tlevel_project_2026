@@ -20,6 +20,9 @@
       The final item represents the current page and is displayed as plain text.
 -->
 
+<!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
+<!-- Changes ----------------------------------->
+
 <script lang="ts">
   // Breadcrumb items to display.
   // Each item contains:
@@ -76,4 +79,7 @@
     color: #c9d1d9;
   }
 </style>
+
+<!-- Changes ----------------------------------->
+<!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
 <!-- TODO: Render crumbs separated by '/'. Make all items except the last into <a> links. -->
