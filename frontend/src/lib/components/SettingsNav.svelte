@@ -34,30 +34,27 @@
 
 <!-- Settings navigation sidebar -->
 <nav>
-
   <!-- Account settings section heading -->
   <h3>Account</h3>
 
   <!-- Loop through each account settings link -->
   {#each account_links as link}
-    <a
-      href={link.path}
-      class:active={activePath === link.path}
-    >
+    <a href={link.path} class:active={activePath === link.path}>
       {link.name}
     </a>
   {/each}
 
   <!-- Loop through each application settings link -->
   {#each app_links as link}
-    <a
-      href={link.path}
-      class:active={activePath === link.path}
-    >
+    <a href={link.path} class:active={activePath === link.path}>
       {link.name}
     </a>
   {/each}
 </nav>
+
+<!-- Template ---------------------------------------------->
+<!-- Changes ----------------------------------------------->
+<!-- Code is incomplete and is currently using filler variables, needs updating. -->
 
 <style>
   /* Styles the sidebar container */
@@ -91,7 +88,3 @@
     font-weight: bold;
   }
 </style>
-
-<!-- Template ----------------------------------------------> 
-<!-- Changes -----------------------------------------------> 
-<!-- Code is incomplete and is currently using filler variables, needs updating. -->
