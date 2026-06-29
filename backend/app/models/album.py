@@ -16,7 +16,7 @@ class Album(Base):
     icon: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    t_level: Mapped["TLevel"] = relationship()
+    t_level: Mapped["TLevel"] = relationship(back_populates="albums")
     sides: Mapped[list["Side"]] = relationship(
         back_populates="album",
         order_by="Side.position",
