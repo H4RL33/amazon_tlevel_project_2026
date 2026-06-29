@@ -254,12 +254,12 @@ async def mentor_query(db: AsyncSession, message: str, user: User) -> MentorResp
     response = client.invoke_model(
         modelId=settings.BEDROCK_GENERATION_MODEL_ID,
         body=json.dumps({
-            "inputText": prompt,
-            "textGenerationConfig": {"maxTokenCount": 512, "temperature": 0.7, "topP": 0.9},
+            "messages": [{"role": "user", "content": [{"text": prompt}]}],
+            "inferenceConfig": {"maxTokens": 512, "temperature": 0.7, "topP": 0.9},
         }),
     )
     body = json.loads(response["body"].read())
-    reply_text = body["results"][0]["outputText"].strip()
+    reply_text = body["output"]["message"]["content"][0]["text"].strip()
 
     sources = [MentorSource(content_id=c["content_id"], title=c["title"]) for c in chunks]
     return MentorResponse(reply=reply_text, sources=sources)
