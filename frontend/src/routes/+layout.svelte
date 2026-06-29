@@ -38,11 +38,16 @@
       layers = layers;
     }
   }
+  $: morphingBackdrop = $page.url.pathname === '/' && !$currentUser;
 </script>
 
 <div class="backdrop" aria-hidden="true">
   {#each layers as layer, i (i)}
-    <div class="layer" class:visible={layer.visible}>
+    <div
+      class="layer"
+      class:visible={layer.visible}
+      class:morphing={morphingBackdrop && i === activeIndex}
+    >
       <div
         class="blob blob-a"
         style="background: radial-gradient(circle, {layer.palette[0]}, transparent 70%);"
@@ -59,7 +64,10 @@
   {/each}
 </div>
 
-<div class="shell">
+<div
+  class="shell"
+  style="--page-p0: {layers[activeIndex].palette[0]}; --page-p1: {layers[activeIndex].palette[1]};"
+>
   <Navbar />
   <div class="content">
     <slot />
@@ -70,6 +78,10 @@
 <style>
   :global(*, *::before, *::after) {
     box-sizing: border-box;
+  }
+
+  :global(html) {
+    font-size: 14px;
   }
 
   :global(html, body) {
@@ -94,6 +106,7 @@
     z-index: -1;
     overflow: hidden;
     background: #f5f5f0;
+    contain: layout style paint;
   }
 
   .layer {
@@ -107,6 +120,19 @@
     opacity: 1;
   }
 
+  .layer.morphing {
+    animation: morph-hue 8s linear infinite;
+  }
+
+  @keyframes morph-hue {
+    from {
+      filter: hue-rotate(0deg);
+    }
+    to {
+      filter: hue-rotate(360deg);
+    }
+  }
+
   .blob {
     position: absolute;
     width: 70vmax;
@@ -114,6 +140,7 @@
     border-radius: 50%;
     filter: blur(40px);
     opacity: 0.6;
+    will-change: transform;
   }
 
   .blob-a {
@@ -137,30 +164,42 @@
   @keyframes drift-a {
     0%,
     100% {
-      transform: translate(0, 0);
+      transform: translate3d(0, 0, 0);
     }
     50% {
-      transform: translate(8vmax, 6vmax);
+      transform: translate3d(8vmax, 6vmax, 0);
     }
   }
 
   @keyframes drift-b {
     0%,
     100% {
-      transform: translate(0, 0);
+      transform: translate3d(0, 0, 0);
     }
     50% {
-      transform: translate(-6vmax, 8vmax);
+      transform: translate3d(-6vmax, 8vmax, 0);
     }
   }
 
   @keyframes drift-c {
     0%,
     100% {
-      transform: translate(0, 0);
+      transform: translate3d(0, 0, 0);
     }
     50% {
-      transform: translate(5vmax, -7vmax);
+      transform: translate3d(5vmax, -7vmax, 0);
+    }
+  }
+
+  /* Reduce blur on HiDPI displays — physical pixels are smaller so 40px GPU blur
+     covers a proportionally huge area at 4K, hammering the compositor. */
+  @media (min-resolution: 2dppx) {
+    .blob {
+      filter: blur(20px);
+    }
+
+    .layer.morphing {
+      animation: none;
     }
   }
 
@@ -171,6 +210,10 @@
 
     .layer {
       transition: none;
+    }
+
+    .layer.morphing {
+      animation: none;
     }
   }
 
@@ -193,5 +236,8 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-inner);
   }
 </style>

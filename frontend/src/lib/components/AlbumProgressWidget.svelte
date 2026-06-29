@@ -19,7 +19,7 @@
 
   import ProgressBar from '$lib/components/ProgressBar.svelte';
   // import the reusable ProgressBar component
-  
+
   export let title: string;
   // Album title passed in by the parent component
 
@@ -29,19 +29,23 @@
 
 <!-- Main widget container -->
 <div class="album-progress-widget">
-
   <!-- Display Album title -->
   <h2>{title}</h2>
 
   <!-- Show overall progress-->
   <ProgressBar value={progressPct} />
-
 </div>
+
+<!-- Changes ------------------------------------------------>
+
+<!-- Code may contain bugs or not run as expected-->
+
+<!-- TODO: Implement title + ProgressBar layout, pinned top-left, flush with SnippetTitleBar. -->
 
 <style>
   /* Main container positioned at the top of the page */
   .album-progress-widget {
-    position: sticky;   /* Keeps the widget visible while scrolling */
+    position: sticky; /* Keeps the widget visible while scrolling */
     top: 0;
     left: 0;
 
@@ -74,9 +78,3 @@
     background: linear-gradient(90deg, #f59e0b, #fbbf24);
   }
 </style>
-
-<!-- Changes ------------------------------------------------>
-
-<!-- Code may contain bugs or not run as expected-->
-
-<!-- TODO: Implement title + ProgressBar layout, pinned top-left, flush with SnippetTitleBar. -->

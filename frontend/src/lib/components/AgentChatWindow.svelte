@@ -20,7 +20,7 @@
 -->
 <script lang="ts">
   // Changes -------------
-  import { tick } from "svelte";
+  import { tick } from 'svelte';
   // Changes -------------
   interface ChatMessage {
     id: string;
@@ -31,19 +31,19 @@
 
   export let messages: ChatMessage[];
   export let onSend: (text: string) => void;
+  export let initialDraft: string = '';
 
-  let draft = '';
+  let draft = initialDraft;
   // Changes -------------
   let message_container: HTMLDivElement | undefined;
-  
-  
+
   $: if (messages) {
     // The conditional statement checks if the message variable exits or not null or undefined
     scroll_to_bottom();
   }
   // Auto-scroll whenever messages change
-  
-  async function scroll_to_bottom(){
+
+  async function scroll_to_bottom() {
     await tick();
 
     if (message_container) {
@@ -51,34 +51,32 @@
     }
   }
 
-  function send(){
-    const text = draft.trim()
+  function send() {
+    const text = draft.trim();
 
-    if (!text) return
+    if (!text) return;
     // If the text is empty nothing is sent
 
     onSend(text);
-    draft = ""
+    draft = '';
     // Sends a callback
   }
 </script>
 
 <div class="chat-window">
-
   <div class="messages" bind:this={message_container}>
-
     {#each messages as message (message.id)}
-    <!-- Render messages in order -->
-    <div
-      class:user={message.role === "user"}
-      class:mentor={message.role === "mentor"}
-      class="message-row"
-    > <!-- Assigns roles -->
-      <div class="bubble">
-        {message.text}
+      <!-- Render messages in order -->
+      <div
+        class:user={message.role === 'user'}
+        class:mentor={message.role === 'mentor'}
+        class="message-row"
+      >
+        <!-- Assigns roles -->
+        <div class="bubble">
+          {message.text}
+        </div>
       </div>
-    </div>
-
     {/each}
   </div>
 
@@ -86,80 +84,78 @@
     <input
       bind:value={draft}
       placeholder="Type a message..."
-      on:keydown={(e) =>{
-        if (e.key === "Enter") send();
+      on:keydown={(e) => {
+        if (e.key === 'Enter') send();
       }}
     />
 
-    <button on:click={send}>
-      Send
-    </button>
+    <button on:click={send}> Send </button>
   </div>
-
 </div>
 
-<style>
-  .chat-window {
-	  height: 100%;
-	  display: flex;
-	  flex-direction: column;
-  }
-
-  .messages {
-	  flex: 1;
-	  overflow-y: auto;
-	  padding: 1rem;
-	  display: flex;
-	  flex-direction: column;
-	  gap: 0.75rem;
-  }
-
-  .message-row {
-	  display: flex;
-  }
-
-  .user {
-	  justify-content: flex-end;
-  }
-
-  .mentor {
-	  justify-content: flex-start;
-  }
-
-  .bubble {
-	  max-width: 75%;
-	  padding: 0.75rem 1rem;
-	  border-radius: 12px;
-	  word-break: break-word;
-  }
-
-  .user .bubble {
-	  background: #2563eb;
-	  color: white;
-  }
-
-  .mentor .bubble {
-	  background: #2d2d2d;
-	  border-left: 4px solid orange;
-	  color: white;
- }
-
-  .input-row {
-	  display: flex;
-	  gap: 0.5rem;
-	  padding: 1rem;
-	  border-top: 1px solid #333;
- }
-
-  .input-row input {
-	  flex: 1;
-	  padding: 0.75rem;
-  }
-
-  .input-row button {
-	  padding: 0.75rem 1rem;
-  }
-</style>
 <!-- Changes -------------------------->
 
 <!-- TODO: Implement scrollable message list (auto-scrolling) + input row calling onSend(draft). -->
+
+<style>
+  .chat-window {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .message-row {
+    display: flex;
+  }
+
+  .user {
+    justify-content: flex-end;
+  }
+
+  .mentor {
+    justify-content: flex-start;
+  }
+
+  .bubble {
+    max-width: 75%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    word-break: break-word;
+  }
+
+  .user .bubble {
+    background: #2563eb;
+    color: white;
+  }
+
+  .mentor .bubble {
+    background: #2d2d2d;
+    border-left: 4px solid orange;
+    color: white;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-top: 1px solid #333;
+  }
+
+  .input-row input {
+    flex: 1;
+    padding: 0.75rem;
+  }
+
+  .input-row button {
+    padding: 0.75rem 1rem;
+  }
+</style>
