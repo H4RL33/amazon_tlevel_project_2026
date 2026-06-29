@@ -2,6 +2,7 @@
   import { onMount, tick } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import { ApiError } from '$lib/api/client';
   import { getTopic } from '$lib/api/topics';
   import type { TLevelWithAlbumsResponse, AlbumListResponse } from '$lib/api/types';
   import AlbumGrid from '$lib/components/AlbumGrid.svelte';
@@ -39,8 +40,7 @@
             albums: t.albums,
           }));
       } catch (err: unknown) {
-        const status = (err as { status?: number })?.status;
-        if (status === 404) {
+        if (err instanceof ApiError && err.status === 404) {
           goto('/t-levels');
           return;
         }
@@ -48,6 +48,8 @@
       } finally {
         loading = false;
       }
+
+      if (sections.length === 0) return;
 
       await tick();
 

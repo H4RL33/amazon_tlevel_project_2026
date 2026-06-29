@@ -46,6 +46,8 @@
         loading = false;
       }
 
+      if (sections.length === 0) return;
+
       await tick();
 
       observer = new IntersectionObserver(
