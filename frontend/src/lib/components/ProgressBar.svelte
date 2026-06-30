@@ -17,14 +17,11 @@
   let max_length = 100;
 </script>
 
-
-<svg viewBox = "0 0 200 200" version = "1.1">
-
+<svg viewBox="0 0 200 200" version="1.1">
   <!-- creates a larger black bar behind the blue bar to show the progress -->
-  <line x1 = "0" y1 = "100" x2 = {max_length} y2 = "100" stroke = "#21262d" stroke-width = "12"/>
+  <line x1="0" y1="100" x2={max_length} y2="100" stroke="#21262d" stroke-width="12" />
 
   <!-- creates a blue bar that is the length of the percentage of the max-length -->
-  <line x1 = "0" y1 = "100" x2 = {max_length * pct / 100} y2 = "100" stroke = "#1f6feb" stroke-width = "10"/>
-
+  <line x1="0" y1="100" x2={(max_length * pct) / 100} y2="100" stroke="#1f6feb" stroke-width="10" />
 </svg>
 <!-- TODO: Implement progress bar. Clamp pct to 0–100 before applying width. -->

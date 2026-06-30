@@ -28,12 +28,10 @@
 
   <!-- Progress bar sits INSIDE the bottom edge -->
   <div class="progress-track">
-    <div
-      class="progress-fill"
-      style="width: {progressPct}%"
-    />
+    <div class="progress-fill" style="width: {progressPct}%" />
   </div>
 </div>
+<!-- TODO: Implement title bar with a bottom-edge progress indicator (orange-yellow gradient). -->
 
 <style>
   /* Main bar container */
@@ -73,13 +71,8 @@
   /* Actual progress fill */
   .progress-fill {
     height: 100%;
-    background: linear-gradient(
-      90deg,
-      #ff8a00,
-      #ffd000
-    ); /* orange → yellow gradient */
+    background: linear-gradient(90deg, #ff8a00, #ffd000); /* orange → yellow gradient */
 
     transition: width 0.2s ease;
   }
 </style>
-<!-- TODO: Implement title bar with a bottom-edge progress indicator (orange-yellow gradient). -->

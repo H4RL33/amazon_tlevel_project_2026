@@ -51,10 +51,16 @@
 
   async function toggleSave(contentId: number, currentlySaved: boolean) {
     if (currentlySaved) {
-      savedSnippetIds.update((s) => { s.delete(contentId); return new Set(s); });
+      savedSnippetIds.update((s) => {
+        s.delete(contentId);
+        return new Set(s);
+      });
       await unsaveSnippet(contentId);
     } else {
-      savedSnippetIds.update((s) => { s.add(contentId); return new Set(s); });
+      savedSnippetIds.update((s) => {
+        s.add(contentId);
+        return new Set(s);
+      });
       await saveSnippet(contentId);
     }
   }
@@ -101,10 +107,7 @@
       <!-- Dynamic Mentor -->
       <div class="mentor-section">
         <span class="section-label">Dynamic Mentor</span>
-        <AgentChat
-          placeholder="Ask your mentor anything…"
-          on:submit={handleMentor}
-        />
+        <AgentChat placeholder="Ask your mentor anything…" on:submit={handleMentor} />
         {#if mentorLoading}
           <p class="mentor-loading">Thinking…</p>
         {/if}
@@ -142,8 +145,11 @@
           <span class="section-label">Search Results</span>
           <button
             class="back-btn"
-            on:click={() => { searchResults = null; query = ''; }}
-          >← Back</button>
+            on:click={() => {
+              searchResults = null;
+              query = '';
+            }}>← Back</button
+          >
         </div>
       </PageCard>
       {#if searchResults.length === 0}
@@ -160,7 +166,8 @@
                 content_type: result.content_type,
               }}
               saved={$savedSnippetIds.has(result.content_id)}
-              onSaveToggle={() => toggleSave(result.content_id, $savedSnippetIds.has(result.content_id))}
+              onSaveToggle={() =>
+                toggleSave(result.content_id, $savedSnippetIds.has(result.content_id))}
             />
           {/each}
         </div>

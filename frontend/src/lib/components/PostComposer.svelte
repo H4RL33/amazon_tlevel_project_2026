@@ -36,18 +36,11 @@
 
 <form class="composer" on:submit|preventDefault={handleSubmit}>
   <!-- Let the user type their post. -->
-  <textarea
-    bind:value={body}
-    rows={4}
-    placeholder="Write something..."
-    class="textarea"
-  />
+  <textarea bind:value={body} rows={4} placeholder="Write something..." class="textarea" />
 
   <!-- Submit the post when the text is not empty. -->
   <div class="actions">
-    <Button type="submit" variant="primary" disabled={!body.trim()}>
-      Post
-    </Button>
+    <Button type="submit" variant="primary" disabled={!body.trim()}>Post</Button>
   </div>
 </form>
 

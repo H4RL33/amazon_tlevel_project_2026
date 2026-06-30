@@ -41,10 +41,16 @@
     if (!snippet) return;
     const id = snippet.id;
     if (snippetSaved) {
-      savedSnippetIds.update((s) => { s.delete(id); return new Set(s); });
+      savedSnippetIds.update((s) => {
+        s.delete(id);
+        return new Set(s);
+      });
       await unsaveSnippet(id);
     } else {
-      savedSnippetIds.update((s) => { s.add(id); return new Set(s); });
+      savedSnippetIds.update((s) => {
+        s.add(id);
+        return new Set(s);
+      });
       await saveSnippet(id);
     }
   }
@@ -98,11 +104,27 @@
               title={snippetSaved ? 'Remove from Library' : 'Save to Library'}
             >
               {#if snippetSaved}
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                >
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               {:else}
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                >
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               {/if}
@@ -169,7 +191,9 @@
     color: #232f3e;
     padding: 0;
     box-shadow: 0 2px 6px rgba(35, 47, 62, 0.2);
-    transition: background 0.15s, color 0.15s;
+    transition:
+      background 0.15s,
+      color 0.15s;
   }
 
   .save-btn:hover {

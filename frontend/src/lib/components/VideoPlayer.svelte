@@ -11,10 +11,8 @@
     - Provide custom play/pause, 10s skip back/forward controls, and a progress bar.
 -->
 
-
 <script lang="ts">
-
-// think it is better to use defaut Html one but this contains the code for a basic video player
+  // think it is better to use defaut Html one but this contains the code for a basic video player
   import { updateProgress } from '$lib/api/progress';
   import ProgressBar from '$lib/components/ProgressBar.svelte';
 
@@ -87,7 +85,10 @@
   function skipBy(seconds: number) {
     if (!videoElement) return;
 
-    const nextTime = Math.max(0, Math.min(videoElement.duration || 0, videoElement.currentTime + seconds));
+    const nextTime = Math.max(
+      0,
+      Math.min(videoElement.duration || 0, videoElement.currentTime + seconds)
+    );
     videoElement.currentTime = nextTime;
     currentTime = nextTime;
   }
@@ -118,13 +119,28 @@
   </div>
 
   <div class="controls">
-    <button type="button" class="control-button" on:click={() => skipBy(-10)} aria-label="Skip backward 10 seconds">
+    <button
+      type="button"
+      class="control-button"
+      on:click={() => skipBy(-10)}
+      aria-label="Skip backward 10 seconds"
+    >
       ⏪ 10s
     </button>
-    <button type="button" class="control-button primary" on:click={togglePlayback} aria-label={isPlaying ? 'Pause video' : 'Play video'}>
+    <button
+      type="button"
+      class="control-button primary"
+      on:click={togglePlayback}
+      aria-label={isPlaying ? 'Pause video' : 'Play video'}
+    >
       {#if isPlaying}⏸ Pause{:else}▶ Play{/if}
     </button>
-    <button type="button" class="control-button" on:click={() => skipBy(10)} aria-label="Skip forward 10 seconds">
+    <button
+      type="button"
+      class="control-button"
+      on:click={() => skipBy(10)}
+      aria-label="Skip forward 10 seconds"
+    >
       10s ⏩
     </button>
   </div>

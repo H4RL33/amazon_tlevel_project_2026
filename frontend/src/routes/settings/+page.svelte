@@ -133,7 +133,11 @@
 </script>
 
 <div class="settings-page">
-  <Sidebar sections={settingsSections} activeHref={$page.url.pathname} ariaLabel="Settings sections" />
+  <Sidebar
+    sections={settingsSections}
+    activeHref={$page.url.pathname}
+    ariaLabel="Settings sections"
+  />
 
   <PageCard as="main">
     <h1>Personalisation</h1>

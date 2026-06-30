@@ -43,17 +43,12 @@
 
 <!-- Main container card for a single post -->
 <Card class="post-card">
-
   <!-- =========================
        1. POSTER INFO ROW
        ========================= -->
   <div class="poster">
     <!-- User avatar -->
-    <img
-      class="avatar"
-      src={post.author.avatarUrl}
-      alt={post.author.name}
-    />
+    <img class="avatar" src={post.author.avatarUrl} alt={post.author.name} />
 
     <!-- Author name + subtitle/role -->
     <div class="author">
@@ -72,7 +67,6 @@
     <!-- Optional media section (image OR video) -->
     {#if post.mediaType === 'image' && post.mediaUrl}
       <img class="media" src={post.mediaUrl} alt="Post image" />
-
     {:else if post.mediaType === 'video' && post.mediaUrl}
       <video class="media" controls>
         <source src={post.mediaUrl} />
@@ -85,23 +79,20 @@
        ========================= -->
   <div class="actions">
     <!-- Like button with current state -->
-    <LikeButton
-      liked={post.liked}
-      count={post.likeCount}
-    />
+    <LikeButton liked={post.liked} count={post.likeCount} />
 
     <!-- Repost placeholder (functionality not implemented yet) -->
-    <button type="button">
-      Repost
-    </button>
+    <button type="button"> Repost </button>
 
     <!-- Save/bookmark toggle -->
-    <SaveButton
-      saved={post.saved}
-    />
+    <SaveButton saved={post.saved} />
   </div>
-
 </Card>
+
+<!-- Changes ----------------------------------->
+<!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
+
+<!-- TODO: Implement the three-tier layout described above using LikeButton and SaveButton. -->
 
 <style>
   /* Overall layout of the post card */
@@ -155,8 +146,3 @@
     align-items: center;
   }
 </style>
-
-<!-- Changes ----------------------------------->
-<!-- Code may contain bugs or may be unfinished, most likely needs to be updated -------->
- 
-<!-- TODO: Implement the three-tier layout described above using LikeButton and SaveButton. -->

@@ -15,14 +15,16 @@
   export let sides: SideResponse[];
   export let activeSnippetId: number | null;
 
-  $: sections = sides.map((side, i): SidebarSection => ({
-    title: side.title,
-    sideLabel: `SIDE ${i + 1}`,
-    links: side.snippets.map((s) => ({
-      label: s.title,
-      href: `?snippet=${s.id}`,
-    })),
-  }));
+  $: sections = sides.map(
+    (side, i): SidebarSection => ({
+      title: side.title,
+      sideLabel: `SIDE ${i + 1}`,
+      links: side.snippets.map((s) => ({
+        label: s.title,
+        href: `?snippet=${s.id}`,
+      })),
+    })
+  );
 
   $: activeHref = activeSnippetId !== null ? `?snippet=${activeSnippetId}` : '';
 </script>

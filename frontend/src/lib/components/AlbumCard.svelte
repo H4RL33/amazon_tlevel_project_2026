@@ -36,19 +36,22 @@
     e.preventDefault();
     if (albumId === undefined) return;
     if (enrolled) {
-      enrolledAlbumIds.update((s) => { s.delete(albumId!); return new Set(s); });
+      enrolledAlbumIds.update((s) => {
+        s.delete(albumId!);
+        return new Set(s);
+      });
       await unenrolAlbum(albumId);
     } else {
-      enrolledAlbumIds.update((s) => { s.add(albumId!); return new Set(s); });
+      enrolledAlbumIds.update((s) => {
+        s.add(albumId!);
+        return new Set(s);
+      });
       await enrolAlbum(albumId);
     }
   }
 </script>
 
-<div
-  class="album-card"
-  style={size ? `width: ${size}; height: ${size};` : undefined}
->
+<div class="album-card" style={size ? `width: ${size}; height: ${size};` : undefined}>
   <a class="album-link" href={resolvedHref}>
     <svg
       class="icon"
@@ -78,11 +81,27 @@
       title={enrolled ? 'Remove from Library' : 'Add to Library'}
     >
       {#if enrolled}
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        >
           <path d="M18 6L6 18M6 6l12 12" />
         </svg>
       {:else}
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        >
           <path d="M12 5v14M5 12h14" />
         </svg>
       {/if}
@@ -145,7 +164,9 @@
     color: #232f3e;
     padding: 0;
     box-shadow: 0 2px 6px rgba(35, 47, 62, 0.2);
-    transition: background 0.15s, color 0.15s;
+    transition:
+      background 0.15s,
+      color 0.15s;
   }
 
   .enrol-btn:hover {
