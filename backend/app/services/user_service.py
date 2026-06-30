@@ -53,6 +53,7 @@ def build_user_response(user: User) -> UserResponse:
         email=user.email,
         first_name=user.first_name,
         last_name=user.last_name,
+        username=user.username,
         avatar_url=avatar_url,
         created_at=user.created_at,
     )
@@ -119,6 +120,26 @@ def create_avatar_upload_url(
     key = f"avatars/{user.id}/{uuid4()}.{extension}"
     upload_url = _generate_presigned_put_url(key, payload.content_type)
     return AvatarUploadUrlResponse(upload_url=upload_url, key=key)
+
+
+async def update_username(
+    db: AsyncSession, current_user: User, username: str
+) -> UserResponse:
+    import re
+    username = username.strip()
+    if not (3 <= len(username) <= 30):
+        raise HTTPException(status_code=422, detail="Username must be 3–30 characters")
+    if not re.match(r'^[a-zA-Z0-9_]+$', username):
+        raise HTTPException(status_code=422, detail="Username may only contain letters, numbers, and underscores")
+    result = await db.execute(
+        select(User).where(User.username == username, User.id != current_user.id)
+    )
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Username is already taken")
+    current_user.username = username
+    await db.commit()
+    await db.refresh(current_user)
+    return build_user_response(current_user)
 
 
 async def set_avatar(db: AsyncSession, current_user: User, avatar_s3_key: str) -> UserResponse:
