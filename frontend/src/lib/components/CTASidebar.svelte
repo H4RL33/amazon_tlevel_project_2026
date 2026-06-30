@@ -41,11 +41,9 @@
       <span class="section-label">Your Albums</span>
       {#if displayedAlbums.length > 0}
         <div class="album-row">
-          {#each { length: 2 } as _, i}
+          {#each displayedAlbums as album}
             <div class="album-slot">
-              {#if displayedAlbums[i]}
-                <AlbumCard album={displayedAlbums[i]} size="100%" />
-              {/if}
+              <AlbumCard {album} size="100%" />
             </div>
           {/each}
         </div>
