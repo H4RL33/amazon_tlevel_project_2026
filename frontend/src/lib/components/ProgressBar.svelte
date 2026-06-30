@@ -15,7 +15,6 @@
 
   //max-length is how many pixels long  the progress bar is at 100%
   let max_length = 100;
-  pct = 0
 </script>
 
 
