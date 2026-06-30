@@ -38,7 +38,6 @@ module "compute" {
   database_url         = "postgresql+asyncpg://exeaws26:${var.db_password}@${module.database.endpoint}/exeaws26"
   secret_key           = var.secret_key
   cognito_user_pool_id = module.auth.user_pool_id
-  cognito_client_id    = module.auth.client_id
   s3_bucket_name       = module.storage.bucket_name
   alb_dns_name         = module.networking.alb_dns_name
   public_domain        = var.public_domain

@@ -1,26 +1,23 @@
 <!--
   NavBarAvatar
   Purpose: User avatar shown on the right of the NavBar with a dropdown for the
-    user's Dashboard, Settings, Help, and Sign out.
+    user's Dashboard, Settings, and Help.
   Used in: NavBar
   Props:
-    - user (UserResponse): current user
+    - user (UserResponse): current user -- renders the uploaded avatar image when
+      user.avatar_url is set, otherwise falls back to initials from first_name/
+      last_name on a coloured circle.
   Behaviour:
     - Clicking the avatar toggles a dropdown panel anchored below-right of the avatar.
-    - Dropdown items: "Dashboard" (/dashboard), "Settings" (/settings), "Help" (/help), "Sign out".
+    - Dropdown items: "Dashboard" (/dashboard), "Settings" (/settings), "Help" (/help).
     - Clicking outside the dropdown or pressing Escape closes it.
   Styling:
-    Avatar: 36px circle (via AvatarBadge).
-    Dropdown: white background, omnidirectional drop shadow matching PageCard/AlbumCard,
-    NavLink components for nav items, matching button style for Sign out.
+    Avatar: 36px circle.
+    Dropdown: background #161b22, border 1px solid #21262d, border-radius 8px,
+    box-shadow 0 4px 12px rgba(0,0,0,0.4), min-width 180px.
 -->
 <script lang="ts">
-  import { goto, afterNavigate } from '$app/navigation';
-  import { signOut } from '$lib/api/auth';
-  import { currentUser } from '$lib/stores/user';
   import type { UserResponse } from '$lib/api/types';
-  import AvatarBadge from '$lib/components/AvatarBadge.svelte';
-  import NavLink from '$lib/components/NavLink.svelte';
 
   export let user: UserResponse;
 
@@ -47,30 +44,25 @@
     }
   }
 
-  afterNavigate(() => {
-    open = false;
-  });
-
-  function handleSignOut() {
-    signOut();
-    currentUser.set(null);
-    goto('/');
-  }
+  $: initials = `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase();
 </script>
 
 <svelte:window on:click={handleWindowClick} on:keydown={handleKeydown} />
 
 <div class="avatar-container" bind:this={containerEl}>
   <button class="avatar-button" on:click={toggle} aria-label="User menu" aria-expanded={open}>
-    <AvatarBadge {user} size="36px" />
+    {#if user.avatar_url}
+      <img src={user.avatar_url} alt="" class="avatar avatar-image" />
+    {:else}
+      <span class="avatar">{initials}</span>
+    {/if}
   </button>
 
   {#if open}
     <div class="dropdown">
-      <div class="dropdown-item"><NavLink href="/settings" label="Settings" /></div>
-      <div class="dropdown-item"><NavLink href="/help" label="Help" /></div>
-      <hr class="divider" />
-      <button class="sign-out" on:click={handleSignOut}>Sign out</button>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/settings">Settings</a>
+      <a href="/help">Help</a>
     </div>
   {/if}
 </div>
@@ -85,8 +77,23 @@
     border: none;
     padding: 0;
     cursor: pointer;
+  }
+
+  .avatar {
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #1f6feb;
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .avatar-image {
+    object-fit: cover;
   }
 
   .dropdown {
@@ -94,45 +101,24 @@
     top: calc(100% + 0.5rem);
     right: 0;
     min-width: 180px;
-    background: #ffffff;
-    border-radius: 0;
-    box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     padding: 0.5rem 0;
     z-index: 10;
   }
 
-  .dropdown-item {
-    padding: 0.5rem 1rem;
-    display: block;
-    font-size: 0.875rem;
-  }
-
-  .dropdown-item :global(a) {
-    display: block;
-    width: 100%;
-  }
-
-  .divider {
-    border: none;
-    border-top: 1px solid #e2e2dc;
-    margin: 0.25rem 0;
-  }
-
-  .sign-out {
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    color: #232f3e;
+  .dropdown a {
+    color: #c9d1d9;
+    text-decoration: none;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    font-family: 'Ubuntu', sans-serif;
   }
 
-  .sign-out:hover {
-    text-decoration: underline;
+  .dropdown a:hover {
+    background: rgba(255, 255, 255, 0.05);
   }
 </style>

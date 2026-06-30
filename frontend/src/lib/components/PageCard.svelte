@@ -15,30 +15,20 @@
       --gap-inner/--gap-outer spacing between cards, which callers control themselves.
     - width (string): CSS width. Defaults to 'auto' (fills whatever flex/grid track the
       caller places it in) — used by sidebars/CTASidebar to set a fixed width.
-    - overflowY (string): CSS overflow-y. Defaults to 'auto' so that when a caller
-      constrains this card's height (e.g. via flex stretch in a fixed-height row),
-      excess content scrolls inside the card instead of growing it — a no-op when
-      height is left at its natural auto size *unless* the card also contains an
-      absolutely-positioned overlay (e.g. a dropdown) that needs to render outside its
-      own box — overflow-y: auto clips that overlay even at auto height. Pass
-      'visible' in that case (e.g. Navbar, which hosts NavBarAvatar's dropdown and
-      never needs internal scrolling).
   Styling:
     background #ffffff, border-radius 0 (square corners), box-shadow
     0 10px 18px -4px rgba(35, 47, 62, 0.35) (the validated "soft directional blur" shadow).
+    overflow-y: auto so that when a caller constrains this card's height (e.g. via
+    flex stretch in a fixed-height row), excess content scrolls inside the card
+    instead of growing it — a no-op when height is left at its natural auto size.
 -->
 <script lang="ts">
   export let as: string = 'div';
   export let padding: string = '2rem';
   export let width: string = 'auto';
-  export let overflowY: string = 'auto';
 </script>
 
-<svelte:element
-  this={as}
-  class="page-card"
-  style="padding: {padding}; width: {width}; overflow-y: {overflowY};"
->
+<svelte:element this={as} class="page-card" style="padding: {padding}; width: {width};">
   <slot />
 </svelte:element>
 
@@ -48,5 +38,6 @@
     border-radius: 0;
     box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
     box-sizing: border-box;
+    overflow-y: auto;
   }
 </style>

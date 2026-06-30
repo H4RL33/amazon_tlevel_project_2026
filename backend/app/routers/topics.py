@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.dependencies.auth import get_current_user
 from app.schemas.topic import TLevelResponse, TopicDetailResponse, TopicResponse
 from app.services import topic_service
 
-router = APIRouter(prefix="/topics", tags=["topics"])
+router = APIRouter(prefix="/topics", tags=["topics"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/", response_model=list[TopicResponse], summary="List all topic areas")
