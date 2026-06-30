@@ -16,9 +16,49 @@
     Use the Button component, variant="primary". Enrolled state: variant="secondary", disabled.
 -->
 <script lang="ts">
+  import { getCognitoLoginUrl } from '$lib/api/auth';
+  import { enrolAlbum } from '$lib/api/albums';
+  import Button from '$lib/components/Button.svelte';
+
   export let albumId: number;
   export let enrolled: boolean;
   export let isAuthenticated: boolean;
+
+  let isSubmitting = false;
+  let hasEnrolled = enrolled;
+
+  async function handleClick() {
+    if (!isAuthenticated) {
+      window.location.href = await getCognitoLoginUrl();
+      return;
+    }
+
+    if (hasEnrolled || isSubmitting) {
+      return;
+    }
+
+    isSubmitting = true;
+
+    try {
+      await enrolAlbum(albumId);
+      hasEnrolled = true;
+    } finally {
+      isSubmitting = false;
+    }
+  }
 </script>
 
-<!-- TODO: Implement the three behaviours above using the Button component. -->
+<Button
+  variant={hasEnrolled ? 'secondary' : 'primary'}
+  disabled={hasEnrolled || isSubmitting}
+  type="button"
+  on:click={handleClick}
+>
+  {#if hasEnrolled}
+    Enrolled
+  {:else if isSubmitting}
+    Enrolling...
+  {:else}
+    Enrol now
+  {/if}
+</Button>
