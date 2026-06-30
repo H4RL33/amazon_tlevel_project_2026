@@ -54,7 +54,9 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(35, 47, 62, 0.12);
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   .snippet-card:hover {
