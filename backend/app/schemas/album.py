@@ -13,7 +13,6 @@ __all__ = [
 class AlbumListResponse(BaseModel):
     id: int
     t_level_id: int
-    topic_id: int
     title: str
     description: str
     icon: str

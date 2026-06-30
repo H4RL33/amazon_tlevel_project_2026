@@ -25,3 +25,10 @@ export async function updateAvatar(avatarS3Key: string): Promise<UserResponse> {
     body: JSON.stringify({ avatar_s3_key: avatarS3Key }),
   });
 }
+
+export async function updateUsername(username: string): Promise<UserResponse> {
+  return apiFetch<UserResponse>('/users/me/profile', {
+    method: 'PATCH',
+    body: JSON.stringify({ username }),
+  });
+}

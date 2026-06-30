@@ -14,10 +14,15 @@ class UserResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
+    username: str | None = None
     avatar_url: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class UserProfileUpdateRequest(BaseModel):
+    username: str
 
 
 class UserTopicsRequest(BaseModel):

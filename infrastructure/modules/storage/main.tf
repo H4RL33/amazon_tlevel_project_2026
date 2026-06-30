@@ -36,18 +36,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "content" {
   }
 }
 
-resource "aws_s3_bucket_cors_configuration" "content" {
-  bucket = aws_s3_bucket.content.id
-
-  cors_rule {
-    allowed_headers = ["*"]
-    allowed_methods = ["PUT", "GET"]
-    allowed_origins = ["*"]
-    expose_headers  = ["ETag"]
-    max_age_seconds = 3000
-  }
-}
-
 resource "aws_s3_bucket_versioning" "content" {
   bucket = aws_s3_bucket.content.id
 

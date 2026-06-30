@@ -9,6 +9,7 @@ from app.schemas.user import (
     AvatarUpdateRequest,
     AvatarUploadUrlRequest,
     AvatarUploadUrlResponse,
+    UserProfileUpdateRequest,
     UserResponse,
     UserTopicsRequest,
 )
@@ -73,3 +74,16 @@ async def update_avatar(
     db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
     return await user_service.set_avatar(db, current_user, payload.avatar_s3_key)
+
+
+@router.patch(
+    "/me/profile",
+    response_model=UserResponse,
+    summary="Update user profile fields (username)",
+)
+async def update_profile(
+    payload: UserProfileUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    return await user_service.update_username(db, current_user, payload.username)

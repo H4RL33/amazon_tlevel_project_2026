@@ -55,7 +55,7 @@ jobs:
     needs: lint-autofix
     services:
       postgres:
-        image: pgvector/pgvector:pg17
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test

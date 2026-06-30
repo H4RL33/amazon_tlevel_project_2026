@@ -21,13 +21,6 @@ env/
 node_modules/
 .svelte-kit/
 .output/
-.vite/
-
-# Playwright
-frontend/e2e/.auth/*
-!frontend/e2e/.auth/.gitkeep
-frontend/playwright-report/
-frontend/test-results/
 
 # IDE
 .vscode/

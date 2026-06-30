@@ -4,7 +4,6 @@ from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models import Base
-from app.models.library import UserSnippetSave  # noqa: F401
 
 
 class User(Base):
@@ -15,6 +14,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
+    username: Mapped[str | None] = mapped_column(String(50), unique=True, index=True, default=None)
     avatar_s3_key: Mapped[str | None] = mapped_column(String(500), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -22,9 +22,6 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan"
     )
     progress: Mapped[list["UserContentProgress"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    saved_snippets: Mapped[list["UserSnippetSave"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 

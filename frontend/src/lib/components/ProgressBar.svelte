@@ -15,7 +15,6 @@
 
   //max-length is how many pixels long  the progress bar is at 100%
   let max_length = 100;
-  pct = 0;
 </script>
 
 <svg viewBox="0 0 200 200" version="1.1">

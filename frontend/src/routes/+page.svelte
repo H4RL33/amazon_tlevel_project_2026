@@ -3,8 +3,10 @@
   import { getCognitoLoginUrl } from '$lib/api/auth';
   import { listAlbums } from '$lib/api/albums';
   import { apiFetch } from '$lib/api/client';
+  import { getLibrary } from '$lib/api/library';
   import type { AlbumListResponse } from '$lib/api/types';
   import { currentUser } from '$lib/stores/user';
+  import { enrolledAlbumIds } from '$lib/stores/enrolments';
   import AlbumGrid from '$lib/components/AlbumGrid.svelte';
   import CTASidebar from '$lib/components/CTASidebar.svelte';
   import NavLink from '$lib/components/NavLink.svelte';
@@ -25,6 +27,13 @@
     }
 
     if ($currentUser) {
+      try {
+        const lib = await getLibrary();
+        enrolledAlbumIds.set(new Set(lib.enrolled_albums.map((a) => a.id)));
+      } catch {
+        // non-critical — store stays empty
+      }
+
       try {
         feedPosts = await apiFetch<unknown[]>('/feed/');
       } catch {
@@ -60,9 +69,9 @@
         <PageCard padding="0.875rem 1.25rem">
           <div class="stat">
             <span class="stat-label">📚 Albums Enrolled</span>
-            <span class="stat-value">{albums.length}</span>
+            <span class="stat-value">{$enrolledAlbumIds.size}</span>
             <span class="stat-sub"
-              >{albums.length === 1 ? '1 album' : `${albums.length} albums`}</span
+              >{$enrolledAlbumIds.size === 1 ? '1 album' : `${$enrolledAlbumIds.size} albums`}</span
             >
           </div>
         </PageCard>

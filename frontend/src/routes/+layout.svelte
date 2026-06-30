@@ -38,16 +38,11 @@
       layers = layers;
     }
   }
-  $: morphingBackdrop = $page.url.pathname === '/' && !$currentUser;
 </script>
 
 <div class="backdrop" aria-hidden="true">
   {#each layers as layer, i (i)}
-    <div
-      class="layer"
-      class:visible={layer.visible}
-      class:morphing={morphingBackdrop && i === activeIndex}
-    >
+    <div class="layer" class:visible={layer.visible}>
       <div
         class="blob blob-a"
         style="background: radial-gradient(circle, {layer.palette[0]}, transparent 70%);"
@@ -64,28 +59,21 @@
   {/each}
 </div>
 
-<div
-  class="shell"
-  style="--page-p0: {layers[activeIndex].palette[0]}; --page-p1: {layers[activeIndex].palette[1]};"
->
+<div class="shell">
   <Navbar />
   <div class="content">
     <slot />
   </div>
+  <Footer />
 </div>
-<Footer />
 
 <style>
   :global(*, *::before, *::after) {
     box-sizing: border-box;
   }
 
-  :global(html) {
-    font-size: 14px;
-  }
-
-  :global(html) {
-    min-height: 100%;
+  :global(html, body) {
+    height: 100%;
   }
 
   :global(body) {
@@ -96,7 +84,7 @@
   }
 
   :global(:root) {
-    --gap-inner: 1.5rem;
+    --gap-inner: 1.75rem;
     --gap-outer: 2.25rem;
   }
 
@@ -106,7 +94,6 @@
     z-index: -1;
     overflow: hidden;
     background: #f5f5f0;
-    contain: layout style paint;
   }
 
   .layer {
@@ -122,79 +109,63 @@
 
   .blob {
     position: absolute;
-    width: 85vmax;
-    height: 85vmax;
+    width: 70vmax;
+    height: 70vmax;
     border-radius: 50%;
-    filter: blur(20px);
+    filter: blur(40px);
     opacity: 0.6;
   }
 
   .blob-a {
     top: -15%;
     left: -15%;
+    animation: drift-a 28s ease-in-out infinite;
   }
 
   .blob-b {
     top: -10%;
     right: -20%;
+    animation: drift-b 34s ease-in-out infinite;
   }
 
   .blob-c {
     bottom: -20%;
     left: 15%;
-  }
-
-  .layer.morphing .blob {
-    will-change: transform;
-  }
-
-  .layer.morphing .blob-a {
-    animation: drift-a 28s ease-in-out infinite;
-  }
-
-  .layer.morphing .blob-b {
-    animation: drift-b 34s ease-in-out infinite;
-  }
-
-  .layer.morphing .blob-c {
     animation: drift-c 40s ease-in-out infinite;
   }
 
   @keyframes drift-a {
     0%,
     100% {
-      transform: translate3d(0, 0, 0);
+      transform: translate(0, 0);
     }
     50% {
-      transform: translate3d(8vmax, 6vmax, 0);
+      transform: translate(8vmax, 6vmax);
     }
   }
 
   @keyframes drift-b {
     0%,
     100% {
-      transform: translate3d(0, 0, 0);
+      transform: translate(0, 0);
     }
     50% {
-      transform: translate3d(-6vmax, 8vmax, 0);
+      transform: translate(-6vmax, 8vmax);
     }
   }
 
   @keyframes drift-c {
     0%,
     100% {
-      transform: translate3d(0, 0, 0);
+      transform: translate(0, 0);
     }
     50% {
-      transform: translate3d(5vmax, -7vmax, 0);
+      transform: translate(5vmax, -7vmax);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .blob,
-    .layer.morphing .blob-a,
-    .layer.morphing .blob-b,
-    .layer.morphing .blob-c {
+    .blob {
       animation: none;
     }
 
@@ -207,9 +178,12 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 100dvh;
+    height: 100vh;
     box-sizing: border-box;
-    padding: var(--gap-outer);
+    /* Horizontal padding is reduced by the shadow buffer (16px) so that
+       PageCards inside .content — which get their own 16px padding below —
+       align with the Navbar. Vertical padding stays at --gap-outer. */
+    padding: var(--gap-outer) calc(var(--gap-outer) - 16px);
     gap: var(--gap-inner);
   }
 
@@ -217,7 +191,10 @@
      0 1 auto) and never move. This is the one scrollable region — capped to
      whatever's left of the 100vh shell via min-height: 0, which overrides
      flex's default min-height: auto that would otherwise let it grow past
-     that and push the footer down. */
+     that and push the footer down.
+     padding: shadow buffer so overflow-y: auto doesn't clip PageCard
+     box-shadows — children appear at the same x-position as the Navbar
+     because shell's horizontal padding is reduced by the same 16px. */
   .content {
     flex: 1 1 auto;
     min-height: 0;
@@ -225,5 +202,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--gap-inner);
+    padding: 16px 16px 24px;
   }
 </style>

@@ -4,6 +4,7 @@ export interface UserResponse {
   email: string;
   first_name: string;
   last_name: string;
+  username: string | null;
   avatar_url: string | null;
   created_at: string;
 }
@@ -24,12 +25,8 @@ export interface TLevelResponse {
   how_to_apply: string;
 }
 
-export interface TLevelWithAlbumsResponse extends TLevelResponse {
-  albums: AlbumListResponse[];
-}
-
 export interface TopicDetailResponse extends TopicResponse {
-  t_levels: TLevelWithAlbumsResponse[];
+  t_levels: TLevelResponse[];
 }
 
 export type ContentType = 'article' | 'audio' | 'video';
@@ -64,7 +61,6 @@ export interface ProgressResponse {
 export interface AlbumListResponse {
   id: number;
   t_level_id: number;
-  topic_id: number;
   title: string;
   description: string;
   icon: string;
