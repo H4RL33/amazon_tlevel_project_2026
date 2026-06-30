@@ -31,6 +31,7 @@
     <div class="progress-fill" style="width: {progressPct}%" />
   </div>
 </div>
+
 <!-- TODO: Implement title bar with a bottom-edge progress indicator (orange-yellow gradient). -->
 
 <style>
