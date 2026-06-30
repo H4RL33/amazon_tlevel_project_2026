@@ -15,7 +15,21 @@
   import type { ContentListResponse } from '$lib/api/types';
   import SnippetGrid from '$lib/components/SnippetGrid.svelte';
 
+  // The saved snippets passed in from the parent component.
   export let snippets: ContentListResponse[];
 </script>
 
-<!-- TODO: Render SnippetGrid with snippets, or the empty state when snippets.length === 0. -->
+{#if snippets.length === 0}
+  <!-- Show a simple message when there is nothing saved yet. -->
+  <p class="empty-state">Nothing saved yet — save a Snippet to read it later.</p>
+{:else}
+  <!-- Reuse the shared snippet grid layout for the saved items. -->
+  <SnippetGrid {snippets} />
+{/if}
+
+<style>
+  .empty-state {
+    margin: 0;
+    color: #4b5563;
+  }
+</style>

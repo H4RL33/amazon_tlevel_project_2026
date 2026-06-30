@@ -11,7 +11,34 @@
     font-size 0.65rem (sm) / 0.75rem (md), letter-spacing 0.04em.
 -->
 <script lang="ts">
+  // The badge can be shown in a smaller inline spot or a regular size.
   export let size: 'sm' | 'md' = 'md';
 </script>
 
-<!-- TODO: Implement "AWS Mentor" pill with the sm/md size variants above. -->
+<span class={`mentor-badge ${size}`} aria-label="AWS Mentor">
+  AWS Mentor
+</span>
+
+<style>
+  .mentor-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #232f3e;
+    color: #ff9900;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .md {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .sm {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.65rem;
+  }
+</style>
