@@ -56,7 +56,8 @@
     background: white;
     border-radius: 0;
     border-bottom: 3px solid transparent;
-    border-image: linear-gradient(to right, #ff9900, #ffd700) 1;
+    border-image: linear-gradient(to right, var(--page-p0, #ff9900), var(--page-p1, #ffd700)) 1;
+    box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
   }
 
   input {
