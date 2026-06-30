@@ -7,6 +7,10 @@
   export let type = 'text';
 
   let focused = false;
+
+  function handleInput(e: Event) {
+    value = (e.currentTarget as HTMLInputElement).value;
+  }
 </script>
 
 {#if label}
@@ -18,10 +22,10 @@
     {type}
     {placeholder}
     {disabled}
-    bind:value
+    value={value}
     on:focus={() => (focused = true)}
     on:blur={() => (focused = false)}
-    on:input
+    on:input={handleInput}
     on:change
   />
   <span class="underline" aria-hidden="true"></span>
