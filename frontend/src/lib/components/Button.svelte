@@ -30,7 +30,9 @@
     font-weight: 500;
     cursor: pointer;
     border: none;
-    transition: opacity 0.15s, filter 0.15s;
+    transition:
+      opacity 0.15s,
+      filter 0.15s;
   }
 
   button:disabled {

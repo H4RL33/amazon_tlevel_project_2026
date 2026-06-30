@@ -22,7 +22,7 @@
     {type}
     {placeholder}
     {disabled}
-    value={value}
+    {value}
     on:focus={() => (focused = true)}
     on:blur={() => (focused = false)}
     on:input={handleInput}
