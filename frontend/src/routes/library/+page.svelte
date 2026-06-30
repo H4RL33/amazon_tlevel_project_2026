@@ -6,6 +6,9 @@
   import AgentChat from '$lib/components/AgentChat.svelte';
   import { searchLibrary, mentorQuery, saveSnippet, unsaveSnippet } from '$lib/api/library';
   import type { ContentSearchResult, MentorResponse } from '$lib/api/library';
+  import { currentUser } from '$lib/stores/user';
+  import { enrolledAlbumIds } from '$lib/stores/enrolments';
+  import { savedSnippetIds } from '$lib/stores/savedSnippets';
 
   export let data: PageData;
 
@@ -18,7 +21,8 @@
   let mentorLoading = false;
   let mentorError = '';
 
-  let savedIds = new Set(data.library.saved_snippets.map((s) => s.id));
+  savedSnippetIds.set(new Set(data.library.saved_snippets.map((s) => s.id)));
+  enrolledAlbumIds.set(new Set(data.library.enrolled_albums.map((a) => a.id)));
 
   async function handleSearch() {
     if (!query.trim()) return;
@@ -47,40 +51,105 @@
 
   async function toggleSave(contentId: number, currentlySaved: boolean) {
     if (currentlySaved) {
-      savedIds.delete(contentId);
-      savedIds = new Set(savedIds);
+      savedSnippetIds.update((s) => { s.delete(contentId); return new Set(s); });
       await unsaveSnippet(contentId);
     } else {
-      savedIds.add(contentId);
-      savedIds = new Set(savedIds);
+      savedSnippetIds.update((s) => { s.add(contentId); return new Set(s); });
       await saveSnippet(contentId);
     }
   }
 </script>
 
 <div class="library-layout">
-  <PageCard padding="1rem 1.5rem">
-    <form class="search-bar" on:submit|preventDefault={handleSearch}>
-      <input
-        bind:value={query}
-        type="search"
-        placeholder="Search your learning materials..."
-        class="search-input"
-      />
-      <button type="submit" class="search-btn" disabled={searching}>
-        {searching ? 'Searching…' : 'Search'}
-      </button>
-    </form>
-    {#if searchError}
-      <p class="error">{searchError}</p>
-    {/if}
+  <!-- Sidebar -->
+  <PageCard as="aside" width="280px" padding="1.5rem" overflowY="auto">
+    <div class="sidebar-inner">
+      <!-- Stats -->
+      <div class="stats-row">
+        <PageCard padding="0.875rem 1rem">
+          <div class="stat">
+            <span class="stat-label">Albums</span>
+            <span class="stat-value">{$enrolledAlbumIds.size}</span>
+          </div>
+        </PageCard>
+        <PageCard padding="0.875rem 1rem">
+          <div class="stat">
+            <span class="stat-label">Saved</span>
+            <span class="stat-value">{$savedSnippetIds.size}</span>
+          </div>
+        </PageCard>
+      </div>
+
+      <!-- Search -->
+      <form class="search-form" on:submit|preventDefault={handleSearch}>
+        <input
+          bind:value={query}
+          type="search"
+          placeholder="Search your library…"
+          class="search-input"
+        />
+        <button type="submit" class="search-btn" disabled={searching}>
+          {searching ? '…' : 'Go'}
+        </button>
+      </form>
+      {#if searchError}
+        <p class="search-error">{searchError}</p>
+      {/if}
+
+      <div class="spacer"></div>
+
+      <!-- Dynamic Mentor -->
+      <div class="mentor-section">
+        <span class="section-label">Dynamic Mentor</span>
+        <AgentChat
+          placeholder="Ask your mentor anything…"
+          on:submit={handleMentor}
+        />
+        {#if mentorLoading}
+          <p class="mentor-loading">Thinking…</p>
+        {/if}
+        {#if mentorError}
+          <p class="mentor-error">{mentorError}</p>
+        {/if}
+        {#if mentorReply}
+          <div class="mentor-reply">
+            <p>{mentorReply.reply}</p>
+            {#if mentorReply.sources.length > 0}
+              <div class="sources">
+                <span class="sources-label">Sources:</span>
+                {#each mentorReply.sources as source (source.content_id)}
+                  <span class="source-chip">{source.title}</span>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    </div>
   </PageCard>
 
-  {#if searchResults !== null}
-    <PageCard padding="1.5rem">
-      <h2 class="section-heading">Search Results</h2>
+  <!-- Main -->
+  <div class="library-main">
+    <!-- Header -->
+    <PageCard padding="1rem 1.5rem">
+      <h1 class="library-heading">{$currentUser?.first_name ?? 'Your'}'s Library</h1>
+    </PageCard>
+
+    {#if searchResults !== null}
+      <!-- Search results -->
+      <PageCard padding="0.75rem 1.5rem">
+        <div class="section-header-row">
+          <span class="section-label">Search Results</span>
+          <button
+            class="back-btn"
+            on:click={() => { searchResults = null; query = ''; }}
+          >← Back</button>
+        </div>
+      </PageCard>
       {#if searchResults.length === 0}
-        <p class="empty">No results found for "{query}".</p>
+        <PageCard padding="1.5rem">
+          <p class="empty">No results found for "{query}".</p>
+        </PageCard>
       {:else}
         <div class="snippet-grid">
           {#each searchResults as result (result.content_id)}
@@ -90,112 +159,110 @@
                 title: result.title,
                 content_type: result.content_type,
               }}
-              saved={savedIds.has(result.content_id)}
-              onSaveToggle={() => toggleSave(result.content_id, savedIds.has(result.content_id))}
+              saved={$savedSnippetIds.has(result.content_id)}
+              onSaveToggle={() => toggleSave(result.content_id, $savedSnippetIds.has(result.content_id))}
             />
           {/each}
         </div>
       {/if}
-      <button
-        class="clear-btn"
-        on:click={() => {
-          searchResults = null;
-          query = '';
-        }}
-      >
-        ← Back to library
-      </button>
-    </PageCard>
-  {:else}
-    <div class="library-columns">
-      <div class="column">
-        <PageCard padding="1.5rem" overflowY="hidden">
-          <h2 class="section-heading">Enrolled Albums</h2>
+    {:else}
+      <!-- Normal library grid -->
+      {#if data.library.enrolled_albums.length === 0 && $savedSnippetIds.size === 0}
+        <PageCard padding="2rem">
+          <p class="empty">Your library is empty. Browse Albums and Snippets to get started.</p>
         </PageCard>
-        {#if data.library.enrolled_albums.length === 0}
-          <PageCard padding="1.5rem">
-            <p class="empty">You haven't enrolled in any albums yet.</p>
+      {:else}
+        {#if data.library.enrolled_albums.length > 0}
+          <PageCard padding="0.75rem 1.5rem">
+            <span class="section-label">Enrolled Albums</span>
           </PageCard>
-        {:else}
-          {#each data.library.enrolled_albums as album (album.id)}
-            <AlbumCard {album} />
-          {/each}
+          <div class="album-grid">
+            {#each data.library.enrolled_albums as album (album.id)}
+              <AlbumCard {album} />
+            {/each}
+          </div>
         {/if}
-      </div>
 
-      <div class="column">
-        <PageCard padding="1.5rem" overflowY="hidden">
-          <h2 class="section-heading">Saved Snippets</h2>
-        </PageCard>
-        {#if data.library.saved_snippets.length === 0}
-          <PageCard padding="1.5rem">
-            <p class="empty">You haven't saved any snippets yet.</p>
+        {#if $savedSnippetIds.size > 0}
+          <PageCard padding="0.75rem 1.5rem">
+            <span class="section-label">Saved Snippets</span>
           </PageCard>
-        {:else}
-          <div class="snippet-grid padded">
+          <div class="snippet-grid">
             {#each data.library.saved_snippets as snippet (snippet.id)}
               <SnippetCard
                 content={snippet}
-                saved={savedIds.has(snippet.id)}
-                onSaveToggle={() => toggleSave(snippet.id, savedIds.has(snippet.id))}
+                saved={$savedSnippetIds.has(snippet.id)}
+                onSaveToggle={() => toggleSave(snippet.id, $savedSnippetIds.has(snippet.id))}
               />
             {/each}
           </div>
         {/if}
-      </div>
-    </div>
-  {/if}
-
-  <PageCard padding="1.5rem">
-    <h2 class="section-heading">Dynamic Mentor</h2>
-    <AgentChat
-      placeholder="Ask your mentor anything about your saved content..."
-      on:submit={handleMentor}
-    />
-    {#if mentorLoading}
-      <p class="mentor-loading">Thinking…</p>
+      {/if}
     {/if}
-    {#if mentorError}
-      <p class="error">{mentorError}</p>
-    {/if}
-    {#if mentorReply}
-      <div class="mentor-reply">
-        <p>{mentorReply.reply}</p>
-        {#if mentorReply.sources.length > 0}
-          <div class="sources">
-            <span class="sources-label">Sources:</span>
-            {#each mentorReply.sources as source (source.content_id)}
-              <span class="source-chip">{source.title}</span>
-            {/each}
-          </div>
-        {/if}
-      </div>
-    {/if}
-  </PageCard>
+  </div>
 </div>
 
 <style>
   .library-layout {
     display: flex;
-    flex-direction: column;
-    gap: var(--gap-inner, 0.75rem);
-    max-width: 1100px;
-    margin: 0 auto;
-    width: 100%;
+    gap: var(--gap-inner);
+    min-height: 100%;
+    align-items: stretch;
   }
 
-  .search-bar {
+  /* ── Sidebar ── */
+  .sidebar-inner {
     display: flex;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: var(--gap-inner);
+    height: 100%;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: var(--gap-inner);
+  }
+
+  .stats-row :global(.page-card) {
+    flex: 1;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #5a6472;
+    font-weight: 700;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #232f3e;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 0.5rem;
   }
 
   .search-input {
     flex: 1;
-    padding: 0.65rem 1rem;
+    padding: 0.65rem 0.875rem;
     border: 1px solid rgba(35, 47, 62, 0.2);
-    border-radius: 8px;
-    font-size: 0.95rem;
+    border-radius: 0;
+    font-size: 0.9rem;
     outline: none;
+    font-family: 'Ubuntu', sans-serif;
+    min-width: 0;
   }
 
   .search-input:focus {
@@ -203,13 +270,16 @@
   }
 
   .search-btn {
-    padding: 0.65rem 1.25rem;
+    padding: 0.65rem 0.875rem;
     background: linear-gradient(to right, #f97316, #facc15);
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 0;
+    font-weight: 700;
     cursor: pointer;
     color: white;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   .search-btn:disabled {
@@ -217,96 +287,133 @@
     cursor: default;
   }
 
-  .library-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--gap-inner, 0.75rem);
+  .search-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
   }
 
-  .column {
+  .spacer {
+    flex: 1;
+  }
+
+  .mentor-section {
     display: flex;
     flex-direction: column;
-    gap: var(--gap-inner, 0.75rem);
+    gap: 0.75rem;
+  }
+
+  .mentor-loading {
+    color: #5a6472;
+    font-size: 0.875rem;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .mentor-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .mentor-reply {
+    background: rgba(249, 115, 22, 0.06);
+    padding: 0.875rem;
+  }
+
+  .mentor-reply p {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #232f3e;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .sources-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #5a6472;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .source-chip {
+    font-size: 0.7rem;
+    background: rgba(249, 115, 22, 0.12);
+    color: #c2410c;
+    border-radius: 99px;
+    padding: 0.15rem 0.5rem;
+    font-weight: 500;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  /* ── Main ── */
+  .library-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-inner);
+  }
+
+  .library-heading {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #232f3e;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .section-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5a6472;
+    font-family: 'Ubuntu', sans-serif;
+    margin: 0;
+  }
+
+  .section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: #f97316;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-family: 'Ubuntu', sans-serif;
+    padding: 0;
+  }
+
+  .album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--gap-inner);
   }
 
   .snippet-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .snippet-grid.padded {
-    padding: 0.5rem;
-  }
-
-  .section-heading {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #232f3e;
+    gap: var(--gap-inner);
   }
 
   .empty {
     color: #5a6472;
     font-size: 0.9rem;
     margin: 0;
-  }
-
-  .error {
-    color: #dc2626;
-    font-size: 0.875rem;
-    margin: 0.5rem 0 0;
-  }
-
-  .clear-btn {
-    margin-top: 1rem;
-    background: none;
-    border: none;
-    color: #f97316;
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 0;
-  }
-
-  .mentor-loading {
-    color: #5a6472;
-    font-size: 0.9rem;
-    margin: 0.75rem 0 0;
-  }
-
-  .mentor-reply {
-    margin-top: 1rem;
-    background: rgba(249, 115, 22, 0.06);
-    border-radius: 8px;
-    padding: 1rem;
-  }
-
-  .mentor-reply p {
-    margin: 0 0 0.75rem;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: #232f3e;
-  }
-
-  .sources {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .sources-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #5a6472;
-  }
-
-  .source-chip {
-    font-size: 0.75rem;
-    background: rgba(249, 115, 22, 0.12);
-    color: #c2410c;
-    border-radius: 99px;
-    padding: 0.2rem 0.6rem;
-    font-weight: 500;
+    font-family: 'Ubuntu', sans-serif;
   }
 </style>

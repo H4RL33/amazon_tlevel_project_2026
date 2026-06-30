@@ -96,7 +96,7 @@
   }
 
   :global(:root) {
-    --gap-inner: 1.5rem;
+    --gap-inner: 1.75rem;
     --gap-outer: 2.25rem;
   }
 
@@ -209,7 +209,10 @@
     flex-direction: column;
     height: 100dvh;
     box-sizing: border-box;
-    padding: var(--gap-outer);
+    /* Horizontal padding is reduced by the shadow buffer (16px) so that
+       PageCards inside .content — which get their own 16px padding below —
+       align with the Navbar. Vertical padding stays at --gap-outer. */
+    padding: var(--gap-outer) calc(var(--gap-outer) - 16px);
     gap: var(--gap-inner);
   }
 
@@ -217,7 +220,10 @@
      0 1 auto) and never move. This is the one scrollable region — capped to
      whatever's left of the 100vh shell via min-height: 0, which overrides
      flex's default min-height: auto that would otherwise let it grow past
-     that and push the footer down. */
+     that and push the footer down.
+     padding: shadow buffer so overflow-y: auto doesn't clip PageCard
+     box-shadows — children appear at the same x-position as the Navbar
+     because shell's horizontal padding is reduced by the same 16px. */
   .content {
     flex: 1 1 auto;
     min-height: 0;
@@ -225,5 +231,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--gap-inner);
+    padding: 16px 16px 24px;
   }
 </style>

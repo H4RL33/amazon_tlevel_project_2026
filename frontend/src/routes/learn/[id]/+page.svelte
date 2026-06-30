@@ -5,6 +5,9 @@
   import { getAlbumDetail } from '$lib/api/albums';
   import { getContent } from '$lib/api/content';
   import type { AlbumDetailResponse, ContentDetailResponse } from '$lib/api/types';
+  import { saveSnippet, unsaveSnippet } from '$lib/api/library';
+  import { savedSnippetIds } from '$lib/stores/savedSnippets';
+  import { currentUser } from '$lib/stores/user';
 
   let album: AlbumDetailResponse | null = null;
   let loading = true;
@@ -29,6 +32,20 @@
       error = 'Could not load this Album right now. Please try again later.';
     } finally {
       loading = false;
+    }
+  }
+
+  $: snippetSaved = snippet ? $savedSnippetIds.has(snippet.id) : false;
+
+  async function toggleSnippetSave() {
+    if (!snippet) return;
+    const id = snippet.id;
+    if (snippetSaved) {
+      savedSnippetIds.update((s) => { s.delete(id); return new Set(s); });
+      await unsaveSnippet(id);
+    } else {
+      savedSnippetIds.update((s) => { s.add(id); return new Set(s); });
+      await saveSnippet(id);
     }
   }
 
@@ -70,7 +87,28 @@
       {:else if snippetError || !snippet}
         <p>{snippetError ?? 'Snippet not found.'}</p>
       {:else}
-        <h1>{snippet.title}</h1>
+        <div class="snippet-header">
+          <h1>{snippet.title}</h1>
+          {#if $currentUser}
+            <button
+              class="save-btn"
+              class:saved={snippetSaved}
+              on:click={toggleSnippetSave}
+              aria-label={snippetSaved ? 'Remove from Library' : 'Save to Library'}
+              title={snippetSaved ? 'Remove from Library' : 'Save to Library'}
+            >
+              {#if snippetSaved}
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              {:else}
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              {/if}
+            </button>
+          {/if}
+        </div>
         <p>{snippet.body}</p>
       {/if}
     </PageCard>
@@ -102,5 +140,50 @@
   .album-page > :global(main.page-card) {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  .snippet-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .snippet-header h1 {
+    margin: 0;
+    flex: 1;
+  }
+
+  .save-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1.5px solid #232f3e;
+    border-radius: 0;
+    cursor: pointer;
+    color: #232f3e;
+    padding: 0;
+    box-shadow: 0 2px 6px rgba(35, 47, 62, 0.2);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .save-btn:hover {
+    background: #232f3e;
+    color: #ffffff;
+  }
+
+  .save-btn.saved {
+    background: #232f3e;
+    color: #ffffff;
+  }
+
+  .save-btn.saved:hover {
+    background: #ef4444;
+    border-color: #ef4444;
   }
 </style>

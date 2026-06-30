@@ -1,10 +1,12 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import PageCard from '$lib/components/PageCard.svelte';
-  import NavLink from '$lib/components/NavLink.svelte';
+  import Sidebar from '$lib/components/Sidebar.svelte';
+  import type { SidebarSection } from '$lib/components/Sidebar.svelte';
   import Button from '$lib/components/Button.svelte';
   import AvatarBadge from '$lib/components/AvatarBadge.svelte';
-  import { requestAvatarUploadUrl, updateAvatar } from '$lib/api/users';
+  import TextInput from '$lib/components/TextInput.svelte';
+  import { requestAvatarUploadUrl, updateAvatar, updateUsername } from '$lib/api/users';
   import { currentUser } from '$lib/stores/user';
 
   const MAX_BYTES = 2 * 1024 * 1024; // 2 MiB
@@ -14,7 +16,33 @@
   let status: string | null = null;
   let fileInput: HTMLInputElement;
 
-  $: isActive = (href: string) => $page.url.pathname === href;
+  let usernameValue = $currentUser?.username ?? '';
+  let usernameStatus: string | null = null;
+  let usernameError: string | null = null;
+  let savingUsername = false;
+
+  $: if ($currentUser) usernameValue = $currentUser.username ?? '';
+
+  const settingsSections: SidebarSection[] = [
+    { links: [{ label: 'Personalisation', href: '/settings' }] },
+  ];
+
+  async function handleSaveUsername() {
+    if (!usernameValue.trim()) return;
+    savingUsername = true;
+    usernameStatus = null;
+    usernameError = null;
+    try {
+      const updated = await updateUsername(usernameValue.trim());
+      currentUser.set(updated);
+      usernameStatus = 'Username updated.';
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      usernameError = msg || 'Could not update username. Please try again.';
+    } finally {
+      savingUsername = false;
+    }
+  }
 
   function processImage(file: File): Promise<Blob> {
     return new Promise((resolve, reject) => {
@@ -105,13 +133,7 @@
 </script>
 
 <div class="settings-page">
-  <PageCard as="aside" width="288px" padding="1.5rem 1rem">
-    <nav aria-label="Settings sections">
-      <div class="nav-item" class:active={isActive('/settings')}>
-        <NavLink href="/settings" label="Personalisation" />
-      </div>
-    </nav>
-  </PageCard>
+  <Sidebar sections={settingsSections} activeHref={$page.url.pathname} ariaLabel="Settings sections" />
 
   <PageCard as="main">
     <h1>Personalisation</h1>
@@ -143,6 +165,32 @@
       </div>
     </div>
 
+    <div class="field-row">
+      <label for="username-input">Username</label>
+      <div class="field-controls">
+        <TextInput
+          id="username-input"
+          bind:value={usernameValue}
+          placeholder="e.g. harley_welsh"
+          disabled={savingUsername}
+        />
+        <Button
+          variant="secondary"
+          disabled={savingUsername || !usernameValue.trim()}
+          on:click={handleSaveUsername}
+        >
+          {savingUsername ? 'Saving…' : 'Save'}
+        </Button>
+      </div>
+    </div>
+    {#if usernameStatus}
+      <p aria-live="polite" class="status">{usernameStatus}</p>
+    {/if}
+    {#if usernameError}
+      <p role="alert" class="error">{usernameError}</p>
+    {/if}
+    <hr />
+
     <p aria-live="polite" class="status">{status ?? ''}</p>
     {#if error}
       <p role="alert" class="error">{error}</p>
@@ -164,21 +212,6 @@
   .settings-page > :global(main.page-card) {
     flex: 1 1 auto;
     min-width: 0;
-  }
-
-  nav {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .nav-item {
-    padding: 0.4rem 0;
-    font-size: 0.875rem;
-  }
-
-  .nav-item.active :global(a) {
-    font-weight: 700;
-    color: #232f3e;
   }
 
   h1 {
@@ -208,6 +241,19 @@
   }
 
   .upload-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .field-controls {
     display: flex;
     align-items: center;
     gap: 0.75rem;

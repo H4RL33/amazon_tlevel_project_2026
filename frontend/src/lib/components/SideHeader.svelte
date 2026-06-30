@@ -13,11 +13,12 @@
 -->
 <script lang="ts">
   export let title: string;
-  export let index: number;
+  export let index: number = 0;
+  export let label: string = '';
 </script>
 
 <div class="side-header">
-  <span class="label">SIDE {index}</span>
+  <span class="label">{label || `SIDE ${index}`}</span>
   <h4>{title}</h4>
   <div class="divider" aria-hidden="true"></div>
 </div>
