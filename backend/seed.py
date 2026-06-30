@@ -1878,9 +1878,12 @@ async def embed_content() -> None:
         )
         rows = result.fetchall()
         print(f"Embedding {len(rows)} snippet(s)...")
+        embedded = 0
         for row in rows:
             input_text = f"{row.title}\n\n{row.body or ''}"
             vec = embed_text(input_text)
+            if vec is None:
+                continue
             await session.execute(
                 text(
                     "UPDATE content SET embedding = :vec, embedding_generated_at = :now "
@@ -1888,17 +1891,21 @@ async def embed_content() -> None:
                 ),
                 {"vec": str(vec), "now": datetime.utcnow(), "id": row.id},
             )
+            embedded += 1
         await session.commit()
-        print("Snippets embedded.")
+        print(f"Snippets embedded: {embedded}/{len(rows)}.")
 
         result = await session.execute(
             text("SELECT id, title, description FROM albums WHERE embedding_generated_at IS NULL")
         )
         rows = result.fetchall()
         print(f"Embedding {len(rows)} album(s)...")
+        embedded = 0
         for row in rows:
             input_text = f"{row.title}\n\n{row.description}"
             vec = embed_text(input_text)
+            if vec is None:
+                continue
             await session.execute(
                 text(
                     "UPDATE albums SET embedding = :vec, embedding_generated_at = :now "
@@ -1906,8 +1913,9 @@ async def embed_content() -> None:
                 ),
                 {"vec": str(vec), "now": datetime.utcnow(), "id": row.id},
             )
+            embedded += 1
         await session.commit()
-        print("Albums embedded.")
+        print(f"Albums embedded: {embedded}/{len(rows)}.")
 
     await engine.dispose()
 
