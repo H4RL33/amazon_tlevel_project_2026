@@ -17,40 +17,45 @@
   export let type: 'button' | 'submit' | 'reset' = 'button';
 </script>
 
-<!-- TODO: Implement button template using variant, disabled, and type props -->
-<!-- Forward click event: on:click -->
+<button {type} {disabled} class={variant} on:click>
+  <slot />
+</button>
 
-<script lang="ts">
-  let primary = '#1f6feb';
-  let secondary = '#21262d';
-  let danger = '#ef4444'
-</script>
- 
-<button 
-  onclick={() => alert('hello')}
-  style="background-color: {primary}; color: white;">
-  Primary
-</button>
- 
-<button 
-  onclick={() => alert('hello')}
-  style="background-color: {secondary}; color: white;">
-  Secondary
-</button>
- 
-<button 
-  onclick={() => alert('hello')}
-  style="background-color: {danger}; color: white;">
-  Danger
-</button>
- 
- 
-<style> 
-button {
-  border-radius: 6px; 
-  padding: 0.5rem 1.25rem; 
-  font-size: 1.875rem; 
-  cursor: pointer; 
-} 
- 
+<style>
+  button {
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition:
+      opacity 0.15s,
+      filter 0.15s;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  button:not(:disabled):hover {
+    filter: brightness(1.1);
+  }
+
+  .primary {
+    background: #1f6feb;
+    color: #ffffff;
+  }
+
+  .secondary {
+    background: #21262d;
+    color: #ffffff;
+  }
+
+  .danger {
+    background: #ef4444;
+    color: #ffffff;
+  }
 </style>
