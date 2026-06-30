@@ -23,7 +23,7 @@
     <div class="links">
       <NavLink href="/" label="Home" />
       <NavLink href="/learn" label="Learn" />
-      <NavLink href="/topics" label="Topics" />
+      <NavLink href="/t-levels" label="T-Levels" />
       <NavLink href={$currentUser ? '/library' : '/login'} label="Library" />
       <NavLink href={$currentUser ? '/dashboard' : '/login'} label="Dashboard" />
       {#if $currentUser}
@@ -63,8 +63,28 @@
   }
 
   .login-link {
+    position: relative;
+    display: inline-block;
     color: #232f3e;
     text-decoration: none;
     font-family: 'Ubuntu', sans-serif;
+  }
+
+  .login-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -0.3em;
+    width: 100%;
+    height: 0.15em;
+    border-radius: 0;
+    background: #000000;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .login-link:hover::after {
+    transform: scaleX(1);
   }
 </style>
