@@ -36,11 +36,19 @@ def decode_id_token(token: str) -> dict:
     """
     settings = get_settings()
     unverified_header = jwt.get_unverified_header(token)
+    kid = unverified_header.get("kid")
 
     jwks = _cached_jwks()
-    key = next((k for k in jwks["keys"] if k["kid"] == unverified_header.get("kid")), None)
+    key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
+
     if key is None:
-        raise JOSEError("No matching JWK found for this token's key id")
+        # Cached JWKS might be stale (key rotation or partial fetch). Clear and retry once.
+        _cached_jwks.cache_clear()
+        jwks = _cached_jwks()
+        key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
+
+    if key is None:
+        raise JOSEError(f"No matching JWK found for kid '{kid}'")
 
     issuer = f"https://cognito-idp.{settings.COGNITO_REGION}.amazonaws.com/{settings.COGNITO_USER_POOL_ID}"
     return jwt.decode(
