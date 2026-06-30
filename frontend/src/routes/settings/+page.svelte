@@ -4,7 +4,6 @@
   import Sidebar from '$lib/components/Sidebar.svelte';
   import type { SidebarSection } from '$lib/components/Sidebar.svelte';
   import Button from '$lib/components/Button.svelte';
-  import AvatarBadge from '$lib/components/AvatarBadge.svelte';
   import TextInput from '$lib/components/TextInput.svelte';
   import { requestAvatarUploadUrl, updateAvatar, updateUsername } from '$lib/api/users';
   import { currentUser } from '$lib/stores/user';
@@ -147,7 +146,9 @@
       <label for="avatar-trigger">Upload a profile picture</label>
       <div class="upload-controls">
         {#if $currentUser}
-          <AvatarBadge user={$currentUser} size="32px" />
+          {#if $currentUser.avatar_url}
+            <img src={$currentUser.avatar_url} alt="Current avatar" class="avatar-preview" />
+          {/if}
         {/if}
         <Button
           variant="secondary"
