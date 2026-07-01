@@ -1,63 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fly } from 'svelte/transition';
+  import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import PageCard from '$lib/components/PageCard.svelte';
   import AlbumCard from '$lib/components/AlbumCard.svelte';
   import SnippetCard from '$lib/components/SnippetCard.svelte';
-  import AgentChat from '$lib/components/AgentChat.svelte';
-  import TextInput from '$lib/components/TextInput.svelte';
-  import Button from '$lib/components/Button.svelte';
-  import { searchLibrary, mentorQuery, saveSnippet, unsaveSnippet } from '$lib/api/library';
-  import type { ContentSearchResult, MentorResponse } from '$lib/api/library';
+  import AgentChatWindow from '$lib/components/AgentChatWindow.svelte';
+  import { createChatSession, getChatSession, sendChatMessage } from '$lib/api/chat';
+  import type { ChatSessionSummary, ChatSessionDetail } from '$lib/api/chat';
+  import { saveSnippet, unsaveSnippet } from '$lib/api/library';
   import { currentUser } from '$lib/stores/user';
   import { enrolledAlbumIds } from '$lib/stores/enrolments';
   import { savedSnippetIds } from '$lib/stores/savedSnippets';
 
   export let data: PageData;
 
-  // Staggered entrance for grid cards (Enrolled Albums / Saved Snippets / Search Results).
-  // One-shot on mount/appearance only — Svelte's keyed {#each} blocks below key by
-  // album.id/snippet.id/content_id, so removing one item (unenrol/unsave) does not
-  // re-trigger `in:fly` on the remaining items; only the removed node gets an `out:`
-  // transition. Delay is capped so large grids don't take seconds to finish appearing.
-  const STAGGER_STEP_MS = 40;
-  const STAGGER_CAP_MS = 400;
-
-  // Read synchronously (not inside onMount) since entrance()/exit() can be evaluated by
-  // Svelte's transition machinery before this page's onMount callback runs — reading it
-  // only inside onMount raced the transition and reduced motion was silently ignored.
-  // Safe because this app disables SSR (`export const ssr = false` in +layout.ts).
-  let reduceMotion =
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  onMount(() => {
-    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      reduceMotion = e.matches;
-    };
-    reducedMotionQuery.addEventListener('change', handleChange);
-    return () => reducedMotionQuery.removeEventListener('change', handleChange);
-  });
-
-  function entrance(i: number) {
-    if (reduceMotion) return { duration: 0 };
-    return { y: 12, duration: 250, delay: Math.min(i * STAGGER_STEP_MS, STAGGER_CAP_MS) };
-  }
-
-  function exit() {
-    if (reduceMotion) return { duration: 0 };
-    return { y: 12, duration: 200 };
-  }
-
-  let query = data.initialQuery;
-  let searchResults: ContentSearchResult[] | null = null;
-  let searching = false;
-  let searchError = '';
-
-  let mentorReply: MentorResponse | null = null;
-  let mentorLoading = false;
-  let mentorError = '';
+  let sessions: ChatSessionSummary[] = data.sessions;
+  let activeSession: ChatSessionDetail | null = data.activeSession;
+  let streamingText: string | undefined = undefined;
+  let isStreaming = false;
 
   savedSnippetIds.set(new Set(data.library.saved_snippets.map((s) => s.id)));
   enrolledAlbumIds.set(new Set(data.library.enrolled_albums.map((a) => a.id)));
@@ -67,28 +28,40 @@
   );
   $: displayedSavedSnippets = data.library.saved_snippets.filter((s) => $savedSnippetIds.has(s.id));
 
-  async function handleSearch() {
-    if (!query.trim()) return;
-    searching = true;
-    searchError = '';
-    try {
-      searchResults = await searchLibrary(query);
-    } catch {
-      searchError = 'Search failed. Please try again.';
-    } finally {
-      searching = false;
-    }
+  async function selectSession(sessionId: number) {
+    activeSession = await getChatSession(sessionId);
+    goto(`/library?session=${sessionId}`, { keepFocus: true, noScroll: true });
   }
 
-  async function handleMentor(event: CustomEvent<string>) {
-    mentorLoading = true;
-    mentorError = '';
+  async function handleNewChat() {
+    const session = await createChatSession();
+    sessions = [
+      { id: session.id, title: session.title, updated_at: session.updated_at },
+      ...sessions,
+    ];
+    activeSession = { id: session.id, title: session.title, messages: [] };
+    goto(`/library?session=${session.id}`, { keepFocus: true, noScroll: true });
+  }
+
+  async function handleSend(text: string) {
+    if (!activeSession) return;
+    const sessionId = activeSession.id;
+    isStreaming = true;
+    streamingText = '';
     try {
-      mentorReply = await mentorQuery(event.detail);
-    } catch {
-      mentorError = 'The mentor is unavailable right now. Please try again.';
+      const result = await sendChatMessage(sessionId, text, (delta) => {
+        streamingText = (streamingText ?? '') + delta;
+      });
+      activeSession = await getChatSession(sessionId);
+      sessions = sessions.map((s) =>
+        s.id === sessionId
+          ? { ...s, title: activeSession!.title, updated_at: new Date().toISOString() }
+          : s
+      );
+      void result;
     } finally {
-      mentorLoading = false;
+      isStreaming = false;
+      streamingText = undefined;
     }
   }
 
@@ -107,351 +80,185 @@
       await saveSnippet(contentId);
     }
   }
+
+  onMount(() => {
+    if (data.draft && activeSession) {
+      handleSend(data.draft);
+    }
+  });
 </script>
 
 <div class="library-layout">
-  <!-- Sidebar -->
-  <PageCard as="aside" width="280px" padding="1.5rem" overflowY="auto">
-    <div class="sidebar-inner">
-      <!-- Stats -->
-      <div class="stats-row">
-        <PageCard padding="0.875rem 1rem">
-          <div class="stat">
-            <span class="stat-label">Albums</span>
-            <span class="stat-value">{$enrolledAlbumIds.size}</span>
-          </div>
-        </PageCard>
-        <PageCard padding="0.875rem 1rem">
-          <div class="stat">
-            <span class="stat-label">Saved</span>
-            <span class="stat-value">{$savedSnippetIds.size}</span>
-          </div>
-        </PageCard>
-      </div>
-
-      <!-- Search -->
-      <form class="search-form" on:submit|preventDefault={handleSearch}>
-        <TextInput
-          bind:value={query}
-          type="search"
-          placeholder="Search your library…"
-          disabled={searching}
-        />
-        <Button variant="secondary" type="submit" disabled={searching}>
-          {searching ? '…' : 'Go'}
-        </Button>
-      </form>
-      {#if searchError}
-        <p class="search-error">{searchError}</p>
-      {/if}
-
-      <div class="spacer"></div>
-
-      <!-- Dynamic Mentor -->
-      <div class="mentor-section">
-        <span class="section-label">Dynamic Mentor</span>
-        <AgentChat placeholder="Ask your mentor anything…" on:submit={handleMentor} />
-        {#if mentorLoading}
-          <p class="mentor-loading">Thinking…</p>
-        {/if}
-        {#if mentorError}
-          <p class="mentor-error">{mentorError}</p>
-        {/if}
-        {#if mentorReply}
-          <div class="mentor-reply">
-            <p>{mentorReply.reply}</p>
-            {#if mentorReply.sources.length > 0}
-              <div class="sources">
-                <span class="sources-label">Sources:</span>
-                {#each mentorReply.sources as source (source.content_id)}
-                  <span class="source-chip">{source.title}</span>
-                {/each}
-              </div>
-            {/if}
-          </div>
-        {/if}
-      </div>
-    </div>
+  <PageCard as="aside" width="var(--rail-width)" padding="1rem" overflowY="auto">
+    <button class="new-chat-btn" on:click={handleNewChat}>+ New chat</button>
+    {#if sessions.length === 0}
+      <p class="empty">No chats yet — ask the Mentor something to start one.</p>
+    {:else}
+      <ul class="session-list">
+        {#each sessions as session (session.id)}
+          <li>
+            <button
+              class="session-item"
+              class:active={activeSession?.id === session.id}
+              on:click={() => selectSession(session.id)}
+            >
+              {session.title}
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
   </PageCard>
 
-  <!-- Main -->
-  <div class="library-main">
-    <!-- Header -->
-    <PageCard padding="1rem 1.5rem">
-      <h1 class="library-heading">
-        {$currentUser?.first_name || $currentUser?.username || 'Your'}'s Library
-      </h1>
-    </PageCard>
+  <PageCard as="main" padding="1rem 1.5rem">
+    {#if activeSession}
+      <AgentChatWindow
+        messages={activeSession.messages}
+        onSend={handleSend}
+        userDisplayName={$currentUser?.first_name || $currentUser?.username || 'You'}
+        {streamingText}
+        {isStreaming}
+      />
+    {:else}
+      <p class="empty">Start a new chat to talk to the Dynamic Mentor.</p>
+    {/if}
+  </PageCard>
 
-    {#if searchResults !== null}
-      <!-- Search results -->
-      <PageCard padding="0.75rem 1.5rem">
-        <div class="section-header-row">
-          <span class="section-label">Search Results</span>
-          <button
-            class="back-btn"
-            on:click={() => {
-              searchResults = null;
-              query = '';
-            }}>← Back</button
-          >
-        </div>
-      </PageCard>
-      {#if searchResults.length === 0}
-        <PageCard padding="1.5rem">
-          <p class="empty">No results found for "{query}".</p>
-        </PageCard>
+  <div class="right-stack">
+    <PageCard padding="1rem 1.25rem" overflowY="auto">
+      <span class="section-label">Enrolled Albums</span>
+      {#if displayedEnrolledAlbums.length === 0}
+        <p class="empty">No albums enrolled yet — browse Albums to get started.</p>
       {:else}
-        <div class="snippet-grid">
-          {#each searchResults as result, i (result.content_id)}
-            <div in:fly|global={entrance(i)} out:fly|global={exit()}>
-              <SnippetCard
-                content={{
-                  id: result.content_id,
-                  title: result.title,
-                  content_type: result.content_type,
-                }}
-                saved={$savedSnippetIds.has(result.content_id)}
-                onSaveToggle={() =>
-                  toggleSave(result.content_id, $savedSnippetIds.has(result.content_id))}
-              />
-            </div>
+        <div class="album-grid">
+          {#each displayedEnrolledAlbums as album (album.id)}
+            <AlbumCard {album} />
           {/each}
         </div>
       {/if}
-    {:else}
-      <!-- Normal library grid -->
-      {#if displayedEnrolledAlbums.length === 0 && displayedSavedSnippets.length === 0}
-        <PageCard padding="2rem">
-          <p class="empty">Your library is empty. Browse Albums and Snippets to get started.</p>
-        </PageCard>
-      {:else}
-        {#if displayedEnrolledAlbums.length > 0}
-          <PageCard padding="0.75rem 1.5rem">
-            <span class="section-label">Enrolled Albums</span>
-          </PageCard>
-          <div class="album-grid">
-            {#each displayedEnrolledAlbums as album, i (album.id)}
-              <div in:fly|global={entrance(i)} out:fly|global={exit()}>
-                <AlbumCard {album} />
-              </div>
-            {/each}
-          </div>
-        {/if}
+    </PageCard>
 
-        {#if displayedSavedSnippets.length > 0}
-          <PageCard padding="0.75rem 1.5rem">
-            <span class="section-label">Saved Snippets</span>
-          </PageCard>
-          <div class="snippet-grid">
-            {#each displayedSavedSnippets as snippet, i (snippet.id)}
-              <div in:fly|global={entrance(i)} out:fly|global={exit()}>
-                <SnippetCard
-                  content={snippet}
-                  saved={$savedSnippetIds.has(snippet.id)}
-                  onSaveToggle={() => toggleSave(snippet.id, $savedSnippetIds.has(snippet.id))}
-                />
-              </div>
-            {/each}
-          </div>
-        {/if}
+    <PageCard padding="1rem 1.25rem" overflowY="auto">
+      <span class="section-label">Saved Snippets</span>
+      {#if displayedSavedSnippets.length === 0}
+        <p class="empty">No saved snippets yet — save one while browsing to see it here.</p>
+      {:else}
+        <div class="snippet-list">
+          {#each displayedSavedSnippets as snippet (snippet.id)}
+            <SnippetCard
+              content={snippet}
+              saved={$savedSnippetIds.has(snippet.id)}
+              onSaveToggle={() => toggleSave(snippet.id, $savedSnippetIds.has(snippet.id))}
+            />
+          {/each}
+        </div>
       {/if}
-    {/if}
+    </PageCard>
   </div>
 </div>
 
 <style>
+  /* Both flanking columns share one derived width so they can't drift apart:
+     2 AlbumCards at AlbumGrid's max track width (220px, see
+     AlbumGrid.svelte's minmax(190px, 220px)) + one --gap-inner between them
+     + 1.5rem padding on each side of a PageCard (2 * 1.5rem = 3rem). */
   .library-layout {
+    --rail-width: calc(2 * 220px + var(--gap-inner) + 3rem);
     display: flex;
-    gap: var(--gap-inner);
-    min-height: 100%;
-    align-items: stretch;
-  }
-
-  /* ── Sidebar ── */
-  .sidebar-inner {
-    display: flex;
-    flex-direction: column;
     gap: var(--gap-inner);
     height: 100%;
   }
 
-  .stats-row {
-    display: flex;
-    gap: var(--gap-inner);
+  .library-layout > :global(aside.page-card) {
+    flex: 0 0 var(--rail-width);
   }
 
-  .stats-row :global(.page-card) {
-    flex: 1;
-  }
-
-  .stat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .stat-label {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #5a6472;
-    font-weight: 700;
-    font-family: 'Ubuntu', sans-serif;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #232f3e;
-    font-family: 'Ubuntu', sans-serif;
-  }
-
-  .search-form {
-    display: flex;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-
-  .search-form :global(.text-input-wrapper) {
-    flex: 1;
+  .library-layout > :global(main.page-card) {
+    flex: 1 1 auto;
     min-width: 0;
   }
 
-  /* Button is a shared component with its own (shorter) default padding;
-     stretch it to match the adjacent TextInput's height in this context only. */
-  .search-form :global(button) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .search-error {
-    color: #dc2626;
-    font-size: 0.875rem;
-    margin: 0;
-    font-family: 'Ubuntu', sans-serif;
-  }
-
-  .spacer {
-    flex: 1;
-  }
-
-  .mentor-section {
+  .right-stack {
+    flex: 0 0 var(--rail-width);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--gap-inner);
   }
 
-  .mentor-loading {
-    color: #5a6472;
-    font-size: 0.875rem;
-    margin: 0;
+  .right-stack :global(.page-card) {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  .new-chat-btn {
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 0.75rem;
+    background: #232f3e;
+    color: white;
+    border: none;
+    cursor: pointer;
     font-family: 'Ubuntu', sans-serif;
-  }
-
-  .mentor-error {
-    color: #dc2626;
-    font-size: 0.875rem;
-    margin: 0;
-    font-family: 'Ubuntu', sans-serif;
-  }
-
-  .mentor-reply {
-    background: rgba(249, 115, 22, 0.06);
-    padding: 0.875rem;
-  }
-
-  .mentor-reply p {
-    margin: 0 0 0.75rem;
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: #232f3e;
-    font-family: 'Ubuntu', sans-serif;
-  }
-
-  .sources {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    align-items: center;
-  }
-
-  .sources-label {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: #5a6472;
-    font-family: 'Ubuntu', sans-serif;
   }
 
-  .source-chip {
-    font-size: 0.7rem;
-    background: rgba(249, 115, 22, 0.12);
-    color: #c2410c;
-    border-radius: 99px;
-    padding: 0.15rem 0.5rem;
-    font-weight: 500;
-    font-family: 'Ubuntu', sans-serif;
-  }
-
-  /* ── Main ── */
-  .library-main {
-    flex: 1;
-    min-width: 0;
+  .session-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--gap-inner);
+    gap: 0.15rem;
   }
 
-  .library-heading {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #232f3e;
-    margin: 0;
+  .session-item {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0.5rem 0.6rem;
+    cursor: pointer;
     font-family: 'Ubuntu', sans-serif;
+    font-size: 0.825rem;
+    color: #5a6472;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .session-item.active {
+    color: #232f3e;
+    font-weight: 700;
+    background: rgba(35, 47, 62, 0.06);
   }
 
   .section-label {
+    display: block;
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #5a6472;
     font-family: 'Ubuntu', sans-serif;
-    margin: 0;
-  }
-
-  .section-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .back-btn {
-    background: none;
-    border: none;
-    color: #f97316;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-family: 'Ubuntu', sans-serif;
-    padding: 0;
+    margin-bottom: 0.75rem;
   }
 
   .album-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--gap-inner);
   }
 
-  .snippet-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: var(--gap-inner);
+  .snippet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
   }
 
   .empty {
     color: #5a6472;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     margin: 0;
     font-family: 'Ubuntu', sans-serif;
   }
