@@ -44,8 +44,8 @@
 
 <style>
   .topic-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
     align-items: stretch;
     gap: 1.25rem;
   }

@@ -63,51 +63,81 @@
   }
 </script>
 
-<PageCard as="aside" width="360px" padding="1.5rem" overflowY="visible">
-  <div class="sidebar-inner">
-    <p class="greeting">Good {timeOfDay}, {displayName} 👋</p>
+<div class="sidebar-sticky">
+  <PageCard as="aside" width="360px" padding="1.5rem" overflowY="auto">
+    <div class="sidebar-inner">
+      <p class="greeting">Good {timeOfDay}, {displayName} 👋</p>
 
-    <div class="section">
-      <span class="section-label">Your Albums</span>
-      {#if displayedAlbums.length > 0}
-        <div class="album-row">
-          {#each displayedAlbums as album}
-            <div class="album-slot">
-              <AlbumCard {album} size="100%" />
-            </div>
-          {/each}
-          {#each Array(emptySlotCount) as _}
-            <div class="album-slot album-slot-empty" aria-hidden="true"></div>
-          {/each}
-        </div>
-      {:else}
-        <p class="empty-text">Browse Albums to get started</p>
-        <NavLink href="/learn" label="Browse Albums" />
-      {/if}
-    </div>
-
-    {#if displayedSnippets.length > 0}
       <div class="section">
-        <span class="section-label">Recommended Snippets</span>
-        <div class="snippet-list">
-          {#each displayedSnippets as snippet}
-            <SnippetCard
-              content={snippet}
-              saved={$savedSnippetIds.has(snippet.id)}
-              onSaveToggle={() => toggleSnippetSave(snippet.id, $savedSnippetIds.has(snippet.id))}
-            />
-          {/each}
-        </div>
+        <span class="section-label">Your Albums</span>
+        {#if displayedAlbums.length > 0}
+          <div class="album-row">
+            {#each displayedAlbums as album}
+              <div class="album-slot">
+                <AlbumCard {album} size="100%" />
+              </div>
+            {/each}
+            {#each Array(emptySlotCount) as _}
+              <div class="album-slot album-slot-empty" aria-hidden="true"></div>
+            {/each}
+          </div>
+        {:else}
+          <p class="empty-text">Browse Albums to get started</p>
+          <NavLink href="/learn" label="Browse Albums" />
+        {/if}
       </div>
-    {/if}
 
-    <div class="spacer"></div>
+      {#if displayedSnippets.length > 0}
+        <div class="section">
+          <span class="section-label">Recommended Snippets</span>
+          <div class="snippet-list">
+            {#each displayedSnippets as snippet}
+              <SnippetCard
+                content={snippet}
+                saved={$savedSnippetIds.has(snippet.id)}
+                onSaveToggle={() => toggleSnippetSave(snippet.id, $savedSnippetIds.has(snippet.id))}
+              />
+            {/each}
+          </div>
+        </div>
+      {/if}
 
-    <AgentChat on:submit={handleAgentSubmit} />
-  </div>
-</PageCard>
+      <div class="spacer"></div>
+
+      <AgentChat on:submit={handleAgentSubmit} />
+    </div>
+  </PageCard>
+</div>
 
 <style>
+  /* Same sticky/max-height treatment as Sidebar.svelte (see that component
+     for the full derivation) — keeps this sidebar in view as .content
+     scrolls, and native `position: sticky` already refuses to move past the
+     bottom edge of its containing block (the `.home-auth` row in +page.svelte),
+     so it can never drift down into the Footer's gap on its own. The
+     max-height/flex/min-height trio below exists for the other direction:
+     without it, this box's own max-height still clips the *positioning* of
+     `.sidebar-sticky`, but its PageCard child (an ordinary block box) doesn't
+     shrink to fit — with `overflowY="visible"`, taller-than-usual content
+     (e.g. a long displayName wrapping the greeting, or a short viewport)
+     painted straight past the box's bottom edge, into the same space the
+     Footer's outer gap uses. `flex` on the wrapper + `flex: 1 1 auto;
+     min-height: 0` on the PageCard (mirroring Sidebar.svelte) lets the card
+     shrink to whatever height is actually available, and `overflowY="auto"`
+     gives it its own scrollbar instead of spilling over once it does. */
+  .sidebar-sticky {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 24px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-sticky :global(.page-card) {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
   .sidebar-inner {
     display: flex;
     flex-direction: column;
