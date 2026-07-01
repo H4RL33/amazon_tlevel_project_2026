@@ -26,6 +26,13 @@
   savedSnippetIds.set(new Set(data.library.saved_snippets.map((s) => s.id)));
   enrolledAlbumIds.set(new Set(data.library.enrolled_albums.map((a) => a.id)));
 
+  $: displayedEnrolledAlbums = data.library.enrolled_albums.filter((a) =>
+    $enrolledAlbumIds.has(a.id)
+  );
+  $: displayedSavedSnippets = data.library.saved_snippets.filter((s) =>
+    $savedSnippetIds.has(s.id)
+  );
+
   async function handleSearch() {
     if (!query.trim()) return;
     searching = true;
@@ -178,28 +185,28 @@
       {/if}
     {:else}
       <!-- Normal library grid -->
-      {#if data.library.enrolled_albums.length === 0 && $savedSnippetIds.size === 0}
+      {#if displayedEnrolledAlbums.length === 0 && displayedSavedSnippets.length === 0}
         <PageCard padding="2rem">
           <p class="empty">Your library is empty. Browse Albums and Snippets to get started.</p>
         </PageCard>
       {:else}
-        {#if data.library.enrolled_albums.length > 0}
+        {#if displayedEnrolledAlbums.length > 0}
           <PageCard padding="0.75rem 1.5rem">
             <span class="section-label">Enrolled Albums</span>
           </PageCard>
           <div class="album-grid">
-            {#each data.library.enrolled_albums as album (album.id)}
+            {#each displayedEnrolledAlbums as album (album.id)}
               <AlbumCard {album} />
             {/each}
           </div>
         {/if}
 
-        {#if $savedSnippetIds.size > 0}
+        {#if displayedSavedSnippets.length > 0}
           <PageCard padding="0.75rem 1.5rem">
             <span class="section-label">Saved Snippets</span>
           </PageCard>
           <div class="snippet-grid">
-            {#each data.library.saved_snippets as snippet (snippet.id)}
+            {#each displayedSavedSnippets as snippet (snippet.id)}
               <SnippetCard
                 content={snippet}
                 saved={$savedSnippetIds.has(snippet.id)}
