@@ -35,7 +35,9 @@ def jwks(rsa_key_pair):
     }
 
 
-def _make_token(rsa_key_pair, *, audience=None, issuer=None, exp_offset=3600, sub="test-sub"):
+def _make_token(
+    rsa_key_pair, *, audience=None, issuer=None, exp_offset=3600, sub="test-sub", at_hash=None
+):
     private_key, _ = rsa_key_pair
     settings = get_settings()
     pem = private_key.private_bytes(
@@ -60,6 +62,8 @@ def _make_token(rsa_key_pair, *, audience=None, issuer=None, exp_offset=3600, su
         "family_name": "User",
         "email": "test@example.com",
     }
+    if at_hash is not None:
+        claims["at_hash"] = at_hash
     return jose_jwt.encode(claims, pem, algorithm="RS256", headers={"kid": "test-kid"})
 
 
@@ -96,6 +100,18 @@ async def test_decode_id_token_rejects_wrong_issuer(rsa_key_pair):
     token = _make_token(rsa_key_pair, issuer="https://evil.example.com/pool")
     with pytest.raises(JOSEError):
         decode_id_token(token)
+
+
+async def test_decode_id_token_accepts_token_with_at_hash_claim(rsa_key_pair):
+    """
+    Real id_tokens from the Authorization Code + PKCE flow (the actual Hosted UI
+    login path) include an at_hash claim binding them to the access_token issued
+    alongside them. We never receive that access_token here, so decode_id_token
+    must not require it to validate an otherwise-legitimate token.
+    """
+    token = _make_token(rsa_key_pair, at_hash="not-a-real-hash")
+    claims = decode_id_token(token)
+    assert claims["sub"] == "test-sub"
 
 
 async def test_get_current_user_optional_returns_none_without_authorization_header() -> None:
