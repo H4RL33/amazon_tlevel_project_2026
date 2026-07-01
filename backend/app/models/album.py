@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,8 +16,10 @@ class Album(Base):
     description: Mapped[str] = mapped_column(Text)
     icon: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1024), nullable=True)
+    embedding_generated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    t_level: Mapped["TLevel"] = relationship()
+    t_level: Mapped["TLevel"] = relationship(back_populates="albums")
     sides: Mapped[list["Side"]] = relationship(
         back_populates="album",
         order_by="Side.position",

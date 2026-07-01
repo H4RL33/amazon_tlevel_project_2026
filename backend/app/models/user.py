@@ -4,6 +4,7 @@ from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models import Base
+from app.models.library import UserSnippetSave  # noqa: F401
 
 
 class User(Base):
@@ -22,6 +23,9 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan"
     )
     progress: Mapped[list["UserContentProgress"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    saved_snippets: Mapped[list["UserSnippetSave"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 
