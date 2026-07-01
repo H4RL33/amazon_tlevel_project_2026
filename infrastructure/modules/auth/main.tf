@@ -39,9 +39,17 @@ resource "aws_cognito_user_pool_client" "main" {
     "https://${var.public_domain}/",
   ]
 
+  # ALLOW_USER_PASSWORD_AUTH was already enabled live but missing from this
+  # config (found as drift while reconciling other manually-applied prod
+  # settings, 2026-07-01) — kept as-is here since real Hosted UI login (the
+  # actual sign-in path) only needs the code grant, not this flow; it's used
+  # for direct-password test/admin tooling. Worth a deliberate follow-up
+  # decision on whether to disable it, but not something to drop silently as
+  # a side effect of an unrelated apply.
   explicit_auth_flows = [
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
   ]
 }
 
