@@ -4,6 +4,7 @@
   import { listAlbums } from '$lib/api/albums';
   import { apiFetch } from '$lib/api/client';
   import { getLibrary } from '$lib/api/library';
+  import { getStats } from '$lib/api/users';
   import type { AlbumListResponse } from '$lib/api/types';
   import { currentUser } from '$lib/stores/user';
   import { enrolledAlbumIds } from '$lib/stores/enrolments';
@@ -16,6 +17,8 @@
   let feedPosts: unknown[] = [];
   let loading = true;
   let albumError: string | null = null;
+  let totalXp = 0;
+  let snippetsCompleted = 0;
 
   onMount(async () => {
     try {
@@ -32,6 +35,14 @@
         enrolledAlbumIds.set(new Set(lib.enrolled_albums.map((a) => a.id)));
       } catch {
         // non-critical — store stays empty
+      }
+
+      try {
+        const stats = await getStats();
+        totalXp = stats.total_xp;
+        snippetsCompleted = stats.snippets_completed;
+      } catch {
+        // non-critical — stats stay at 0
       }
 
       try {
@@ -62,7 +73,7 @@
         <PageCard padding="0.875rem 1.25rem">
           <div class="stat">
             <span class="stat-label">⭐ XP Earned</span>
-            <span class="stat-value">0</span>
+            <span class="stat-value">{totalXp}</span>
             <span class="stat-sub">Keep learning to earn XP</span>
           </div>
         </PageCard>
@@ -78,8 +89,14 @@
         <PageCard padding="0.875rem 1.25rem">
           <div class="stat">
             <span class="stat-label">✅ Snippets Read</span>
-            <span class="stat-value">0</span>
-            <span class="stat-sub">Complete Snippets to track progress</span>
+            <span class="stat-value">{snippetsCompleted}</span>
+            <span class="stat-sub"
+              >{snippetsCompleted === 0
+                ? 'Complete Snippets to track progress'
+                : snippetsCompleted === 1
+                  ? '1 snippet completed'
+                  : `${snippetsCompleted} snippets completed`}</span
+            >
           </div>
         </PageCard>
       </div>

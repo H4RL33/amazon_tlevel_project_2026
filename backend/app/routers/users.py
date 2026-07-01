@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
+from app.schemas.gamification import UserStatsResponse
 from app.schemas.topic import TopicResponse
 from app.schemas.user import (
     AvatarUpdateRequest,
@@ -13,7 +14,7 @@ from app.schemas.user import (
     UserResponse,
     UserTopicsRequest,
 )
-from app.services import user_service
+from app.services import gamification_service, user_service
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -87,3 +88,15 @@ async def update_profile(
     db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
     return await user_service.update_username(db, current_user, payload.username)
+
+
+@router.get(
+    "/me/stats",
+    response_model=UserStatsResponse,
+    summary="Get XP/level/completion stats for the current user",
+)
+async def get_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserStatsResponse:
+    return await gamification_service.get_stats(db, current_user)
