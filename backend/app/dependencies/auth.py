@@ -57,6 +57,11 @@ def decode_id_token(token: str) -> dict:
         algorithms=["RS256"],
         audience=settings.COGNITO_CLIENT_ID,
         issuer=issuer,
+        # id_tokens issued via the Authorization Code + PKCE flow (the real Hosted
+        # UI login path) include an at_hash claim binding them to the access_token
+        # issued alongside them. We only ever receive the id_token here, never the
+        # access_token, so there's nothing to bind against — skip that check.
+        options={"verify_at_hash": False},
     )
 
 
