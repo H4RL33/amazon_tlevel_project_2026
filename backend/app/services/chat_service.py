@@ -5,7 +5,6 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.config import get_settings
 from app.models.library import ChatMessage, ChatSession
@@ -42,10 +41,8 @@ async def list_sessions(db: AsyncSession, user: User) -> list[ChatSession]:
 
 
 async def get_session_or_404(db: AsyncSession, session_id: int, user: User) -> ChatSession:
-    stmt = (
-        select(ChatSession)
-        .where(ChatSession.id == session_id, ChatSession.user_id == user.id)
-        .options(selectinload(ChatSession.messages))
+    stmt = select(ChatSession).where(
+        ChatSession.id == session_id, ChatSession.user_id == user.id
     )
     session = (await db.execute(stmt)).scalar_one_or_none()
     if session is None:
@@ -66,7 +63,7 @@ async def _get_messages(db: AsyncSession, session_id: int) -> list[ChatMessage]:
     return list((await db.execute(stmt)).scalars().all())
 
 
-async def get_session_detail(db: AsyncSession, session: ChatSession, user: User) -> ChatSessionDetail:
+async def get_session_detail(db: AsyncSession, session: ChatSession) -> ChatSessionDetail:
     messages = await _get_messages(db, session.id)
     return ChatSessionDetail(
         id=session.id,
@@ -83,6 +80,23 @@ async def get_session_detail(db: AsyncSession, session: ChatSession, user: User)
             )
             for m in messages
         ],
+    )
+
+
+def _build_mentor_prompt(message: str, chunks: list[dict[str, Any]]) -> str:
+    """
+    Canonical Dynamic Mentor prompt template. This is the single source of
+    truth going forward — library_service.mentor_query's HTTP route is being
+    retired by a later module in this plan, so new callers should build on
+    this copy rather than the one in library_service.
+    """
+    context_text = "\n\n".join(f"{c['title']}: {c['body'][:500]}" for c in chunks)
+    return (
+        "You are the Dynamic Mentor for Living Campus, an Amazon T-Level education platform.\n"
+        "Answer the student's question using the provided context from their learning materials.\n"
+        "If the context doesn't cover the question, say so and answer from general knowledge.\n\n"
+        f"Context:\n{context_text}\n\n"
+        f"Student question: {message}\n\nMentor:"
     )
 
 
@@ -106,15 +120,7 @@ async def stream_mentor_reply(
     if query_vec is None:
         raise HTTPException(status_code=503, detail="The mentor is temporarily unavailable")
     chunks: list[dict[str, Any]] = await _fetch_mentor_context(db, query_vec, user)
-
-    context_text = "\n\n".join(f"{c['title']}: {c['body'][:500]}" for c in chunks)
-    prompt = (
-        "You are the Dynamic Mentor for Living Campus, an Amazon T-Level education platform.\n"
-        "Answer the student's question using the provided context from their learning materials.\n"
-        "If the context doesn't cover the question, say so and answer from general knowledge.\n\n"
-        f"Context:\n{context_text}\n\n"
-        f"Student question: {message}\n\nMentor:"
-    )
+    prompt = _build_mentor_prompt(message, chunks)
 
     response = get_bedrock_client().invoke_model_with_response_stream(
         modelId=settings.BEDROCK_GENERATION_MODEL_ID,
@@ -127,22 +133,30 @@ async def stream_mentor_reply(
     )
 
     full_text_parts: list[str] = []
-    for event in response["body"]:
-        raw_bytes = event.get("chunk", {}).get("bytes")
-        if raw_bytes is None:
-            continue
-        text = _parse_stream_event(raw_bytes)
-        if text:
-            full_text_parts.append(text)
-            yield text
+    try:
+        for event in response["body"]:
+            raw_bytes = event.get("chunk", {}).get("bytes")
+            if raw_bytes is None:
+                continue
+            text = _parse_stream_event(raw_bytes)
+            if text:
+                full_text_parts.append(text)
+                yield text
+    finally:
+        # Persist whatever was assembled so far even if the stream raised
+        # mid-iteration (Bedrock error, client disconnect, etc.) — we never
+        # want to silently drop an exchange the user already partially saw.
+        full_text = "".join(full_text_parts) or (
+            "I'm sorry, I couldn't generate a response right now."
+        )
+        sources = [{"content_id": c["content_id"], "title": c["title"]} for c in chunks]
 
-    full_text = "".join(full_text_parts) or "I'm sorry, I couldn't generate a response right now."
-    sources = [{"content_id": c["content_id"], "title": c["title"]} for c in chunks]
-
-    existing_messages = await _get_messages(db, session.id)
-    is_first_message = len(existing_messages) == 0
-    db.add(ChatMessage(session_id=session.id, role="user", text=message))
-    db.add(ChatMessage(session_id=session.id, role="mentor", text=full_text, sources=sources))
-    if is_first_message:
-        session.title = _derive_title(message)
-    await db.commit()
+        existing_messages = await _get_messages(db, session.id)
+        is_first_message = len(existing_messages) == 0
+        db.add(ChatMessage(session_id=session.id, role="user", text=message))
+        db.add(
+            ChatMessage(session_id=session.id, role="mentor", text=full_text, sources=sources)
+        )
+        if is_first_message:
+            session.title = _derive_title(message)
+        await db.commit()

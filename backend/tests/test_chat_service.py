@@ -96,7 +96,7 @@ async def test_get_session_detail_includes_ordered_messages(
     )
     await db_session.commit()
 
-    detail = await get_session_detail(db_session, session, current_user)
+    detail = await get_session_detail(db_session, session)
 
     assert detail.title == "Hi"
     assert [m.text for m in detail.messages] == ["Hi", "Hello!"]
@@ -182,3 +182,100 @@ async def test_stream_mentor_reply_sets_title_only_on_first_message(
 
     await db_session.refresh(session)
     assert session.title == "First message"
+
+
+async def test_stream_mentor_reply_persists_partial_text_on_mid_stream_failure(
+    db_session: AsyncSession, current_user: User
+) -> None:
+    from unittest.mock import patch
+
+    from sqlalchemy import select
+
+    from app.models.library import ChatMessage
+    from app.services.chat_service import create_session, stream_mentor_reply
+
+    session = await create_session(db_session, current_user)
+
+    def fake_event_stream():
+        yield {"chunk": {"bytes": b'{"contentBlockDelta": {"delta": {"text": "Partial "}}}'}}
+        yield {"chunk": {"bytes": b'{"contentBlockDelta": {"delta": {"text": "answer."}}}'}}
+        raise RuntimeError("stream interrupted")
+
+    mock_stream_response = {"body": fake_event_stream()}
+
+    with (
+        patch("app.services.chat_service.embed_text", return_value=[0.1] * 1024),
+        patch("app.services.chat_service._fetch_mentor_context", return_value=[]),
+        patch("app.services.chat_service.get_bedrock_client") as mock_get_client,
+    ):
+        mock_get_client.return_value.invoke_model_with_response_stream.return_value = (
+            mock_stream_response
+        )
+
+        deltas = []
+        with pytest.raises(RuntimeError, match="stream interrupted"):
+            async for delta in stream_mentor_reply(db_session, session, "Hi", current_user):
+                deltas.append(delta)
+
+    assert deltas == ["Partial ", "answer."]
+
+    result = await db_session.execute(
+        select(ChatMessage).where(ChatMessage.session_id == session.id).order_by(ChatMessage.id)
+    )
+    messages = result.scalars().all()
+    assert [m.role for m in messages] == ["user", "mentor"]
+    assert messages[0].text == "Hi"
+    assert messages[1].text == "Partial answer."
+
+
+async def test_stream_mentor_reply_persists_sources_from_mentor_context(
+    db_session: AsyncSession, current_user: User
+) -> None:
+    from unittest.mock import patch
+
+    from sqlalchemy import select
+
+    from app.models.library import ChatMessage
+    from app.services.chat_service import create_session, stream_mentor_reply
+
+    session = await create_session(db_session, current_user)
+
+    def fake_event_stream():
+        yield {"chunk": {"bytes": b'{"contentBlockDelta": {"delta": {"text": "Answer."}}}'}}
+
+    fake_chunks = [
+        {"content_id": 1, "title": "Cloud Basics", "body": "...", "score": 0.9},
+        {"content_id": 2, "title": "Networking 101", "body": "...", "score": 0.8},
+    ]
+
+    with (
+        patch("app.services.chat_service.embed_text", return_value=[0.1] * 1024),
+        patch("app.services.chat_service._fetch_mentor_context", return_value=fake_chunks),
+        patch("app.services.chat_service.get_bedrock_client") as mock_get_client,
+    ):
+        mock_get_client.return_value.invoke_model_with_response_stream.return_value = {
+            "body": fake_event_stream()
+        }
+        async for _ in stream_mentor_reply(db_session, session, "Tell me about cloud", current_user):
+            pass
+
+    result = await db_session.execute(
+        select(ChatMessage).where(
+            ChatMessage.session_id == session.id, ChatMessage.role == "mentor"
+        )
+    )
+    mentor_message = result.scalar_one()
+    assert mentor_message.sources == [
+        {"content_id": 1, "title": "Cloud Basics"},
+        {"content_id": 2, "title": "Networking 101"},
+    ]
+
+
+def test_derive_title_truncates_long_message() -> None:
+    from app.services.chat_service import _derive_title
+
+    long_message = "x" * 100
+    title = _derive_title(long_message)
+
+    assert title == "x" * 59 + "…"
+    assert len(title) == 60
