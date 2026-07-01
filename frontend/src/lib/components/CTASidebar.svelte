@@ -2,8 +2,9 @@
   CTASidebar
   Purpose: Wide left sidebar on the home page for authenticated users. Personalised greeting,
     up to 2 enrolled AlbumCards, up to 3 recommended SnippetCards, and an AgentChat teaser
-    pinned to the bottom. Navigates to /library on AgentChat submit, carrying the typed message
-    via the agentDraft store.
+    pinned to the bottom. On AgentChat submit, creates a new chat session and navigates to
+    /library?session=<id>&draft=<message>, handing the typed message off to be sent once
+    the session's chat window has loaded.
   Used in: / (authenticated branch)
   Props:
     - user (UserResponse): current user — greeting uses first_name, falling back to
@@ -20,6 +21,7 @@
   import { goto } from '$app/navigation';
   import type { AlbumListResponse, ContentListResponse, UserResponse } from '$lib/api/types';
   import { saveSnippet, unsaveSnippet } from '$lib/api/library';
+  import { createChatSession } from '$lib/api/chat';
   import { savedSnippetIds } from '$lib/stores/savedSnippets';
   import { enrolledAlbumIds } from '$lib/stores/enrolments';
   import AgentChat from '$lib/components/AgentChat.svelte';
@@ -58,8 +60,10 @@
     }
   }
 
-  function handleAgentSubmit(event: CustomEvent<string>) {
-    goto(`/library?q=${encodeURIComponent(event.detail)}`);
+  async function handleAgentSubmit(event: CustomEvent<string>) {
+    const message = event.detail;
+    const session = await createChatSession();
+    goto(`/library?session=${session.id}&draft=${encodeURIComponent(message)}`);
   }
 </script>
 
