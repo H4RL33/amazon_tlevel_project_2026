@@ -65,9 +65,7 @@
   $: displayedEnrolledAlbums = data.library.enrolled_albums.filter((a) =>
     $enrolledAlbumIds.has(a.id)
   );
-  $: displayedSavedSnippets = data.library.saved_snippets.filter((s) =>
-    $savedSnippetIds.has(s.id)
-  );
+  $: displayedSavedSnippets = data.library.saved_snippets.filter((s) => $savedSnippetIds.has(s.id));
 
   async function handleSearch() {
     if (!query.trim()) return;
