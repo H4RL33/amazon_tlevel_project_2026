@@ -53,11 +53,13 @@
         streamingText = (streamingText ?? '') + delta;
       });
       activeSession = await getChatSession(sessionId);
-      sessions = sessions.map((s) =>
-        s.id === sessionId
-          ? { ...s, title: activeSession!.title, updated_at: new Date().toISOString() }
-          : s
-      );
+      sessions = sessions
+        .map((s) =>
+          s.id === sessionId
+            ? { ...s, title: activeSession!.title, updated_at: new Date().toISOString() }
+            : s
+        )
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
       void result;
     } finally {
       isStreaming = false;
@@ -83,7 +85,13 @@
 
   onMount(() => {
     if (data.draft && activeSession) {
-      handleSend(data.draft);
+      const draftText = data.draft;
+      goto(`/library?session=${activeSession.id}`, {
+        replaceState: true,
+        keepFocus: true,
+        noScroll: true,
+      });
+      handleSend(draftText);
     }
   });
 </script>
