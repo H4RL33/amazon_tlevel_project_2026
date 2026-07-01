@@ -215,10 +215,19 @@
 </div>
 
 <style>
+  /* flex-shrink: 0: see the matching comment on .home-auth in the root
+     +page.svelte — .settings-page is a flex item of .content, which is
+     itself a scrolling flex container, and leaving shrink at its default of
+     1 breaks position: sticky for Sidebar's `.sidebar-sticky` in Chromium.
+     Currently a no-op in practice since height: 100% never lets this row
+     exceed .content's own box (nothing here can make .content itself
+     scroll), but pinned anyway so this doesn't silently break the moment
+     that stops being true. */
   .settings-page {
     display: flex;
     gap: var(--gap-inner);
     height: 100%;
+    flex-shrink: 0;
   }
 
   .settings-page > :global(.sidebar-sticky) {

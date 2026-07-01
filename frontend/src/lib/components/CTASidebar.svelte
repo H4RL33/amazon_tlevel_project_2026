@@ -2,8 +2,11 @@
   CTASidebar
   Purpose: Wide left sidebar on the home page for authenticated users. Personalised greeting,
     up to 2 enrolled AlbumCards, up to 3 recommended SnippetCards, and an AgentChat teaser
-    pinned to the bottom. Navigates to /library on AgentChat submit, carrying the typed message
-    via the agentDraft store.
+    pinned to the bottom. On AgentChat submit, creates a new chat session and navigates to
+    /library?session=<id>&draft=<message>, handing the typed message off to be sent once
+    the session's chat window has loaded. If createChatSession() fails, the navigation is
+    skipped and a small inline error (mentorError) appears above AgentChat — the typed text
+    itself can't be recovered since AgentChat clears its own input on submit.
   Used in: / (authenticated branch)
   Props:
     - user (UserResponse): current user — greeting uses first_name, falling back to
@@ -20,6 +23,7 @@
   import { goto } from '$app/navigation';
   import type { AlbumListResponse, ContentListResponse, UserResponse } from '$lib/api/types';
   import { saveSnippet, unsaveSnippet } from '$lib/api/library';
+  import { createChatSession } from '$lib/api/chat';
   import { savedSnippetIds } from '$lib/stores/savedSnippets';
   import { enrolledAlbumIds } from '$lib/stores/enrolments';
   import AgentChat from '$lib/components/AgentChat.svelte';
@@ -42,6 +46,11 @@
   $: emptySlotCount = displayedAlbums.length > 0 ? 2 - displayedAlbums.length : 0;
   $: displayedSnippets = snippets.slice(0, 3);
 
+  // Set when createChatSession() fails during the Mentor teaser hand-off, so the user sees
+  // *something* instead of the request silently vanishing (AgentChat clears its own input on
+  // submit, so by the time we know the request failed the typed text is already gone).
+  let mentorError = '';
+
   async function toggleSnippetSave(contentId: number, currentlySaved: boolean) {
     if (currentlySaved) {
       savedSnippetIds.update((s) => {
@@ -58,8 +67,16 @@
     }
   }
 
-  function handleAgentSubmit(event: CustomEvent<string>) {
-    goto(`/library?q=${encodeURIComponent(event.detail)}`);
+  async function handleAgentSubmit(event: CustomEvent<string>) {
+    const message = event.detail;
+    mentorError = '';
+    try {
+      const session = await createChatSession();
+      goto(`/library?session=${session.id}&draft=${encodeURIComponent(message)}`);
+    } catch (err) {
+      mentorError = "Couldn't send that to your mentor — please try again.";
+      console.error(err);
+    }
   }
 </script>
 
@@ -104,6 +121,9 @@
 
       <div class="spacer"></div>
 
+      {#if mentorError}
+        <p class="mentor-error" role="alert">{mentorError}</p>
+      {/if}
       <AgentChat on:submit={handleAgentSubmit} />
     </div>
   </PageCard>
@@ -111,11 +131,12 @@
 
 <style>
   /* Same sticky/max-height treatment as Sidebar.svelte (see that component
-     for the full derivation) — keeps this sidebar in view as .content
-     scrolls, and native `position: sticky` already refuses to move past the
-     bottom edge of its containing block (the `.home-auth` row in +page.svelte),
-     so it can never drift down into the Footer's gap on its own. The
-     max-height/flex/min-height trio below exists for the other direction:
+     for the full derivation, including the `flex-shrink: 0` requirement on
+     `.home-auth` — without it this element doesn't stick at all). Once
+     actually sticking, native `position: sticky` refuses to move past the
+     bottom edge of its containing block (`.home-auth`), so it can never
+     drift down into the Footer's gap on its own. The max-height/flex/
+     min-height trio below exists for the other direction:
      without it, this box's own max-height still clips the *positioning* of
      `.sidebar-sticky`, but its PageCard child (an ordinary block box) doesn't
      shrink to fit — with `overflowY="visible"`, taller-than-usual content
@@ -128,7 +149,7 @@
   .sidebar-sticky {
     position: sticky;
     top: 16px;
-    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 24px);
+    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 48px);
     display: flex;
     flex-direction: column;
   }
@@ -203,5 +224,12 @@
   /* Pushes AgentChat to the bottom of the sidebar */
   .spacer {
     flex: 1;
+  }
+
+  .mentor-error {
+    font-size: 0.8rem;
+    color: #b3261e;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
   }
 </style>

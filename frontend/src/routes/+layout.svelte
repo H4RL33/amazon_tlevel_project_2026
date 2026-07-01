@@ -261,28 +261,46 @@
      flex's default min-height: auto that would otherwise let it grow past
      that and push the footer down.
 
-     .content-slot is the sized flex track; .content is absolutely positioned
-     to fill it. This is required (not just belt-and-braces) because the
-     {#key} block above keeps the outgoing route's .content mounted and
-     in-flow for the ~150ms crossfade, so there are briefly *two* .content
-     elements alive at once. If .content itself were the flex child, that
-     briefly doubles the flex track's height and visibly shoves Footer down
-     and back up mid-transition — absolutely positioning both copies inside
-     the one stably-sized .content-slot makes them overlap instead. */
+     .content-slot is a single-cell grid; both crossfading copies of .content
+     are placed in that same cell (grid-area: 1 / 1) so they overlap instead
+     of stacking vertically. This is required (not just belt-and-braces)
+     because the {#key} block above keeps the outgoing route's .content
+     mounted and in-flow for the ~150ms crossfade, so there are briefly *two*
+     .content elements alive at once — without this, that briefly doubles the
+     flex track's height and visibly shoves Footer down and back up
+     mid-transition.
+
+     A prior version of this fix used `position: absolute; inset: 0` on
+     .content instead of grid stacking — geometrically equivalent, and (despite
+     first appearances while chasing an unrelated sticky-positioning bug, see
+     .home-auth in the root +page.svelte for the actual cause) NOT itself the
+     source of that bug. Kept as grid-cell stacking anyway since it achieves
+     the same overlap without relying on `inset` math tracking .content-slot's
+     size, which reads slightly more directly. */
   .content-slot {
-    position: relative;
+    display: grid;
     flex: 1 1 auto;
     min-height: 0;
   }
 
   .content {
-    position: absolute;
-    inset: 0;
+    grid-area: 1 / 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: var(--gap-inner);
-    padding: 16px 16px 24px;
+    /* Bottom padding is a shadow buffer, not visual spacing: overflow-y:
+       auto clips descendant painting (including box-shadow) at this
+       element's padding edge, so anything a card's shadow extends past the
+       last row's own box gets hard-cropped instead of fading out. 48px
+       clears the largest shadow actually used anywhere in this app: the
+       AlbumCard/TopicBanner/SnippetCard chromatic hover-glow's widest layer,
+       `0 20px 34px -12px` = 20 + 34 − 12 = 42px of downward extent (the
+       plain PageCard shadow only needs 24px, but the buffer has to cover
+       whichever card can render in the last row). Keep in sync with the
+       trailing term in .sidebar-sticky's max-height calc in Sidebar.svelte
+       and CTASidebar.svelte if this ever changes. */
+    padding: 16px 16px 48px;
     /* `scroll-behavior` is not an inherited CSS property — setting it on
        :global(html) only smooth-scrolls the (unused, since this element
        owns its own overflow) document viewport, not this scroll container.
