@@ -122,12 +122,12 @@
     align-items: center;
     justify-content: center;
     background: #ffffff;
-    border: 1.5px solid #232f3e;
+    border: none;
     border-radius: 0;
     cursor: pointer;
     color: #232f3e;
     padding: 0;
-    box-shadow: 0 2px 6px rgba(35, 47, 62, 0.2);
+    box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
     transition:
       background 0.15s,
       color 0.15s;
@@ -145,7 +145,6 @@
 
   .save-btn.saved:hover {
     background: #ef4444;
-    border-color: #ef4444;
     color: #ffffff;
   }
 </style>

@@ -19,6 +19,7 @@
   let albumError: string | null = null;
   let totalXp = 0;
   let snippetsCompleted = 0;
+  let authedDataFetched = false;
 
   onMount(async () => {
     try {
@@ -28,30 +29,27 @@
     } finally {
       loading = false;
     }
-
-    if ($currentUser) {
-      try {
-        const lib = await getLibrary();
-        enrolledAlbumIds.set(new Set(lib.enrolled_albums.map((a) => a.id)));
-      } catch {
-        // non-critical — store stays empty
-      }
-
-      try {
-        const stats = await getStats();
-        totalXp = stats.total_xp;
-        snippetsCompleted = stats.snippets_completed;
-      } catch {
-        // non-critical — stats stay at 0
-      }
-
-      try {
-        feedPosts = await apiFetch<unknown[]>('/feed/');
-      } catch {
-        feedPosts = [];
-      }
-    }
   });
+
+  // Reactive rather than a one-off onMount check: currentUser is set
+  // asynchronously by the root layout's getMe() call, which can resolve
+  // after this page's own onMount already ran — a plain `if ($currentUser)`
+  // inside onMount would silently skip these fetches in that case.
+  $: if ($currentUser && !authedDataFetched) {
+    authedDataFetched = true;
+    Promise.allSettled([getLibrary(), getStats(), apiFetch<unknown[]>('/feed/')]).then(
+      ([libResult, statsResult, feedResult]) => {
+        if (libResult.status === 'fulfilled') {
+          enrolledAlbumIds.set(new Set(libResult.value.enrolled_albums.map((a) => a.id)));
+        }
+        if (statsResult.status === 'fulfilled') {
+          totalXp = statsResult.value.total_xp;
+          snippetsCompleted = statsResult.value.snippets_completed;
+        }
+        feedPosts = feedResult.status === 'fulfilled' ? feedResult.value : [];
+      }
+    );
+  }
 
   async function handleGetStarted() {
     try {
