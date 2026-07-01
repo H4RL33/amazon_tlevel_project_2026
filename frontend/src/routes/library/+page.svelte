@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { fly } from 'svelte/transition';
   import type { PageData } from './$types';
   import PageCard from '$lib/components/PageCard.svelte';
   import AlbumCard from '$lib/components/AlbumCard.svelte';
@@ -13,6 +15,40 @@
   import { savedSnippetIds } from '$lib/stores/savedSnippets';
 
   export let data: PageData;
+
+  // Staggered entrance for grid cards (Enrolled Albums / Saved Snippets / Search Results).
+  // One-shot on mount/appearance only — Svelte's keyed {#each} blocks below key by
+  // album.id/snippet.id/content_id, so removing one item (unenrol/unsave) does not
+  // re-trigger `in:fly` on the remaining items; only the removed node gets an `out:`
+  // transition. Delay is capped so large grids don't take seconds to finish appearing.
+  const STAGGER_STEP_MS = 40;
+  const STAGGER_CAP_MS = 400;
+
+  // Read synchronously (not inside onMount) since entrance()/exit() can be evaluated by
+  // Svelte's transition machinery before this page's onMount callback runs — reading it
+  // only inside onMount raced the transition and reduced motion was silently ignored.
+  // Safe because this app disables SSR (`export const ssr = false` in +layout.ts).
+  let reduceMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  onMount(() => {
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      reduceMotion = e.matches;
+    };
+    reducedMotionQuery.addEventListener('change', handleChange);
+    return () => reducedMotionQuery.removeEventListener('change', handleChange);
+  });
+
+  function entrance(i: number) {
+    if (reduceMotion) return { duration: 0 };
+    return { y: 12, duration: 250, delay: Math.min(i * STAGGER_STEP_MS, STAGGER_CAP_MS) };
+  }
+
+  function exit() {
+    if (reduceMotion) return { duration: 0 };
+    return { y: 12, duration: 200 };
+  }
 
   let query = data.initialQuery;
   let searchResults: ContentSearchResult[] | null = null;
@@ -169,17 +205,19 @@
         </PageCard>
       {:else}
         <div class="snippet-grid">
-          {#each searchResults as result (result.content_id)}
-            <SnippetCard
-              content={{
-                id: result.content_id,
-                title: result.title,
-                content_type: result.content_type,
-              }}
-              saved={$savedSnippetIds.has(result.content_id)}
-              onSaveToggle={() =>
-                toggleSave(result.content_id, $savedSnippetIds.has(result.content_id))}
-            />
+          {#each searchResults as result, i (result.content_id)}
+            <div in:fly|global={entrance(i)} out:fly|global={exit()}>
+              <SnippetCard
+                content={{
+                  id: result.content_id,
+                  title: result.title,
+                  content_type: result.content_type,
+                }}
+                saved={$savedSnippetIds.has(result.content_id)}
+                onSaveToggle={() =>
+                  toggleSave(result.content_id, $savedSnippetIds.has(result.content_id))}
+              />
+            </div>
           {/each}
         </div>
       {/if}
@@ -195,8 +233,10 @@
             <span class="section-label">Enrolled Albums</span>
           </PageCard>
           <div class="album-grid">
-            {#each displayedEnrolledAlbums as album (album.id)}
-              <AlbumCard {album} />
+            {#each displayedEnrolledAlbums as album, i (album.id)}
+              <div in:fly|global={entrance(i)} out:fly|global={exit()}>
+                <AlbumCard {album} />
+              </div>
             {/each}
           </div>
         {/if}
@@ -206,12 +246,14 @@
             <span class="section-label">Saved Snippets</span>
           </PageCard>
           <div class="snippet-grid">
-            {#each displayedSavedSnippets as snippet (snippet.id)}
-              <SnippetCard
-                content={snippet}
-                saved={$savedSnippetIds.has(snippet.id)}
-                onSaveToggle={() => toggleSave(snippet.id, $savedSnippetIds.has(snippet.id))}
-              />
+            {#each displayedSavedSnippets as snippet, i (snippet.id)}
+              <div in:fly|global={entrance(i)} out:fly|global={exit()}>
+                <SnippetCard
+                  content={snippet}
+                  saved={$savedSnippetIds.has(snippet.id)}
+                  onSaveToggle={() => toggleSave(snippet.id, $savedSnippetIds.has(snippet.id))}
+                />
+              </div>
             {/each}
           </div>
         {/if}
