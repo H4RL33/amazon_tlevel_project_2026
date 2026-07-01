@@ -155,11 +155,23 @@
 
 <style>
   /* ── Authenticated layout ── */
+  /* flex-shrink: 0 is load-bearing, not defensive: .content (the scrolling
+     ancestor, in +layout.svelte) is itself `display: flex; flex-direction:
+     column`, so .home-auth is a flex item of a scrolling flex container.
+     Left at flex's default shrink: 1, Chromium's sticky-containing-block
+     computation for CTASidebar's `.sidebar-sticky` breaks entirely — its
+     `position: sticky` stops sticking and it just scrolls 1:1 with
+     `.content` instead (confirmed via Playwright: identical top-offset
+     delta to a non-sticky element across a scroll). Pinning shrink to 0
+     (min-height: 100% still lets the row grow taller than the viewport when
+     .right-col's content demands it) avoids that flex-shrink/min-height
+     resolution loop and restores sticky. */
   .home-auth {
     display: flex;
     gap: var(--gap-inner);
     min-height: 100%;
     align-items: stretch;
+    flex-shrink: 0;
   }
 
   .right-col {
