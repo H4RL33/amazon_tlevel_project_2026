@@ -6,8 +6,19 @@ export interface AvatarUploadUrlResponse {
   key: string;
 }
 
+export interface UserStatsResponse {
+  total_xp: number;
+  level: number;
+  snippets_completed: number;
+  albums_completed: number;
+}
+
 export async function getMe(): Promise<UserResponse> {
   return apiFetch<UserResponse>('/users/me');
+}
+
+export async function getStats(): Promise<UserStatsResponse> {
+  return apiFetch<UserStatsResponse>('/users/me/stats');
 }
 
 export async function requestAvatarUploadUrl(
