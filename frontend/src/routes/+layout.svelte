@@ -209,10 +209,15 @@
     flex-direction: column;
     height: 100dvh;
     box-sizing: border-box;
-    /* Horizontal padding is reduced by the shadow buffer (16px) so that
-       PageCards inside .content — which get their own 16px padding below —
-       align with the Navbar. Vertical padding stays at --gap-outer. */
-    padding: var(--gap-outer) calc(var(--gap-outer) - 16px);
+    /* Symmetric --gap-outer on all four edges (matches the floating-card
+       design spec). Note: PageCards rendered inside .content sit an extra
+       16px in from this edge, since .content adds its own shadow-buffer
+       padding below — so they don't line up pixel-for-pixel with the
+       Navbar's edge. That's an acceptable, minor inset; making it exact
+       would require giving Navbar a matching 16px buffer of its own,
+       which isn't worth the added complexity since Navbar never scrolls
+       and so never needs the buffer for shadow-clipping reasons. */
+    padding: var(--gap-outer);
     gap: var(--gap-inner);
   }
 
@@ -222,8 +227,7 @@
      flex's default min-height: auto that would otherwise let it grow past
      that and push the footer down.
      padding: shadow buffer so overflow-y: auto doesn't clip PageCard
-     box-shadows — children appear at the same x-position as the Navbar
-     because shell's horizontal padding is reduced by the same 16px. */
+     box-shadows (Navbar has no equivalent buffer since it never scrolls). */
   .content {
     flex: 1 1 auto;
     min-height: 0;

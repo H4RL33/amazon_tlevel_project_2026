@@ -4,6 +4,8 @@
   import AlbumCard from '$lib/components/AlbumCard.svelte';
   import SnippetCard from '$lib/components/SnippetCard.svelte';
   import AgentChat from '$lib/components/AgentChat.svelte';
+  import TextInput from '$lib/components/TextInput.svelte';
+  import Button from '$lib/components/Button.svelte';
   import { searchLibrary, mentorQuery, saveSnippet, unsaveSnippet } from '$lib/api/library';
   import type { ContentSearchResult, MentorResponse } from '$lib/api/library';
   import { currentUser } from '$lib/stores/user';
@@ -88,15 +90,15 @@
 
       <!-- Search -->
       <form class="search-form" on:submit|preventDefault={handleSearch}>
-        <input
+        <TextInput
           bind:value={query}
           type="search"
           placeholder="Search your library…"
-          class="search-input"
+          disabled={searching}
         />
-        <button type="submit" class="search-btn" disabled={searching}>
+        <Button variant="secondary" type="submit" disabled={searching}>
           {searching ? '…' : 'Go'}
-        </button>
+        </Button>
       </form>
       {#if searchError}
         <p class="search-error">{searchError}</p>
@@ -258,40 +260,13 @@
 
   .search-form {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
 
-  .search-input {
+  .search-form :global(.text-input-wrapper) {
     flex: 1;
-    padding: 0.65rem 0.875rem;
-    border: 1px solid rgba(35, 47, 62, 0.2);
-    border-radius: 0;
-    font-size: 0.9rem;
-    outline: none;
-    font-family: 'Ubuntu', sans-serif;
     min-width: 0;
-  }
-
-  .search-input:focus {
-    border-color: #f97316;
-  }
-
-  .search-btn {
-    padding: 0.65rem 0.875rem;
-    background: linear-gradient(to right, #f97316, #facc15);
-    border: none;
-    border-radius: 0;
-    font-weight: 700;
-    cursor: pointer;
-    color: white;
-    font-family: 'Ubuntu', sans-serif;
-    font-size: 0.9rem;
-    white-space: nowrap;
-  }
-
-  .search-btn:disabled {
-    opacity: 0.6;
-    cursor: default;
   }
 
   .search-error {

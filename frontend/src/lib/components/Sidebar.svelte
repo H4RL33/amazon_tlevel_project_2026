@@ -79,8 +79,7 @@
 
   li:hover,
   li.active {
-    background-color: rgba(31, 111, 235, 0.08);
-    border-left-color: #1f6feb;
+    border-left-color: #000000;
   }
 
   li.active :global(a) {

@@ -1,7 +1,7 @@
 <!--
   Card
   Purpose: Surface container for grouped content.
-  Used in: Dashboard panels, topic cards, T-level list items, content blocks.
+  Used in: topic cards, T-level list items, content blocks.
   Props:
     - title (string | undefined): optional heading rendered above the default slot
   Slots:
