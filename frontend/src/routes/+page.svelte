@@ -135,14 +135,28 @@
     <button class="cta" on:click={handleGetStarted}>Get started</button>
   </div>
 
-  <PageCard padding="0.875rem 1.25rem">
+  <!-- overflowY="visible": these two cards are direct children of .content
+       (display: flex; flex-direction: column) in +layout.svelte, which is
+       itself the page's scroll container. PageCard's default
+       overflow-y: auto gives a flex item an automatic minimum size of 0
+       (overflow != visible suppresses the content-based auto min-size per
+       the flexbox spec), so whenever the guest homepage's total content
+       height exceeds the viewport, .content's flex-shrink silently
+       compresses these cards below their natural content height and
+       overflow-y: auto hard-clips the difference instead of letting
+       .content's own scrolling handle it — cutting a few px off the
+       "Explore Albums" header and, far more visibly, chopping off the
+       bottom of the AlbumGrid's last row. overflow-y: visible removes the
+       auto-min-size:0 trap so these cards always render at full content
+       height and let .content scroll normally. -->
+  <PageCard padding="0.875rem 1.25rem" overflowY="visible">
     <div class="section-header">
       <h2>Explore Albums</h2>
       <NavLink href="/learn" label="View all →" />
     </div>
   </PageCard>
 
-  <PageCard as="main" padding="1.5rem">
+  <PageCard as="main" padding="1.5rem" overflowY="visible">
     {#if loading}
       <p class="loading">Loading...</p>
     {:else if albumError}
