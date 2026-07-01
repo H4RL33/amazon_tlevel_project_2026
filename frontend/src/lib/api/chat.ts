@@ -41,6 +41,8 @@ export interface SendChatMessageResult {
   messageId: number;
 }
 
+type ChatStreamPayload = { delta: string } | { done: true; message_id?: number };
+
 /**
  * Streams a mentor reply via SSE. Deliberately does NOT use the native
  * EventSource API — it can't send an Authorization header, and every other
@@ -57,14 +59,15 @@ export async function sendChatMessage(
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${baseUrl}/library/chats/${sessionId}/messages`, {
+  const path = `/library/chats/${sessionId}/messages`;
+  const response = await fetch(`${baseUrl}${path}`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ message }),
   });
 
   if (!response.ok || !response.body) {
-    throw new ApiError(response.status, `Streaming request failed with status ${response.status}`);
+    throw new ApiError(response.status, `Request to ${path} failed with status ${response.status}`);
   }
 
   const reader = response.body.getReader();
@@ -85,10 +88,15 @@ export async function sendChatMessage(
       const frame = buffer.slice(0, boundary);
       buffer = buffer.slice(boundary + 2);
       if (frame.startsWith('data: ')) {
-        const payload = JSON.parse(frame.slice('data: '.length));
-        if (payload.done) {
-          messageId = payload.message_id;
-        } else if (typeof payload.delta === 'string') {
+        let payload: ChatStreamPayload;
+        try {
+          payload = JSON.parse(frame.slice('data: '.length)) as ChatStreamPayload;
+        } catch {
+          throw new ApiError(response.status, `Request to ${path} received a malformed SSE frame`);
+        }
+        if ('done' in payload && payload.done) {
+          messageId = payload.message_id ?? null;
+        } else if ('delta' in payload && typeof payload.delta === 'string') {
           onDelta(payload.delta);
         }
       }
