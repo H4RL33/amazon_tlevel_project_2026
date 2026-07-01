@@ -6,12 +6,14 @@
     - saved (boolean | undefined): whether saved to library
     - onSaveToggle (() => void | undefined): called on save button click
   Hover: subtle cursor-following 3D tilt (via the `tilt` action) plus a chromatic
-    drop-shadow derived from the current page's gradient backdrop palette.
+    drop-shadow derived from the current page's gradient backdrop palette, fading/spinning
+    in via a short one-shot box-shadow keyframe animation (see chroma-spin below) — no
+    filter, no continuous loop.
 -->
 <script lang="ts">
   import { page } from '$app/stores';
   import { tilt } from '$lib/actions/tilt';
-  import { getShadowPalette } from '$lib/gradient';
+  import { getShadowHues, shadowHsl } from '$lib/gradient';
 
   export let content: { id: number; title: string; content_type: string };
   export let xp: number | undefined = undefined;
@@ -24,14 +26,30 @@
     video: '🎬',
   };
 
+  const BASE_SHADOW = '0 4px 14px rgba(35, 47, 62, 0.18)';
+
+  function chromaShadow(hues: [number, number, number], spinOffset: number): string {
+    const [a, b, c] = hues.map((h) => (h + spinOffset) % 360);
+    return [
+      BASE_SHADOW,
+      `8px 10px 20px -6px ${shadowHsl(a, 0.35)}`,
+      `-6px 10px 20px -6px ${shadowHsl(b, 0.3)}`,
+      `0 16px 26px -10px ${shadowHsl(c, 0.25)}`,
+    ].join(', ');
+  }
+
   $: icon = ICONS[content.content_type] ?? '📄';
-  $: [shadowA, shadowB, shadowC] = getShadowPalette($page.url.pathname);
+  $: hues = getShadowHues($page.url.pathname);
+  $: spinPhase0 = chromaShadow(hues, 80);
+  $: spinPhase1 = chromaShadow(hues, 45);
+  $: spinPhase2 = chromaShadow(hues, 15);
+  $: spinPhase3 = chromaShadow(hues, 0);
 </script>
 
 <div
   class="snippet-card"
   use:tilt
-  style="--shadow-a: {shadowA}; --shadow-b: {shadowB}; --shadow-c: {shadowC};"
+  style="--phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
 >
   {#if xp !== undefined}
     <span class="xp-badge">+{xp} XP</span>
@@ -97,16 +115,32 @@
   }
 
   .snippet-card:hover {
-    box-shadow:
-      0 4px 14px rgba(35, 47, 62, 0.18),
-      8px 10px 20px -6px var(--shadow-a),
-      -6px 10px 20px -6px var(--shadow-b),
-      0 16px 26px -10px var(--shadow-c);
+    animation: chroma-spin 0.5s ease-out forwards;
+  }
+
+  @keyframes chroma-spin {
+    0% {
+      box-shadow: var(--phase-0);
+    }
+    35% {
+      box-shadow: var(--phase-1);
+    }
+    70% {
+      box-shadow: var(--phase-2);
+    }
+    100% {
+      box-shadow: var(--phase-3);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .snippet-card {
       transition: none;
+    }
+
+    .snippet-card:hover {
+      animation: none;
+      box-shadow: var(--phase-3);
     }
   }
 

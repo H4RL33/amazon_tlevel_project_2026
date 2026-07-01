@@ -37,13 +37,18 @@ export function getPagePalette(pathname: string): [string, string, string] {
 const SHADOW_SATURATION = 75;
 const SHADOW_LIGHTNESS = 60;
 
-function shadowHsl(hue: number, alpha: number): string {
+export function shadowHsl(hue: number, alpha: number): string {
   return `hsl(${hue} ${SHADOW_SATURATION}% ${SHADOW_LIGHTNESS}% / ${alpha})`;
 }
 
-export function getShadowPalette(pathname: string): [string, string, string] {
+export function getShadowHues(pathname: string): [number, number, number] {
   const baseHue = hashString(pathname) % 360;
   const hueB = (baseHue + HUE_OFFSET_B) % 360;
   const hueC = (baseHue + HUE_OFFSET_C) % 360;
+  return [baseHue, hueB, hueC];
+}
+
+export function getShadowPalette(pathname: string): [string, string, string] {
+  const [baseHue, hueB, hueC] = getShadowHues(pathname);
   return [shadowHsl(baseHue, 0.35), shadowHsl(hueB, 0.3), shadowHsl(hueC, 0.25)];
 }
