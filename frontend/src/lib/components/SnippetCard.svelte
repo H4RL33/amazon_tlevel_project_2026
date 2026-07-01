@@ -40,6 +40,7 @@
 
   $: icon = ICONS[content.content_type] ?? '📄';
   $: hues = getShadowHues($page.url.pathname);
+  $: spinStart = BASE_SHADOW;
   $: spinPhase0 = chromaShadow(hues, 80);
   $: spinPhase1 = chromaShadow(hues, 45);
   $: spinPhase2 = chromaShadow(hues, 15);
@@ -49,7 +50,7 @@
 <div
   class="snippet-card"
   use:tilt
-  style="--phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
+  style="--phase-start: {spinStart}; --phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
 >
   {#if xp !== undefined}
     <span class="xp-badge">+{xp} XP</span>
