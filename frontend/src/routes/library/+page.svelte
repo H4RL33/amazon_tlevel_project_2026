@@ -19,6 +19,7 @@
   let activeSession: ChatSessionDetail | null = data.activeSession;
   let streamingText: string | undefined = undefined;
   let isStreaming = false;
+  let chatError: string | null = null;
 
   savedSnippetIds.set(new Set(data.library.saved_snippets.map((s) => s.id)));
   enrolledAlbumIds.set(new Set(data.library.enrolled_albums.map((a) => a.id)));
@@ -29,27 +30,40 @@
   $: displayedSavedSnippets = data.library.saved_snippets.filter((s) => $savedSnippetIds.has(s.id));
 
   async function selectSession(sessionId: number) {
-    activeSession = await getChatSession(sessionId);
-    goto(`/library?session=${sessionId}`, { keepFocus: true, noScroll: true });
+    chatError = null;
+    try {
+      activeSession = await getChatSession(sessionId);
+      goto(`/library?session=${sessionId}`, { keepFocus: true, noScroll: true });
+    } catch (err) {
+      chatError = "Couldn't load that chat — please try again.";
+      console.error(err);
+    }
   }
 
   async function handleNewChat() {
-    const session = await createChatSession();
-    sessions = [
-      { id: session.id, title: session.title, updated_at: session.updated_at },
-      ...sessions,
-    ];
-    activeSession = { id: session.id, title: session.title, messages: [] };
-    goto(`/library?session=${session.id}`, { keepFocus: true, noScroll: true });
+    chatError = null;
+    try {
+      const session = await createChatSession();
+      sessions = [
+        { id: session.id, title: session.title, updated_at: session.updated_at },
+        ...sessions,
+      ];
+      activeSession = { id: session.id, title: session.title, messages: [] };
+      goto(`/library?session=${session.id}`, { keepFocus: true, noScroll: true });
+    } catch (err) {
+      chatError = "Couldn't start a new chat — please try again.";
+      console.error(err);
+    }
   }
 
   async function handleSend(text: string) {
     if (!activeSession) return;
     const sessionId = activeSession.id;
+    chatError = null;
     isStreaming = true;
     streamingText = '';
     try {
-      const result = await sendChatMessage(sessionId, text, (delta) => {
+      await sendChatMessage(sessionId, text, (delta) => {
         streamingText = (streamingText ?? '') + delta;
       });
       activeSession = await getChatSession(sessionId);
@@ -60,7 +74,9 @@
             : s
         )
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-      void result;
+    } catch (err) {
+      chatError = "Couldn't send that message — please try again.";
+      console.error(err);
     } finally {
       isStreaming = false;
       streamingText = undefined;
@@ -119,6 +135,9 @@
   </PageCard>
 
   <PageCard as="main" padding="1rem 1.5rem">
+    {#if chatError}
+      <p class="chat-error" role="alert">{chatError}</p>
+    {/if}
     {#if activeSession}
       <AgentChatWindow
         messages={activeSession.messages}
@@ -169,7 +188,10 @@
   /* Both flanking columns share one derived width so they can't drift apart:
      2 AlbumCards at AlbumGrid's max track width (220px, see
      AlbumGrid.svelte's minmax(190px, 220px)) + one --gap-inner between them
-     + 1.5rem padding on each side of a PageCard (2 * 1.5rem = 3rem). */
+     + a 3rem buffer. The actual PageCards in this file use less padding
+     than 3rem (left rail: padding="1rem"; right-stack cards:
+     padding="1rem 1.25rem") — the 3rem figure is a deliberate slack margin,
+     not a literal padding sum, to leave room for scrollbars/content overflow. */
   .library-layout {
     --rail-width: calc(2 * 220px + var(--gap-inner) + 3rem);
     display: flex;
@@ -268,6 +290,13 @@
     color: #5a6472;
     font-size: 0.875rem;
     margin: 0;
+    font-family: 'Ubuntu', sans-serif;
+  }
+
+  .chat-error {
+    font-size: 0.8rem;
+    color: #b3261e;
+    margin: 0 0 0.75rem;
     font-family: 'Ubuntu', sans-serif;
   }
 </style>
