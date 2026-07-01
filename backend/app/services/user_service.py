@@ -128,9 +128,13 @@ async def update_username(db: AsyncSession, current_user: User, username: str) -
     username = username.strip()
     if not (3 <= len(username) <= 30):
         raise HTTPException(status_code=422, detail="Username must be 3–30 characters")
-    if not re.match(r"^[a-zA-Z0-9_]+$", username):
+    if not re.match(r"^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+)*$", username):
         raise HTTPException(
-            status_code=422, detail="Username may only contain letters, numbers, and underscores"
+            status_code=422,
+            detail=(
+                "Username may only contain letters, numbers, underscores, and single spaces "
+                "between words"
+            ),
         )
     result = await db.execute(
         select(User).where(User.username == username, User.id != current_user.id)

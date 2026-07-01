@@ -43,8 +43,8 @@
       {/if}
       <ul>
         {#each section.links as link}
-          <li class:active={link.href === activeHref}>
-            <NavLink href={link.href} label={link.label} />
+          <li>
+            <NavLink href={link.href} label={link.label} active={link.href === activeHref} muted />
           </li>
         {/each}
       </ul>
@@ -67,23 +67,5 @@
   li {
     font-size: 0.875rem;
     padding: 0.4rem 0;
-  }
-
-  li :global(a) {
-    color: #5a6472 !important;
-    font-family: 'Ubuntu', sans-serif;
-    display: inline-block;
-    padding: 0.1rem 0.5rem;
-    border-bottom: 2px solid transparent;
-  }
-
-  li:hover :global(a),
-  li.active :global(a) {
-    border-bottom-color: #000000;
-  }
-
-  li.active :global(a) {
-    font-weight: 700;
-    color: #232f3e !important;
   }
 </style>

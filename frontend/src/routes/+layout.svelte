@@ -146,6 +146,14 @@
 
   .layer.morphing .blob {
     will-change: transform;
+    /* Perf: measured ~8fps (vs ~55-60fps with filter removed) when an animated
+       `transform` runs on an element with `filter: blur()` applied — the browser
+       repaints/refilters the blurred region every frame, which is very costly
+       without GPU compositing (e.g. hardened/privacy browsers that disable
+       hardware acceleration). Dropping the filter only while actively morphing
+       keeps the blur (cheap, static) everywhere else and relies on the radial
+       gradient's own soft transparent falloff for edge softness during motion. */
+    filter: none;
   }
 
   .layer.morphing .blob-a {

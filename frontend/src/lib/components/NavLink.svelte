@@ -1,9 +1,14 @@
 <script lang="ts">
   export let href: string;
   export let label: string;
+  // Whether this link represents the current page. Shows a permanent underline and bold text.
+  export let active = false;
+  // Opt-in muted colour for contexts (e.g. Sidebar) that want inactive links to read as grey.
+  // `active` always wins over `muted`.
+  export let muted = false;
 </script>
 
-<a {href}>{label}</a>
+<a {href} class:muted class:active>{label}</a>
 
 <style>
   a {
@@ -12,6 +17,10 @@
     color: #232f3e;
     text-decoration: none;
     font-family: 'Ubuntu', sans-serif;
+  }
+
+  a.muted {
+    color: #5a6472;
   }
 
   a::after {
@@ -28,7 +37,13 @@
     transition: transform 0.3s ease-in-out;
   }
 
-  a:hover::after {
+  a:hover::after,
+  a.active::after {
     transform: scaleX(1);
+  }
+
+  a.active {
+    color: #232f3e;
+    font-weight: 700;
   }
 </style>

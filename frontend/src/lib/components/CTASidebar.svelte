@@ -8,7 +8,12 @@
   Props:
     - user (UserResponse): current user — greeting uses first_name, falling back to
       username then "there" when first_name isn't set (e.g. Cognito never collected it)
-    - albums (AlbumListResponse[]): all albums; first 2 shown. Empty state shown if empty.
+    - albums (AlbumListResponse[]): ALL albums (not filtered by enrollment) — this
+      component filters down to the ones in enrolledAlbumIds itself, then shows up to 2.
+      If the user is enrolled in 1+ but fewer than 2, the remaining slot(s) render as
+      empty placeholder tiles (not just fewer cards) so the row still reads as "2 slots".
+      If the user has zero enrolled albums, the "Browse Albums to get started" prompt is
+      shown instead of two empty slots.
     - snippets (ContentListResponse[]): recommended snippets; first 3 shown. Section omitted if empty.
 -->
 <script lang="ts">
@@ -16,6 +21,7 @@
   import type { AlbumListResponse, ContentListResponse, UserResponse } from '$lib/api/types';
   import { saveSnippet, unsaveSnippet } from '$lib/api/library';
   import { savedSnippetIds } from '$lib/stores/savedSnippets';
+  import { enrolledAlbumIds } from '$lib/stores/enrolments';
   import AgentChat from '$lib/components/AgentChat.svelte';
   import AlbumCard from '$lib/components/AlbumCard.svelte';
   import NavLink from '$lib/components/NavLink.svelte';
@@ -29,7 +35,11 @@
   $: hour = new Date().getHours();
   $: timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
   $: displayName = user.first_name || user.username || 'there';
-  $: displayedAlbums = albums.slice(0, 2);
+  $: enrolledAlbums = albums.filter((a) => $enrolledAlbumIds.has(a.id));
+  $: displayedAlbums = enrolledAlbums.slice(0, 2);
+  // Only pad with empty slots when the user has *some* enrolled albums but fewer than the
+  // 2-slot layout wants — zero enrolled albums keeps the "Browse Albums" empty state instead.
+  $: emptySlotCount = displayedAlbums.length > 0 ? 2 - displayedAlbums.length : 0;
   $: displayedSnippets = snippets.slice(0, 3);
 
   async function toggleSnippetSave(contentId: number, currentlySaved: boolean) {
@@ -65,6 +75,9 @@
             <div class="album-slot">
               <AlbumCard {album} size="100%" />
             </div>
+          {/each}
+          {#each Array(emptySlotCount) as _}
+            <div class="album-slot album-slot-empty" aria-hidden="true"></div>
           {/each}
         </div>
       {:else}
@@ -135,6 +148,13 @@
     flex: 1;
     min-width: 0;
     aspect-ratio: 1;
+  }
+
+  /* Placeholder tile shown when the user has fewer enrolled albums than slots available */
+  .album-slot-empty {
+    border: 1.5px dashed #c7ccd3;
+    background: rgba(90, 100, 114, 0.04);
+    box-sizing: border-box;
   }
 
   .snippet-list {
