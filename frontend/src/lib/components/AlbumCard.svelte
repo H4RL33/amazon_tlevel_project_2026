@@ -39,9 +39,14 @@
     ].join(', ');
   }
 
-  // Four keyframe stops: the hue offset decays from 80deg down to 0 so the
-  // shadow settles exactly on the page's true palette by the end of the spin.
+  // spinStart is the plain shadow with no colour at all — the animation's own
+  // first keyframe, not a CSS `transition`, handles the black->colour fade:
+  // a `transition` on the same property never runs here because a running
+  // `animation` always takes priority over it for that property while active.
+  // The hue offset then decays from 80deg down to 0 so the shadow settles
+  // exactly on the page's true palette by the end of the spin.
   $: hues = getShadowHues($page.url.pathname);
+  $: spinStart = BASE_SHADOW;
   $: spinPhase0 = chromaShadow(hues, 80);
   $: spinPhase1 = chromaShadow(hues, 45);
   $: spinPhase2 = chromaShadow(hues, 15);
@@ -105,7 +110,7 @@
   use:tilt
   style="{size
     ? `width: ${size}; height: ${size};`
-    : ''} --phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
+    : ''} --phase-start: {spinStart}; --phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
 >
   <a class="album-link" href={resolvedHref}>
     <svg
@@ -182,17 +187,20 @@
   }
 
   .album-card:hover {
-    animation: chroma-spin 0.5s ease-out forwards;
+    animation: chroma-spin 0.6s ease-in-out forwards;
   }
 
   @keyframes chroma-spin {
     0% {
+      box-shadow: var(--phase-start);
+    }
+    25% {
       box-shadow: var(--phase-0);
     }
-    35% {
+    55% {
       box-shadow: var(--phase-1);
     }
-    70% {
+    80% {
       box-shadow: var(--phase-2);
     }
     100% {

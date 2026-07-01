@@ -57,7 +57,15 @@ export function tilt(node: HTMLElement, options: TiltOptions = {}) {
   }
 
   function handlePointerEnter() {
-    node.style.transition = 'none';
+    // Ease the initial engagement (identity -> first tilted/scaled transform)
+    // so the scale-up doesn't snap in — then drop the transition once that's
+    // done so live cursor-tracking on pointermove stays lag-free.
+    node.style.transition = 'transform 0.2s ease-out';
+    const clearEngageTransition = () => {
+      node.style.transition = 'none';
+      node.removeEventListener('transitionend', clearEngageTransition);
+    };
+    node.addEventListener('transitionend', clearEngageTransition);
   }
 
   node.addEventListener('pointerenter', handlePointerEnter);
