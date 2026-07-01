@@ -108,8 +108,9 @@
           <p class="message-text">
             {#each streamingText.split(' ') as word, i (i)}<span
                 class="chunk"
-                in:blur={{ duration: chunkBlurDuration, amount: 6 }}>{word} </span
-              >{/each}
+                in:blur={{ duration: chunkBlurDuration, amount: 6 }}
+                >{word}
+              </span>{/each}
           </p>
         </div>
       </div>
