@@ -30,9 +30,7 @@ class ChatSession(Base):
     # No User.chat_sessions relationship: sessions are always accessed via
     # chat_service.list_sessions (filtered + paginated), never via user.chat_sessions,
     # so an ORM collection would just be dead weight. Intentional.
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), index=True
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     # First ~60 chars of the first user message, truncated. Set once at creation
     # of the first message, never regenerated (no extra LLM call just to title a chat).
     title: Mapped[str] = mapped_column(String(60), default="New chat")

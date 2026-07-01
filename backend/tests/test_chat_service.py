@@ -62,7 +62,9 @@ async def test_get_session_or_404_raises_for_other_users_session(
     from app.models.library import ChatSession
     from app.services.chat_service import get_session_or_404
 
-    other_user = User(cognito_sub="other2", email="other2@example.com", first_name="O", last_name="U")
+    other_user = User(
+        cognito_sub="other2", email="other2@example.com", first_name="O", last_name="U"
+    )
     db_session.add(other_user)
     await db_session.commit()
     await db_session.refresh(other_user)
@@ -256,7 +258,9 @@ async def test_stream_mentor_reply_persists_sources_from_mentor_context(
         mock_get_client.return_value.invoke_model_with_response_stream.return_value = {
             "body": fake_event_stream()
         }
-        async for _ in stream_mentor_reply(db_session, session, "Tell me about cloud", current_user):
+        async for _ in stream_mentor_reply(
+            db_session, session, "Tell me about cloud", current_user
+        ):
             pass
 
     result = await db_session.execute(

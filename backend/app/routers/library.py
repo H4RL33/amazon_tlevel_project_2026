@@ -53,7 +53,9 @@ async def create_chat(
     return ChatSessionSummary.model_validate(session)
 
 
-@router.get("/chats/{session_id}", response_model=ChatSessionDetail, summary="Get chat session detail")
+@router.get(
+    "/chats/{session_id}", response_model=ChatSessionDetail, summary="Get chat session detail"
+)
 async def get_chat(
     session_id: int,
     current_user: User = Depends(get_current_user),
@@ -73,7 +75,9 @@ async def post_chat_message(
     session = await chat_service.get_session_or_404(db, session_id, current_user)
 
     async def event_generator():
-        async for delta in chat_service.stream_mentor_reply(db, session, body.message, current_user):
+        async for delta in chat_service.stream_mentor_reply(
+            db, session, body.message, current_user
+        ):
             yield f"data: {json.dumps({'delta': delta})}\n\n"
         yield f"data: {json.dumps({'done': True})}\n\n"
 

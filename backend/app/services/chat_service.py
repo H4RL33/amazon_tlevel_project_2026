@@ -41,9 +41,7 @@ async def list_sessions(db: AsyncSession, user: User) -> list[ChatSession]:
 
 
 async def get_session_or_404(db: AsyncSession, session_id: int, user: User) -> ChatSession:
-    stmt = select(ChatSession).where(
-        ChatSession.id == session_id, ChatSession.user_id == user.id
-    )
+    stmt = select(ChatSession).where(ChatSession.id == session_id, ChatSession.user_id == user.id)
     session = (await db.execute(stmt)).scalar_one_or_none()
     if session is None:
         # 404, not 403 — don't confirm to the caller that a session with this
@@ -154,9 +152,7 @@ async def stream_mentor_reply(
         existing_messages = await _get_messages(db, session.id)
         is_first_message = len(existing_messages) == 0
         db.add(ChatMessage(session_id=session.id, role="user", text=message))
-        db.add(
-            ChatMessage(session_id=session.id, role="mentor", text=full_text, sources=sources)
-        )
+        db.add(ChatMessage(session_id=session.id, role="mentor", text=full_text, sources=sources))
         if is_first_message:
             session.title = _derive_title(message)
         await db.commit()

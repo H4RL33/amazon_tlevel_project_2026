@@ -18,7 +18,9 @@ async def test_get_chat_session_404_for_nonexistent(authenticated_client: AsyncC
     assert resp.status_code == 404
 
 
-async def test_post_chat_message_streams_sse_and_persists(authenticated_client: AsyncClient) -> None:
+async def test_post_chat_message_streams_sse_and_persists(
+    authenticated_client: AsyncClient,
+) -> None:
     create_resp = await authenticated_client.post("/library/chats")
     session_id = create_resp.json()["id"]
 

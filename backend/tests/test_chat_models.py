@@ -30,7 +30,9 @@ async def test_chat_session_and_message_persist_and_cascade(db_session, current_
     # Deleting the session cascades to its messages.
     await db_session.delete(session)
     await db_session.commit()
-    remaining = await db_session.execute(select(ChatMessage).where(ChatMessage.session_id == session.id))
+    remaining = await db_session.execute(
+        select(ChatMessage).where(ChatMessage.session_id == session.id)
+    )
     assert remaining.scalars().all() == []
 
 
