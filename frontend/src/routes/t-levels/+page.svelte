@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { listTopics } from '$lib/api/topics';
   import type { TopicResponse } from '$lib/api/types';
-  import AlbumCard from '$lib/components/AlbumCard.svelte';
+  import TopicBanner from '$lib/components/TopicBanner.svelte';
   import PageCard from '$lib/components/PageCard.svelte';
 
   let topics: TopicResponse[] = [];
@@ -36,11 +36,7 @@
   {:else}
     <div class="topic-grid">
       {#each topics as topic}
-        <AlbumCard
-          label={topic.name}
-          href="/t-levels/{topic.slug}"
-          icon={TOPIC_ICONS[topic.slug]}
-        />
+        <TopicBanner {topic} icon={TOPIC_ICONS[topic.slug]} />
       {/each}
     </div>
   {/if}
@@ -48,9 +44,10 @@
 
 <style>
   .topic-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 190px);
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
   }
 
   .status {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
   import { page } from '$app/stores';
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
@@ -10,6 +11,11 @@
 
   type Layer = { palette: [string, string, string]; visible: boolean };
 
+  // Page-transition fade duration: subtle cross-fade between route changes.
+  // Disabled (duration: 0) when the user has requested reduced motion, since
+  // svelte/transition's `fade` doesn't respect prefers-reduced-motion itself.
+  let pageFadeDuration = 150;
+
   const initialPalette = getPagePalette($page.url.pathname);
   let layers: [Layer, Layer] = [
     { palette: initialPalette, visible: true },
@@ -18,6 +24,13 @@
   let activeIndex = 0;
 
   onMount(async () => {
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    pageFadeDuration = reducedMotionQuery.matches ? 0 : 150;
+    const handleReducedMotionChange = (e: MediaQueryListEvent) => {
+      pageFadeDuration = e.matches ? 0 : 150;
+    };
+    reducedMotionQuery.addEventListener('change', handleReducedMotionChange);
+
     if (localStorage.getItem(TOKEN_KEY)) {
       try {
         currentUser.set(await getMe());
@@ -69,9 +82,15 @@
   style="--page-p0: {layers[activeIndex].palette[0]}; --page-p1: {layers[activeIndex].palette[1]};"
 >
   <Navbar />
-  <div class="content">
-    <slot />
-  </div>
+  {#key $page.url.pathname}
+    <div
+      class="content"
+      in:fade={{ duration: pageFadeDuration }}
+      out:fade={{ duration: pageFadeDuration }}
+    >
+      <slot />
+    </div>
+  {/key}
 </div>
 <Footer />
 
@@ -86,6 +105,7 @@
 
   :global(html) {
     min-height: 100%;
+    scroll-behavior: smooth;
   }
 
   :global(body) {
@@ -209,6 +229,10 @@
     .layer {
       transition: none;
     }
+
+    :global(html) {
+      scroll-behavior: auto;
+    }
   }
 
   .shell {
@@ -244,5 +268,25 @@
     flex-direction: column;
     gap: var(--gap-inner);
     padding: 16px 16px 24px;
+    /* `scroll-behavior` is not an inherited CSS property — setting it on
+       :global(html) only smooth-scrolls the (unused, since this element
+       owns its own overflow) document viewport, not this scroll container.
+       This element is the actual scrolling box that in-page anchor links
+       (e.g. NavSidebar hrefs on /learn and /t-levels/[slug]) scroll within,
+       so it needs its own scroll-behavior: smooth for those clicks to
+       animate instead of jumping instantly. */
+    scroll-behavior: smooth;
+  }
+
+  /* Placed after .content's own scroll-behavior declaration above so this
+     override wins the cascade under prefers-reduced-motion (equal
+     specificity + later source order beats an earlier, unconditional rule
+     of the same specificity — see the main reduced-motion block above,
+     which only handles the blob animations/html, since it's declared
+     before .content in source order). */
+  @media (prefers-reduced-motion: reduce) {
+    .content {
+      scroll-behavior: auto;
+    }
   }
 </style>

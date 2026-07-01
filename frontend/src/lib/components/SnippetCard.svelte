@@ -20,11 +20,15 @@
   export let saved: boolean | undefined = undefined;
   export let onSaveToggle: (() => void) | undefined = undefined;
 
-  const ICONS: Record<string, string> = {
-    article: '📄',
-    audio: '🎧',
-    video: '🎬',
+  // Monochrome line-art icons matching AlbumCard's ICON_PATHS style/complexity
+  // (stroke="#232f3e", fill="none", stroke-width 1.3, 24x24 viewBox), keyed by
+  // content_type instead of album icon key.
+  const ICON_PATHS: Record<string, string[]> = {
+    article: ['M6 3h9l4 4v14H6V3z', 'M15 3v4h4', 'M9 11h6M9 14h6M9 17h4'],
+    audio: ['M4 9v6h4l5 4V5L8 9H4z', 'M16.5 9a4 4 0 010 6'],
+    video: ['M4 5h16v14H4z', 'M10 9l6 3-6 3z'],
   };
+  const DEFAULT_ICON_PATHS = ['M4 4h16v16H4z'];
 
   const BASE_SHADOW = '0 4px 14px rgba(35, 47, 62, 0.18)';
 
@@ -38,7 +42,7 @@
     ].join(', ');
   }
 
-  $: icon = ICONS[content.content_type] ?? '📄';
+  $: iconPaths = ICON_PATHS[content.content_type] ?? DEFAULT_ICON_PATHS;
   $: hues = getShadowHues($page.url.pathname);
   $: spinStart = BASE_SHADOW;
   $: spinPhase0 = chromaShadow(hues, 80);
@@ -53,7 +57,7 @@
   style="--phase-start: {spinStart}; --phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
 >
   {#if xp !== undefined}
-    <span class="xp-badge">+{xp} XP</span>
+    <span class="xp-badge" class:with-save-btn={onSaveToggle !== undefined}>+{xp} XP</span>
   {/if}
   {#if onSaveToggle !== undefined}
     <button
@@ -90,7 +94,22 @@
       {/if}
     </button>
   {/if}
-  <span class="icon" aria-hidden="true">{icon}</span>
+  <svg
+    class="icon"
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="30"
+    height="30"
+    fill="none"
+    stroke="#232f3e"
+    stroke-width="1.3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    {#each iconPaths as d}
+      <path {d} />
+    {/each}
+  </svg>
   <span class="title">{content.title}</span>
 </div>
 
@@ -104,8 +123,8 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.85);
-    border-radius: 12px;
+    background: #ffffff;
+    border-radius: 0;
     box-shadow: 0 2px 8px rgba(35, 47, 62, 0.12);
     cursor: pointer;
     /* box-shadow-only transition — the `tilt` action owns `transform` directly
@@ -146,7 +165,7 @@
   }
 
   .icon {
-    font-size: 2rem;
+    flex-shrink: 0;
   }
 
   .title {
@@ -169,10 +188,18 @@
     padding: 0.15rem 0.45rem;
   }
 
+  /* xp and the save toggle don't currently co-occur anywhere in the app (xp
+     is passed from CTASidebar's recommendations, saving from search/library
+     views), but if they ever do, drop the badge below the top-right button
+     instead of overlapping it. */
+  .xp-badge.with-save-btn {
+    top: 2.15rem;
+  }
+
   .save-btn {
     position: absolute;
     top: 0.5rem;
-    left: 0.5rem;
+    right: 0.5rem;
     width: 22px;
     height: 22px;
     display: flex;
