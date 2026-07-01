@@ -81,7 +81,9 @@
 <div
   class="album-card"
   use:tilt
-  style="{size ? `width: ${size}; height: ${size};` : ''} --shadow-a: {shadowA}; --shadow-b: {shadowB}; --shadow-c: {shadowC};"
+  style="{size
+    ? `width: ${size}; height: ${size};`
+    : ''} --shadow-a: {shadowA}; --shadow-b: {shadowB}; --shadow-c: {shadowC};"
 >
   <a class="album-link" href={resolvedHref}>
     <svg
