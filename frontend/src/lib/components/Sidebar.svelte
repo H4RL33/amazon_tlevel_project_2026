@@ -35,24 +35,68 @@
   export let ariaLabel: string = 'Page navigation';
 </script>
 
-<PageCard as="aside" {width} padding="1.5rem 1rem" overflowY="auto">
-  <nav class="sidebar-nav" aria-label={ariaLabel}>
-    {#each sections as section}
-      {#if section.title}
-        <SideHeader title={section.title} label={section.sideLabel ?? ''} />
-      {/if}
-      <ul>
-        {#each section.links as link}
-          <li>
-            <NavLink href={link.href} label={link.label} active={link.href === activeHref} muted />
-          </li>
-        {/each}
-      </ul>
-    {/each}
-  </nav>
-</PageCard>
+<div class="sidebar-sticky">
+  <PageCard as="aside" {width} padding="1.5rem 1rem" overflowY="auto">
+    <nav class="sidebar-nav" aria-label={ariaLabel}>
+      {#each sections as section}
+        {#if section.title}
+          <SideHeader title={section.title} label={section.sideLabel ?? ''} />
+        {/if}
+        <ul>
+          {#each section.links as link}
+            <li>
+              <NavLink
+                href={link.href}
+                label={link.label}
+                active={link.href === activeHref}
+                muted
+              />
+            </li>
+          {/each}
+        </ul>
+      {/each}
+    </nav>
+  </PageCard>
+</div>
 
 <style>
+  /* Keeps the sidebar in view as the page's single scroll container
+     (.content in +layout.svelte) scrolls the main content beside it.
+     A wrapper div (rather than reaching into PageCard's own .page-card
+     class) keeps PageCard's encapsulation intact — this element owns the
+     sticky/max-height behaviour, PageCard just renders the floating card
+     inside it.
+
+     top: 16px matches .content's own padding-top (see +layout.svelte), so
+     the sidebar sticks exactly where it already naturally sits at rest —
+     no visual jump when it starts sticking.
+
+     max-height caps this box to whatever of the viewport .content actually
+     has left to show, so a sidebar taller than that (e.g. AlbumSidebar with
+     many Sides, or a long topic list) scrolls internally via PageCard's own
+     overflow-y: auto instead of spilling past the bottom of the viewport
+     where it would be unreachable (sticky elements don't shrink themselves
+     to fit — they just stop moving). Derived from the shell layout in
+     +layout.svelte: 100dvh, minus the shell's top+bottom outer padding
+     (2 x --gap-outer), minus the gap between Navbar and .content
+     (--gap-inner), minus Navbar's fixed content height (48px, from
+     Navbar.svelte's .nav-inner), minus .content's own top+bottom padding
+     (16px + 24px) since the sticky box lives inside that padding. */
+  .sidebar-sticky {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 24px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Lets the PageCard shrink to sidebar-sticky's max-height (rather than
+     overflowing it) so its own overflow-y: auto can take over scrolling. */
+  .sidebar-sticky :global(.page-card) {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
   .sidebar-nav {
     display: flex;
     flex-direction: column;

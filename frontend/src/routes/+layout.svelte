@@ -82,15 +82,17 @@
   style="--page-p0: {layers[activeIndex].palette[0]}; --page-p1: {layers[activeIndex].palette[1]};"
 >
   <Navbar />
-  {#key $page.url.pathname}
-    <div
-      class="content"
-      in:fade={{ duration: pageFadeDuration }}
-      out:fade={{ duration: pageFadeDuration }}
-    >
-      <slot />
-    </div>
-  {/key}
+  <div class="content-slot">
+    {#key $page.url.pathname}
+      <div
+        class="content"
+        in:fade={{ duration: pageFadeDuration }}
+        out:fade={{ duration: pageFadeDuration }}
+      >
+        <slot />
+      </div>
+    {/key}
+  </div>
 </div>
 <Footer />
 
@@ -258,11 +260,24 @@
      whatever's left of the viewport shell via min-height: 0, which overrides
      flex's default min-height: auto that would otherwise let it grow past
      that and push the footer down.
-     padding: shadow buffer so overflow-y: auto doesn't clip PageCard
-     box-shadows (Navbar has no equivalent buffer since it never scrolls). */
-  .content {
+
+     .content-slot is the sized flex track; .content is absolutely positioned
+     to fill it. This is required (not just belt-and-braces) because the
+     {#key} block above keeps the outgoing route's .content mounted and
+     in-flow for the ~150ms crossfade, so there are briefly *two* .content
+     elements alive at once. If .content itself were the flex child, that
+     briefly doubles the flex track's height and visibly shoves Footer down
+     and back up mid-transition — absolutely positioning both copies inside
+     the one stably-sized .content-slot makes them overlap instead. */
+  .content-slot {
+    position: relative;
     flex: 1 1 auto;
     min-height: 0;
+  }
+
+  .content {
+    position: absolute;
+    inset: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;

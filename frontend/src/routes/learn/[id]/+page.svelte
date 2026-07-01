@@ -151,7 +151,7 @@
   /* AlbumSidebar's PageCard: fixed width, never grows or shrinks. Flex's
      defaults (grow: 0, shrink: 1, basis: auto-from-width) are what let it
      shrink when the row got tight — pin all three explicitly instead. */
-  .album-page > :global(aside.page-card) {
+  .album-page > :global(.sidebar-sticky) {
     flex: 0 0 288px;
   }
 

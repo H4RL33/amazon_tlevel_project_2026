@@ -3,16 +3,23 @@
   Purpose: Wide rectangular "banner" tile for a Topic on the /t-levels index page.
     Deliberately distinct from AlbumCard's square tile shape so Topics/T-Levels read as a
     different kind of thing from Albums at a glance: left-aligned icon, title + description
-    stacked to its right, vertically centred as a group, thin accent-colour edge on the left.
+    stacked to its right, vertically centred as a group.
   Props:
-    - topic (TopicResponse): the Topic to render (name, description, accent_colour, slug).
+    - topic (TopicResponse): the Topic to render (name, description, slug).
     - icon (string | undefined): icon key (see ICON_PATHS below) — same vocabulary subset
       used by AlbumCard for the icons this page actually needs (code, briefcase, cloud,
       compass, heart). Duplicated here (not imported) because AlbumCard.svelte is owned by
       another workstream and is out of bounds to edit/refactor for this task.
+  Hover: subtle cursor-following 3D tilt (via the `tilt` action) plus a chromatic drop-shadow
+    derived from the current page's gradient backdrop palette, fading/spinning in via a short
+    one-shot box-shadow keyframe animation (see chroma-spin below) — ported from AlbumCard's
+    identical pattern, no filter, no continuous loop.
 -->
 <script lang="ts">
+  import { page } from '$app/stores';
   import type { TopicResponse } from '$lib/api/types';
+  import { tilt } from '$lib/actions/tilt';
+  import { getShadowHues, shadowHsl } from '$lib/gradient';
 
   export let topic: TopicResponse;
   export let icon: string | undefined = undefined;
@@ -31,11 +38,39 @@
   };
   const DEFAULT_ICON_PATHS = ['M4 4h16v16H4z'];
 
+  const BASE_SHADOW = '0 10px 18px -4px rgba(35, 47, 62, 0.35)';
+
+  function chromaShadow(hues: [number, number, number], spinOffset: number): string {
+    const [a, b, c] = hues.map((h) => (h + spinOffset) % 360);
+    return [
+      BASE_SHADOW,
+      `10px 14px 26px -8px ${shadowHsl(a, 0.35)}`,
+      `-8px 14px 26px -8px ${shadowHsl(b, 0.3)}`,
+      `0 20px 34px -12px ${shadowHsl(c, 0.25)}`,
+    ].join(', ');
+  }
+
+  // spinStart is the plain shadow with no colour at all — the animation's own
+  // first keyframe, not a CSS `transition`, handles the black->colour fade (see
+  // AlbumCard.svelte for the full rationale). The hue offset decays from 80deg
+  // down to 0 so the shadow settles exactly on the page's true palette by the
+  // end of the spin.
+  $: hues = getShadowHues($page.url.pathname);
+  $: spinStart = BASE_SHADOW;
+  $: spinPhase0 = chromaShadow(hues, 80);
+  $: spinPhase1 = chromaShadow(hues, 45);
+  $: spinPhase2 = chromaShadow(hues, 15);
+  $: spinPhase3 = chromaShadow(hues, 0);
+
   $: iconPaths = ICON_PATHS[icon ?? ''] ?? DEFAULT_ICON_PATHS;
 </script>
 
-<a class="topic-banner" href="/t-levels/{topic.slug}" style="--accent: {topic.accent_colour}">
-  <span class="accent-bar" />
+<a
+  class="topic-banner"
+  href="/t-levels/{topic.slug}"
+  use:tilt
+  style="--phase-start: {spinStart}; --phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
+>
   <span class="icon-wrap">
     <svg
       class="icon"
@@ -76,20 +111,44 @@
     text-decoration: none;
     color: inherit;
     overflow: hidden;
-    transition: box-shadow 0.2s ease;
+    /* box-shadow-only transition (no filter, no continuous animation) — the
+       `tilt` action owns `transform` directly, so it isn't listed here to
+       avoid two systems fighting over the same property. */
+    transition: box-shadow 0.3s ease;
+    transform-style: preserve-3d;
   }
 
   .topic-banner:hover {
-    box-shadow: 0 14px 24px -6px rgba(35, 47, 62, 0.45);
+    animation: chroma-spin 0.6s ease-in-out forwards;
   }
 
-  .accent-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 6px;
-    background: var(--accent, #232f3e);
+  @keyframes chroma-spin {
+    0% {
+      box-shadow: var(--phase-start);
+    }
+    25% {
+      box-shadow: var(--phase-0);
+    }
+    55% {
+      box-shadow: var(--phase-1);
+    }
+    80% {
+      box-shadow: var(--phase-2);
+    }
+    100% {
+      box-shadow: var(--phase-3);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .topic-banner {
+      transition: none;
+    }
+
+    .topic-banner:hover {
+      animation: none;
+      box-shadow: var(--phase-3);
+    }
   }
 
   .icon-wrap {
@@ -100,7 +159,7 @@
     width: 60px;
     height: 60px;
     margin-left: 0.5rem;
-    background: color-mix(in srgb, var(--accent, #232f3e) 12%, transparent);
+    background: #f5f5f0;
   }
 
   .text {

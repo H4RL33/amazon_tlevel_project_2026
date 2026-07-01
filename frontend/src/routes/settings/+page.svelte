@@ -221,7 +221,7 @@
     height: 100%;
   }
 
-  .settings-page > :global(aside.page-card) {
+  .settings-page > :global(.sidebar-sticky) {
     flex: 0 0 288px;
   }
 
