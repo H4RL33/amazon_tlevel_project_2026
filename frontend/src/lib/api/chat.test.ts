@@ -52,7 +52,9 @@ describe('chat api client', () => {
     const mockDetail = {
       id: 3,
       title: 'Hi',
-      messages: [{ id: 1, role: 'user', text: 'Hi', sources: null, created_at: '2026-07-01T00:00:00Z' }],
+      messages: [
+        { id: 1, role: 'user', text: 'Hi', sources: null, created_at: '2026-07-01T00:00:00Z' },
+      ],
     };
     vi.stubGlobal(
       'fetch',
