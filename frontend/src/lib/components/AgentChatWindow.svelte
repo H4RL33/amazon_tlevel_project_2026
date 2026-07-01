@@ -15,7 +15,8 @@
     - isStreaming (boolean): drives the chat card's inner chromatic glow.
 -->
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
+  import { blur } from 'svelte/transition';
   import MentorAvatar from '$lib/components/MentorAvatar.svelte';
   import type { ChatMessageRecord } from '$lib/api/chat';
 
@@ -28,6 +29,11 @@
   let draft = '';
   let messageContainer: HTMLDivElement | undefined;
   let flourish = false;
+
+  // svelte/transition's `blur` doesn't respect prefers-reduced-motion itself,
+  // so we zero out the duration when the user has requested reduced motion
+  // (same convention as +layout.svelte's pageFadeDuration).
+  let chunkBlurDuration = 700;
 
   $: if (messages || streamingText) {
     scrollToBottom();
@@ -52,6 +58,16 @@
     flourish = false;
     void tick().then(() => (flourish = true));
   }
+
+  onMount(() => {
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    chunkBlurDuration = reducedMotionQuery.matches ? 0 : 700;
+    const handleReducedMotionChange = (e: MediaQueryListEvent) => {
+      chunkBlurDuration = e.matches ? 0 : 700;
+    };
+    reducedMotionQuery.addEventListener('change', handleReducedMotionChange);
+    return () => reducedMotionQuery.removeEventListener('change', handleReducedMotionChange);
+  });
 </script>
 
 <div class="chat-window" class:streaming={isStreaming}>
@@ -90,7 +106,10 @@
             <span class="message-name">Dynamic Mentor</span>
           </div>
           <p class="message-text">
-            {#each streamingText.split(' ') as word, i (i)}<span class="chunk">{word} </span>{/each}
+            {#each streamingText.split(' ') as word, i (i)}<span
+                class="chunk"
+                in:blur={{ duration: chunkBlurDuration, amount: 6 }}>{word} </span
+              >{/each}
           </p>
         </div>
       </div>
@@ -238,12 +257,7 @@
   }
 
   .chunk {
-    display: inline;
-    filter: blur(0);
-    opacity: 1;
-    transition:
-      filter 0.7s ease-out,
-      opacity 0.7s ease-out;
+    display: inline-block;
   }
 
   .sources {
