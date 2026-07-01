@@ -11,7 +11,7 @@ describe('getPagePalette', () => {
   });
 
   it('returns three distinct hsl colours', () => {
-    const [a, b, c] = getPagePalette('/dashboard');
+    const [a, b, c] = getPagePalette('/settings');
     expect(new Set([a, b, c]).size).toBe(3);
   });
 

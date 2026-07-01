@@ -20,7 +20,18 @@
   let usernameError: string | null = null;
   let savingUsername = false;
 
-  $: if ($currentUser) usernameValue = $currentUser.username ?? '';
+  // Only resync usernameValue from the store when the logged-in user actually
+  // changes (e.g. on initial load), not on every render. usernameValue is
+  // two-way bound to the TextInput below; because Svelte groups reactive
+  // statements that assign a bound variable together with the variables they
+  // read, a plain `$: if ($currentUser) usernameValue = ...` re-fires on every
+  // keystroke and immediately reverts what the user just typed. Gating on the
+  // user id prevents that stomp loop.
+  let loadedUsernameForUserId: number | null = null;
+  $: if ($currentUser && $currentUser.id !== loadedUsernameForUserId) {
+    loadedUsernameForUserId = $currentUser.id;
+    usernameValue = $currentUser.username ?? '';
+  }
 
   const settingsSections: SidebarSection[] = [
     { links: [{ label: 'Personalisation', href: '/settings' }] },
@@ -249,6 +260,15 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+  }
+
+  .avatar-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
 
   .field-row {

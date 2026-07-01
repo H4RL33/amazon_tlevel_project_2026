@@ -1,13 +1,13 @@
 <!--
   NavBarAvatar
   Purpose: User avatar shown on the right of the NavBar with a dropdown for the
-    user's Dashboard, Settings, Help, and Sign out.
+    user's Settings, Help, and Sign out.
   Used in: NavBar
   Props:
     - user (UserResponse): current user
   Behaviour:
     - Clicking the avatar toggles a dropdown panel anchored below-right of the avatar.
-    - Dropdown items: "Dashboard" (/dashboard), "Settings" (/settings), "Help" (/help), "Sign out".
+    - Dropdown items: "Settings" (/settings), "Help" (/help), "Sign out".
     - Clicking outside the dropdown or pressing Escape closes it.
   Styling:
     Avatar: 36px circle (via AvatarBadge).
