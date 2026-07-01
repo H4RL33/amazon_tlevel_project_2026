@@ -28,11 +28,7 @@ async def _count_completed_albums(db: AsyncSession, user: User) -> int:
     yet never counts — nothing to complete.
     """
     enrolled_album_ids = (
-        (
-            await db.execute(
-                select(AlbumEnrolment.album_id).where(AlbumEnrolment.user_id == user.id)
-            )
-        )
+        (await db.execute(select(AlbumEnrolment.album_id).where(AlbumEnrolment.user_id == user.id)))
         .scalars()
         .all()
     )

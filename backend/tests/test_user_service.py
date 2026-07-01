@@ -174,7 +174,9 @@ async def test_set_avatar_rejects_a_key_outside_the_users_own_prefix(
 async def test_update_username_allows_single_spaces_between_words(
     db_session: AsyncSession,
 ) -> None:
-    user = User(cognito_sub="sub-space-1", email="space1@example.com", first_name="A", last_name="B")
+    user = User(
+        cognito_sub="sub-space-1", email="space1@example.com", first_name="A", last_name="B"
+    )
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)
@@ -187,7 +189,9 @@ async def test_update_username_allows_single_spaces_between_words(
 async def test_update_username_strips_leading_and_trailing_space(
     db_session: AsyncSession,
 ) -> None:
-    user = User(cognito_sub="sub-space-2", email="space2@example.com", first_name="A", last_name="B")
+    user = User(
+        cognito_sub="sub-space-2", email="space2@example.com", first_name="A", last_name="B"
+    )
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)
@@ -200,7 +204,9 @@ async def test_update_username_strips_leading_and_trailing_space(
 async def test_update_username_rejects_double_spaces() -> None:
     from fastapi import HTTPException
 
-    user = User(cognito_sub="sub-space-3", email="space3@example.com", first_name="A", last_name="B")
+    user = User(
+        cognito_sub="sub-space-3", email="space3@example.com", first_name="A", last_name="B"
+    )
 
     with pytest.raises(HTTPException) as exc_info:
         await user_service.update_username(None, user, "harley  welsh")  # type: ignore[arg-type]
@@ -210,7 +216,9 @@ async def test_update_username_rejects_double_spaces() -> None:
 async def test_update_username_still_rejects_special_characters() -> None:
     from fastapi import HTTPException
 
-    user = User(cognito_sub="sub-space-4", email="space4@example.com", first_name="A", last_name="B")
+    user = User(
+        cognito_sub="sub-space-4", email="space4@example.com", first_name="A", last_name="B"
+    )
 
     with pytest.raises(HTTPException) as exc_info:
         await user_service.update_username(None, user, "harley@welsh")  # type: ignore[arg-type]
