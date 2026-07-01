@@ -12,7 +12,11 @@
       Topics have no icon field of their own. Ignored when album is set (album.icon wins).
   Hover: subtle cursor-following 3D tilt (via the `tilt` action — event-driven, transform-only,
     no continuous animation loop) plus a chromatic drop-shadow whose colours are derived from
-    the current page's gradient backdrop palette (see getShadowPalette in $lib/gradient).
+    the current page's gradient backdrop palette (see getShadowHues in $lib/gradient). The
+    plain->chromatic transition is a short one-shot "spin" (see chroma-spin keyframes below):
+    box-shadow only, no filter, and it runs once (0.5s) rather than continuously, so it's a
+    fundamentally different (much cheaper) animation than the always-on blur this app's perf
+    pass found expensive elsewhere.
 -->
 <script lang="ts">
   import { page } from '$app/stores';
@@ -21,9 +25,27 @@
   import { enrolledAlbumIds } from '$lib/stores/enrolments';
   import { currentUser } from '$lib/stores/user';
   import { tilt } from '$lib/actions/tilt';
-  import { getShadowPalette } from '$lib/gradient';
+  import { getShadowHues, shadowHsl } from '$lib/gradient';
 
-  $: [shadowA, shadowB, shadowC] = getShadowPalette($page.url.pathname);
+  const BASE_SHADOW = '0 10px 18px -4px rgba(35, 47, 62, 0.35)';
+
+  function chromaShadow(hues: [number, number, number], spinOffset: number): string {
+    const [a, b, c] = hues.map((h) => (h + spinOffset) % 360);
+    return [
+      BASE_SHADOW,
+      `10px 14px 26px -8px ${shadowHsl(a, 0.35)}`,
+      `-8px 14px 26px -8px ${shadowHsl(b, 0.3)}`,
+      `0 20px 34px -12px ${shadowHsl(c, 0.25)}`,
+    ].join(', ');
+  }
+
+  // Four keyframe stops: the hue offset decays from 80deg down to 0 so the
+  // shadow settles exactly on the page's true palette by the end of the spin.
+  $: hues = getShadowHues($page.url.pathname);
+  $: spinPhase0 = chromaShadow(hues, 80);
+  $: spinPhase1 = chromaShadow(hues, 45);
+  $: spinPhase2 = chromaShadow(hues, 15);
+  $: spinPhase3 = chromaShadow(hues, 0);
 
   export let album: AlbumListResponse | undefined = undefined;
   export let href: string | undefined = undefined;
@@ -83,7 +105,7 @@
   use:tilt
   style="{size
     ? `width: ${size}; height: ${size};`
-    : ''} --shadow-a: {shadowA}; --shadow-b: {shadowB}; --shadow-c: {shadowC};"
+    : ''} --phase-0: {spinPhase0}; --phase-1: {spinPhase1}; --phase-2: {spinPhase2}; --phase-3: {spinPhase3};"
 >
   <a class="album-link" href={resolvedHref}>
     <svg
@@ -160,16 +182,32 @@
   }
 
   .album-card:hover {
-    box-shadow:
-      0 10px 18px -4px rgba(35, 47, 62, 0.35),
-      10px 14px 26px -8px var(--shadow-a),
-      -8px 14px 26px -8px var(--shadow-b),
-      0 20px 34px -12px var(--shadow-c);
+    animation: chroma-spin 0.5s ease-out forwards;
+  }
+
+  @keyframes chroma-spin {
+    0% {
+      box-shadow: var(--phase-0);
+    }
+    35% {
+      box-shadow: var(--phase-1);
+    }
+    70% {
+      box-shadow: var(--phase-2);
+    }
+    100% {
+      box-shadow: var(--phase-3);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .album-card {
       transition: none;
+    }
+
+    .album-card:hover {
+      animation: none;
+      box-shadow: var(--phase-3);
     }
   }
 

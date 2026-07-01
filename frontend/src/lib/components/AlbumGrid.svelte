@@ -9,12 +9,13 @@
     If albums is empty, show an empty state: "No Albums available yet."
   Styling:
     CSS grid of square AlbumCard tiles, gap matches the global --gap-inner spacing token
-    used everywhere else in this layout. Columns are auto-fit minmax(190px, 1fr) so that
-    however many 190px+ columns actually fit the container width, they stretch evenly to
-    consume the full row with no dangling space on the right — auto-fit (rather than
-    auto-fill) is used deliberately so that when there are fewer albums than would fill a
-    row, the empty tracks collapse and the real cards expand to fill the row instead of
-    leaving a blank gap where unused tracks would otherwise sit.
+    used everywhere else in this layout. Columns are auto-fit minmax(190px, 220px): auto-fit
+    (rather than auto-fill) collapses empty tracks so a full row of cards stretches evenly
+    to consume the width with no dangling gap on the right, but the 220px upper bound stops
+    that stretch from running away — this component is also used per-topic-section on
+    /learn and /t-levels/[slug], where a section can have as few as 1-2 albums, and an
+    unbounded 1fr (tried first, then reverted) let those sparse sections stretch a single
+    card to the full container width.
 -->
 <script lang="ts">
   import AlbumCard from './AlbumCard.svelte';
@@ -38,7 +39,7 @@
 <style>
   .album-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 220px));
     gap: var(--gap-inner);
   }
 </style>
