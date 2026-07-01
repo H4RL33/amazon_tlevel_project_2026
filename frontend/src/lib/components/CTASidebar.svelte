@@ -111,11 +111,12 @@
 
 <style>
   /* Same sticky/max-height treatment as Sidebar.svelte (see that component
-     for the full derivation) — keeps this sidebar in view as .content
-     scrolls, and native `position: sticky` already refuses to move past the
-     bottom edge of its containing block (the `.home-auth` row in +page.svelte),
-     so it can never drift down into the Footer's gap on its own. The
-     max-height/flex/min-height trio below exists for the other direction:
+     for the full derivation, including the `flex-shrink: 0` requirement on
+     `.home-auth` — without it this element doesn't stick at all). Once
+     actually sticking, native `position: sticky` refuses to move past the
+     bottom edge of its containing block (`.home-auth`), so it can never
+     drift down into the Footer's gap on its own. The max-height/flex/
+     min-height trio below exists for the other direction:
      without it, this box's own max-height still clips the *positioning* of
      `.sidebar-sticky`, but its PageCard child (an ordinary block box) doesn't
      shrink to fit — with `overflowY="visible"`, taller-than-usual content
@@ -128,7 +129,7 @@
   .sidebar-sticky {
     position: sticky;
     top: 16px;
-    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 24px);
+    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 48px);
     display: flex;
     flex-direction: column;
   }

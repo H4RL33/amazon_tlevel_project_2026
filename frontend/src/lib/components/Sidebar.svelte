@@ -81,11 +81,22 @@
      (2 x --gap-outer), minus the gap between Navbar and .content
      (--gap-inner), minus Navbar's fixed content height (48px, from
      Navbar.svelte's .nav-inner), minus .content's own top+bottom padding
-     (16px + 24px) since the sticky box lives inside that padding. */
+     (16px + 48px, the latter being .content's shadow-clip buffer — see
+     +layout.svelte) since the sticky box lives inside that padding.
+
+     Caller requirement: .content (+layout.svelte) is `display: flex;
+     flex-direction: column`, so whatever row wrapper places this component
+     next to the main content (e.g. .settings-page, .album-page) is itself a
+     flex item of a scrolling flex container. That row wrapper MUST set
+     `flex-shrink: 0` — left at flex's default of 1, Chromium's sticky
+     containing-block computation breaks and this element stops sticking
+     entirely (scrolls 1:1 with .content instead), even though nothing here
+     changes. Confirmed via Playwright; see .home-auth in the root
+     +page.svelte for the reference fix. */
   .sidebar-sticky {
     position: sticky;
     top: 16px;
-    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 24px);
+    max-height: calc(100dvh - (2 * var(--gap-outer)) - var(--gap-inner) - 48px - 16px - 48px);
     display: flex;
     flex-direction: column;
   }

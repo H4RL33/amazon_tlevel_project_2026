@@ -141,11 +141,19 @@
   /* Fills the layout's scrollable .content region exactly (not more, not
      less), so the row's height never changes between Albums/Snippets and
      the page-level scroll never kicks in here — only each card's own
-     overflow-y: auto does, independently. */
+     overflow-y: auto does, independently.
+
+     flex-shrink: 0: see the matching comment on .home-auth in the root
+     +page.svelte — .album-page is a flex item of .content, which is itself
+     a scrolling flex container, and leaving shrink at its default of 1
+     breaks position: sticky for AlbumSidebar's `.sidebar-sticky` in
+     Chromium. Currently a no-op in practice (same reasoning as
+     .settings-page) but pinned for the same forward-safety reason. */
   .album-page {
     display: flex;
     gap: var(--gap-inner);
     height: 100%;
+    flex-shrink: 0;
   }
 
   /* AlbumSidebar's PageCard: fixed width, never grows or shrinks. Flex's
