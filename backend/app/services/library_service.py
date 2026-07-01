@@ -32,28 +32,34 @@ def _vec_to_str(vec: list[float]) -> str:
     return "[" + ",".join(str(v) for v in vec) + "]"
 
 
-async def _get_user_boosted_ids(
-    db: AsyncSession, user: User
-) -> tuple[set[int], set[int]]:
+async def _get_user_boosted_ids(db: AsyncSession, user: User) -> tuple[set[int], set[int]]:
     """Return (saved_ids, boosted_ids) where boosted_ids = saved_ids | enrolled_content_ids."""
     saved_ids: set[int] = set(
-        (await db.execute(
-            select(UserSnippetSave.content_id).where(UserSnippetSave.user_id == user.id)
-        )).scalars().all()
+        (
+            await db.execute(
+                select(UserSnippetSave.content_id).where(UserSnippetSave.user_id == user.id)
+            )
+        )
+        .scalars()
+        .all()
     )
     enrolled_album_ids: set[int] = set(
-        (await db.execute(
-            select(AlbumEnrolment.album_id).where(AlbumEnrolment.user_id == user.id)
-        )).scalars().all()
+        (await db.execute(select(AlbumEnrolment.album_id).where(AlbumEnrolment.user_id == user.id)))
+        .scalars()
+        .all()
     )
     enrolled_content_ids: set[int] = set()
     if enrolled_album_ids:
         enrolled_content_ids = set(
-            (await db.execute(
-                select(SideContent.content_id)
-                .join(Side, Side.id == SideContent.side_id)
-                .where(Side.album_id.in_(enrolled_album_ids))
-            )).scalars().all()
+            (
+                await db.execute(
+                    select(SideContent.content_id)
+                    .join(Side, Side.id == SideContent.side_id)
+                    .where(Side.album_id.in_(enrolled_album_ids))
+                )
+            )
+            .scalars()
+            .all()
         )
     return saved_ids, saved_ids | enrolled_content_ids
 
@@ -153,7 +159,9 @@ async def semantic_search(db: AsyncSession, query: str, user: User) -> list[Cont
     return _rank_search_results(rows, boosted_ids=boosted_ids, saved_ids=saved_ids)
 
 
-async def _fetch_mentor_context(db: AsyncSession, query_vec: list[float], user: User) -> list[dict[str, Any]]:
+async def _fetch_mentor_context(
+    db: AsyncSession, query_vec: list[float], user: User
+) -> list[dict[str, Any]]:
     vec_str = _vec_to_str(query_vec)
     _, personal_ids = await _get_user_boosted_ids(db, user)
 

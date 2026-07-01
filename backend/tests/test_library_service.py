@@ -167,13 +167,7 @@ async def test_mentor_query_returns_reply_and_sources(
 
     fake_embed = [0.1] * 1024
     fake_gen_body = json.dumps(
-        {
-            "output": {
-                "message": {
-                    "content": [{"text": "Networking connects computers."}]
-                }
-            }
-        }
+        {"output": {"message": {"content": [{"text": "Networking connects computers."}]}}}
     ).encode()
     mock_gen_response = {"body": MagicMock(read=MagicMock(return_value=fake_gen_body))}
 
