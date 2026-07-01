@@ -8,6 +8,8 @@
     - href (string | undefined): overrides the link destination when set.
     - label (string | undefined): overrides the displayed title when set.
     - size (string | undefined): CSS size override (width and height), e.g. "100%".
+    - icon (string | undefined): icon key (see ICON_PATHS) to use in href/label mode, since
+      Topics have no icon field of their own. Ignored when album is set (album.icon wins).
 -->
 <script lang="ts">
   import type { AlbumListResponse } from '$lib/api/types';
@@ -19,15 +21,35 @@
   export let href: string | undefined = undefined;
   export let label: string | undefined = undefined;
   export let size: string | undefined = undefined;
+  export let icon: string | undefined = undefined;
 
   const ICON_PATHS: Record<string, string[]> = {
     cloud: ['M6 18a4 4 0 0 1-.6-7.96A5 5 0 0 1 15 8a4.5 4.5 0 0 1 1 8.9', 'M6 18h10'],
+    code: ['M9 8l-4 4 4 4', 'M15 8l4 4-4 4'],
+    shield: [
+      'M12 3l7 3v6c0 4.97-3.05 8.26-7 9c-3.95-.74-7-4.03-7-9V6z',
+      'M9 12l2 2 4-4',
+    ],
+    globe: [
+      'M12 21a9 9 0 100-18 9 9 0 000 18z',
+      'M3 12h18M12 3c-2.4 3-2.4 15 0 18M12 3c2.4 3 2.4 15 0 18',
+    ],
+    chart: ['M5 20V13M12 20V6M19 20V10', 'M3 20h18'],
+    briefcase: ['M3 8h18v11H3z', 'M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2M3 13h18'],
+    heart: [
+      'M12 20l-6.5-6.2C3 11.2 3 7.6 5.6 6.1a4.5 4.5 0 016.4 1.1 4.5 4.5 0 016.4-1.1c2.6 1.5 2.6 5.1.1 7.7z',
+      'M4 13h3l2-3 2 5 2-4 1.5 2H20',
+    ],
+    building: ['M6 21V4h12v17H6z', 'M9 7v2M14 7v2M9 11v2M14 11v2M9 15v2M14 15v2'],
+    compass: ['M12 21a9 9 0 100-18 9 9 0 000 18z', 'M15.5 8.5l-2.2 4.8-4.8 2.2 2.2-4.8z'],
   };
   const DEFAULT_ICON_PATHS = ['M4 4h16v16H4z'];
 
   $: resolvedHref = href ?? (album ? `/learn/${album.id}` : '/');
   $: resolvedLabel = label ?? album?.title ?? '';
-  $: iconPaths = album ? (ICON_PATHS[album.icon] ?? DEFAULT_ICON_PATHS) : DEFAULT_ICON_PATHS;
+  $: iconPaths = album
+    ? (ICON_PATHS[album.icon] ?? DEFAULT_ICON_PATHS)
+    : (ICON_PATHS[icon ?? ''] ?? DEFAULT_ICON_PATHS);
   $: albumId = album?.id;
   $: enrolled = albumId !== undefined ? $enrolledAlbumIds.has(albumId) : false;
   $: showToggle = !!$currentUser && albumId !== undefined;

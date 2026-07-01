@@ -6,7 +6,8 @@
     via the agentDraft store.
   Used in: / (authenticated branch)
   Props:
-    - user (UserResponse): current user — provides first_name for the greeting
+    - user (UserResponse): current user — greeting uses first_name, falling back to
+      username then "there" when first_name isn't set (e.g. Cognito never collected it)
     - albums (AlbumListResponse[]): all albums; first 2 shown. Empty state shown if empty.
     - snippets (ContentListResponse[]): recommended snippets; first 3 shown. Section omitted if empty.
 -->
@@ -25,6 +26,7 @@
 
   $: hour = new Date().getHours();
   $: timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+  $: displayName = user.first_name || user.username || 'there';
   $: displayedAlbums = albums.slice(0, 2);
   $: displayedSnippets = snippets.slice(0, 3);
 
@@ -35,7 +37,7 @@
 
 <PageCard as="aside" width="360px" padding="1.5rem" overflowY="visible">
   <div class="sidebar-inner">
-    <p class="greeting">Good {timeOfDay}, {user.first_name} 👋</p>
+    <p class="greeting">Good {timeOfDay}, {displayName} 👋</p>
 
     <div class="section">
       <span class="section-label">Your Albums</span>

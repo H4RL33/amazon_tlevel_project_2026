@@ -9,6 +9,14 @@
   let loading = true;
   let error: string | null = null;
 
+  const TOPIC_ICONS: Record<string, string> = {
+    'digital-production-design-development': 'code',
+    'digital-business-services': 'briefcase',
+    'digital-infrastructure': 'cloud',
+    'design-surveying-planning': 'compass',
+    health: 'heart',
+  };
+
   onMount(async () => {
     try {
       topics = await listTopics();
@@ -28,7 +36,11 @@
   {:else}
     <div class="topic-grid">
       {#each topics as topic}
-        <AlbumCard label={topic.name} href="/t-levels/{topic.slug}" />
+        <AlbumCard
+          label={topic.name}
+          href="/t-levels/{topic.slug}"
+          icon={TOPIC_ICONS[topic.slug]}
+        />
       {/each}
     </div>
   {/if}
