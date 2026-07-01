@@ -247,7 +247,8 @@
   .upload-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--gap-outer);
+    margin-bottom: var(--gap-inner);
   }
 
   label {
@@ -259,7 +260,7 @@
   .upload-controls {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--gap-inner);
   }
 
   .avatar-preview {
@@ -274,14 +275,22 @@
   .field-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
+    gap: var(--gap-outer);
+    margin-bottom: var(--gap-inner);
   }
 
   .field-controls {
     display: flex;
+    align-items: stretch;
+    gap: var(--gap-inner);
+  }
+
+  /* Button is a shared component with its own (shorter) default padding;
+     stretch it to match the adjacent TextInput's height in this context only. */
+  .field-controls :global(button) {
+    display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: center;
   }
 
   .status {

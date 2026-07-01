@@ -137,7 +137,9 @@
   <div class="library-main">
     <!-- Header -->
     <PageCard padding="1rem 1.5rem">
-      <h1 class="library-heading">{$currentUser?.first_name ?? 'Your'}'s Library</h1>
+      <h1 class="library-heading">
+        {$currentUser?.first_name || $currentUser?.username || 'Your'}'s Library
+      </h1>
     </PageCard>
 
     {#if searchResults !== null}
@@ -260,13 +262,21 @@
 
   .search-form {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0.5rem;
   }
 
   .search-form :global(.text-input-wrapper) {
     flex: 1;
     min-width: 0;
+  }
+
+  /* Button is a shared component with its own (shorter) default padding;
+     stretch it to match the adjacent TextInput's height in this context only. */
+  .search-form :global(button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .search-error {

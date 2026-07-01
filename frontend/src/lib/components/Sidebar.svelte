@@ -67,19 +67,19 @@
   li {
     font-size: 0.875rem;
     padding: 0.4rem 0;
-    border-left: 3px solid transparent;
   }
 
   li :global(a) {
     color: #5a6472 !important;
     font-family: 'Ubuntu', sans-serif;
-    display: block;
+    display: inline-block;
     padding: 0.1rem 0.5rem;
+    border-bottom: 2px solid transparent;
   }
 
-  li:hover,
-  li.active {
-    border-left-color: #000000;
+  li:hover :global(a),
+  li.active :global(a) {
+    border-bottom-color: #000000;
   }
 
   li.active :global(a) {
