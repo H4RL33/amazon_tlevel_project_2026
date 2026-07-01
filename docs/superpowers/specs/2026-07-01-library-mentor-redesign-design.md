@@ -129,6 +129,14 @@ Full rebuild of `AgentChatWindow.svelte`, which today is a rough stub (hardcoded
 
 `AgentChat.svelte` (the CTASidebar teaser) keeps its current `--page-p0`/`--page-p1`-driven accent line as-is — it's meant to feel like part of whatever page it's currently shown on, not locked to the Library page's palette.
 
+### Chat card streaming glow
+
+While a reply is streaming in, the entire center `PageCard` (the chat window) gets a large inner chromatic glow around its perimeter, layered on top of (not replacing) the card's normal outer drop-shadow:
+
+- **Colour:** four inset `box-shadow` layers, each offset toward a different corner (top-left/top-right/bottom-right/bottom-left) via `inset <x> <y> <blur> <spread> <colour>`, so four distinct hues stay visible around the edges simultaneously rather than blending into one colour toward the centre. Hues cycle continuously via a `linear infinite` keyframe animation on the shadow colours (~6s loop, four ~90°-spaced steps) while streaming is active — colours use the same route-palette derivation as the rest of the Mentor's chromatic accents (`getShadowHues`/`shadowHsl` from `gradient.ts`), not fixed literals.
+- **Fog creep-in/dissipate:** the glow layer additionally carries a `filter: blur()` that eases from a heavy blur (invisible/hazy at rest) to fully sharp as the glow appears, and back to hazy as it leaves — not a plain opacity fade. Appearing: `opacity 0→1` + `blur 22px→0`, 0.9s ease-out (glow "condenses into focus" as streaming starts). Leaving: reverse, 1.1s ease-in (slightly slower/softer, reads as dispersing rather than switching off). The colour-cycle animation and the appear/leave blur+opacity transition are independent (different CSS properties/mechanisms), so the cycle keeps running underneath regardless of transition state — it's always mid-cycle and ready the instant a new stream starts.
+- **Trigger:** a `streaming` class (or equivalent state-driven class binding) toggled on the chat window's root `PageCard` for the duration of an active SSE stream — added when the first chunk of a reply starts arriving, removed when the stream closes (whether it completed normally or was cut short per the error-handling behaviour above).
+
 ### Right stack
 
 Reuses the existing `AlbumCard`/`SnippetCard` components unchanged (both already have the tilt + chromatic hover-glow treatment from prior work) — no new card variants needed.
