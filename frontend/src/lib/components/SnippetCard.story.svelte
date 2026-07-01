@@ -34,4 +34,12 @@
   <Hst.Variant title="Video, with XP">
     <SnippetCard content={videoSnippet} xp={50} />
   </Hst.Variant>
+
+  <Hst.Variant title="Saveable, unsaved">
+    <SnippetCard content={articleSnippet} onSaveToggle={() => {}} saved={false} />
+  </Hst.Variant>
+
+  <Hst.Variant title="Saveable, saved">
+    <SnippetCard content={articleSnippet} onSaveToggle={() => {}} saved={true} />
+  </Hst.Variant>
 </Hst.Story>

@@ -33,7 +33,31 @@
       aria-label={saved ? 'Remove from library' : 'Save to library'}
       title={saved ? 'Remove from library' : 'Save to library'}
     >
-      {saved ? '🔖' : '🏷️'}
+      {#if saved}
+        <svg
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        >
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      {:else}
+        <svg
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        >
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      {/if}
     </button>
   {/if}
   <span class="icon" aria-hidden="true">{icon}</span>
@@ -92,18 +116,36 @@
     position: absolute;
     top: 0.5rem;
     left: 0.5rem;
-    background: none;
-    border: none;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1.5px solid #232f3e;
+    border-radius: 0;
     cursor: pointer;
-    font-size: 1rem;
+    color: #232f3e;
     padding: 0;
-    line-height: 1;
-    opacity: 0.6;
-    transition: opacity 0.15s;
+    box-shadow: 0 2px 6px rgba(35, 47, 62, 0.2);
+    transition:
+      background 0.15s,
+      color 0.15s;
   }
 
-  .save-btn:hover,
+  .save-btn:hover {
+    background: #232f3e;
+    color: #ffffff;
+  }
+
   .save-btn.saved {
-    opacity: 1;
+    background: #232f3e;
+    color: #ffffff;
+  }
+
+  .save-btn.saved:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
   }
 </style>

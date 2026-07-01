@@ -14,6 +14,8 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import type { AlbumListResponse, ContentListResponse, UserResponse } from '$lib/api/types';
+  import { saveSnippet, unsaveSnippet } from '$lib/api/library';
+  import { savedSnippetIds } from '$lib/stores/savedSnippets';
   import AgentChat from '$lib/components/AgentChat.svelte';
   import AlbumCard from '$lib/components/AlbumCard.svelte';
   import NavLink from '$lib/components/NavLink.svelte';
@@ -29,6 +31,22 @@
   $: displayName = user.first_name || user.username || 'there';
   $: displayedAlbums = albums.slice(0, 2);
   $: displayedSnippets = snippets.slice(0, 3);
+
+  async function toggleSnippetSave(contentId: number, currentlySaved: boolean) {
+    if (currentlySaved) {
+      savedSnippetIds.update((s) => {
+        s.delete(contentId);
+        return new Set(s);
+      });
+      await unsaveSnippet(contentId);
+    } else {
+      savedSnippetIds.update((s) => {
+        s.add(contentId);
+        return new Set(s);
+      });
+      await saveSnippet(contentId);
+    }
+  }
 
   function handleAgentSubmit(event: CustomEvent<string>) {
     goto(`/library?q=${encodeURIComponent(event.detail)}`);
@@ -60,7 +78,11 @@
         <span class="section-label">Recommended Snippets</span>
         <div class="snippet-list">
           {#each displayedSnippets as snippet}
-            <SnippetCard content={snippet} />
+            <SnippetCard
+              content={snippet}
+              saved={$savedSnippetIds.has(snippet.id)}
+              onSaveToggle={() => toggleSnippetSave(snippet.id, $savedSnippetIds.has(snippet.id))}
+            />
           {/each}
         </div>
       </div>
