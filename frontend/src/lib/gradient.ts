@@ -29,3 +29,21 @@ export function getPagePalette(pathname: string): [string, string, string] {
   const hueC = (baseHue + HUE_OFFSET_C) % 360;
   return [hsl(baseHue), hsl(hueB), hsl(hueC)];
 }
+
+// Same per-route hue derivation as getPagePalette, but saturated/darkened for
+// use as a glow colour (a card's chromatic hover shadow) rather than a pastel
+// backdrop fill — the backdrop's 87% lightness would read as invisible white
+// if used as a shadow colour.
+const SHADOW_SATURATION = 75;
+const SHADOW_LIGHTNESS = 60;
+
+function shadowHsl(hue: number, alpha: number): string {
+  return `hsl(${hue} ${SHADOW_SATURATION}% ${SHADOW_LIGHTNESS}% / ${alpha})`;
+}
+
+export function getShadowPalette(pathname: string): [string, string, string] {
+  const baseHue = hashString(pathname) % 360;
+  const hueB = (baseHue + HUE_OFFSET_B) % 360;
+  const hueC = (baseHue + HUE_OFFSET_C) % 360;
+  return [shadowHsl(baseHue, 0.35), shadowHsl(hueB, 0.3), shadowHsl(hueC, 0.25)];
+}

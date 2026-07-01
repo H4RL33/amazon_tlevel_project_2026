@@ -10,12 +10,20 @@
     - size (string | undefined): CSS size override (width and height), e.g. "100%".
     - icon (string | undefined): icon key (see ICON_PATHS) to use in href/label mode, since
       Topics have no icon field of their own. Ignored when album is set (album.icon wins).
+  Hover: subtle cursor-following 3D tilt (via the `tilt` action — event-driven, transform-only,
+    no continuous animation loop) plus a chromatic drop-shadow whose colours are derived from
+    the current page's gradient backdrop palette (see getShadowPalette in $lib/gradient).
 -->
 <script lang="ts">
+  import { page } from '$app/stores';
   import type { AlbumListResponse } from '$lib/api/types';
   import { enrolAlbum, unenrolAlbum } from '$lib/api/albums';
   import { enrolledAlbumIds } from '$lib/stores/enrolments';
   import { currentUser } from '$lib/stores/user';
+  import { tilt } from '$lib/actions/tilt';
+  import { getShadowPalette } from '$lib/gradient';
+
+  $: [shadowA, shadowB, shadowC] = getShadowPalette($page.url.pathname);
 
   export let album: AlbumListResponse | undefined = undefined;
   export let href: string | undefined = undefined;
@@ -70,7 +78,11 @@
   }
 </script>
 
-<div class="album-card" style={size ? `width: ${size}; height: ${size};` : undefined}>
+<div
+  class="album-card"
+  use:tilt
+  style="{size ? `width: ${size}; height: ${size};` : ''} --shadow-a: {shadowA}; --shadow-b: {shadowB}; --shadow-c: {shadowC};"
+>
   <a class="album-link" href={resolvedHref}>
     <svg
       class="icon"
@@ -138,6 +150,25 @@
     background: #ffffff;
     border-radius: 0;
     box-shadow: 0 10px 18px -4px rgba(35, 47, 62, 0.35);
+    /* box-shadow-only transition (no filter, no continuous animation) — cheap
+       to run once on hover in/out, unlike the always-on animated blur this
+       app's perf pass found expensive elsewhere. */
+    transition: box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+  }
+
+  .album-card:hover {
+    box-shadow:
+      0 10px 18px -4px rgba(35, 47, 62, 0.35),
+      10px 14px 26px -8px var(--shadow-a),
+      -8px 14px 26px -8px var(--shadow-b),
+      0 20px 34px -12px var(--shadow-c);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .album-card {
+      transition: none;
+    }
   }
 
   .album-link {

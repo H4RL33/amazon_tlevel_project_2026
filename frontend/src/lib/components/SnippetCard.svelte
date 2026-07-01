@@ -5,8 +5,14 @@
     - xp (number | undefined): XP shown via badge if set
     - saved (boolean | undefined): whether saved to library
     - onSaveToggle (() => void | undefined): called on save button click
+  Hover: subtle cursor-following 3D tilt (via the `tilt` action) plus a chromatic
+    drop-shadow derived from the current page's gradient backdrop palette.
 -->
 <script lang="ts">
+  import { page } from '$app/stores';
+  import { tilt } from '$lib/actions/tilt';
+  import { getShadowPalette } from '$lib/gradient';
+
   export let content: { id: number; title: string; content_type: string };
   export let xp: number | undefined = undefined;
   export let saved: boolean | undefined = undefined;
@@ -19,9 +25,14 @@
   };
 
   $: icon = ICONS[content.content_type] ?? '📄';
+  $: [shadowA, shadowB, shadowC] = getShadowPalette($page.url.pathname);
 </script>
 
-<div class="snippet-card">
+<div
+  class="snippet-card"
+  use:tilt
+  style="--shadow-a: {shadowA}; --shadow-b: {shadowB}; --shadow-c: {shadowC};"
+>
   {#if xp !== undefined}
     <span class="xp-badge">+{xp} XP</span>
   {/if}
@@ -78,14 +89,25 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(35, 47, 62, 0.12);
     cursor: pointer;
-    transition:
-      transform 0.15s ease,
-      box-shadow 0.15s ease;
+    /* box-shadow-only transition — the `tilt` action owns `transform` directly
+       (see $lib/actions/tilt), so it isn't listed here to avoid two systems
+       fighting over the same property. */
+    transition: box-shadow 0.3s ease;
+    transform-style: preserve-3d;
   }
 
   .snippet-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(35, 47, 62, 0.18);
+    box-shadow:
+      0 4px 14px rgba(35, 47, 62, 0.18),
+      8px 10px 20px -6px var(--shadow-a),
+      -6px 10px 20px -6px var(--shadow-b),
+      0 16px 26px -10px var(--shadow-c);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .snippet-card {
+      transition: none;
+    }
   }
 
   .icon {
