@@ -9,6 +9,7 @@ os.environ.setdefault("ALLOWED_ORIGINS", "http://localhost:5173")
 
 import pytest  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 from sqlalchemy.ext.asyncio import (  # noqa: E402
     AsyncSession,
     async_sessionmaker,
@@ -28,6 +29,7 @@ async def db_session() -> AsyncSession:
     engine = create_async_engine(get_settings().DATABASE_URL)
     try:
         async with engine.begin() as conn:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
             await conn.run_sync(Base.metadata.create_all)
 
         session_factory = async_sessionmaker(engine, expire_on_commit=False)

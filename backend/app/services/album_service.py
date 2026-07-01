@@ -21,7 +21,7 @@ async def list_albums(
     t_level_id: int | None = None,
     topic: str | None = None,
 ) -> list[AlbumListResponse]:
-    stmt = select(Album)
+    stmt = select(Album).options(selectinload(Album.t_level))
     if t_level_id is not None:
         stmt = stmt.where(Album.t_level_id == t_level_id)
     if topic is not None:
@@ -33,7 +33,17 @@ async def list_albums(
 
     result = await db.execute(stmt)
     albums = result.scalars().all()
-    return [AlbumListResponse.model_validate(album) for album in albums]
+    return [
+        AlbumListResponse(
+            id=album.id,
+            t_level_id=album.t_level_id,
+            topic_id=album.t_level.topic_id,
+            title=album.title,
+            description=album.description,
+            icon=album.icon,
+        )
+        for album in albums
+    ]
 
 
 async def get_album_detail(
@@ -45,9 +55,10 @@ async def get_album_detail(
         select(Album)
         .where(Album.id == album_id)
         .options(
+            selectinload(Album.t_level),
             selectinload(Album.sides)
             .selectinload(Side.side_contents)
-            .selectinload(SideContent.content)
+            .selectinload(SideContent.content),
         )
     )
     album = (await db.execute(stmt)).scalar_one_or_none()
@@ -70,6 +81,7 @@ async def get_album_detail(
     detail = AlbumDetailResponse(
         id=album.id,
         t_level_id=album.t_level_id,
+        topic_id=album.t_level.topic_id,
         title=album.title,
         description=album.description,
         icon=album.icon,

@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from app.schemas.album import AlbumListResponse
+
 
 class TLevelResponse(BaseModel):
     id: int
@@ -9,6 +11,10 @@ class TLevelResponse(BaseModel):
     how_to_apply: str
 
     model_config = {"from_attributes": True}
+
+
+class TLevelWithAlbumsResponse(TLevelResponse):
+    albums: list[AlbumListResponse]
 
 
 class TopicResponse(BaseModel):
@@ -22,4 +28,4 @@ class TopicResponse(BaseModel):
 
 
 class TopicDetailResponse(TopicResponse):
-    t_levels: list[TLevelResponse]
+    t_levels: list[TLevelWithAlbumsResponse]
