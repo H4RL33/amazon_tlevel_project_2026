@@ -35,12 +35,15 @@ module "compute" {
   backend_image             = "ghcr.io/${var.ghcr_namespace}-backend:${var.backend_image_tag}"
   frontend_image            = "ghcr.io/${var.ghcr_namespace}-frontend:${var.frontend_image_tag}"
   # aws_db_instance.endpoint already includes port (e.g. host:5432) — do NOT append :${module.database.port}
-  database_url         = "postgresql+asyncpg://exeaws26:${var.db_password}@${module.database.endpoint}/exeaws26"
-  secret_key           = var.secret_key
-  cognito_user_pool_id = module.auth.user_pool_id
-  s3_bucket_name       = module.storage.bucket_name
-  alb_dns_name         = module.networking.alb_dns_name
-  public_domain        = var.public_domain
+  database_url                = "postgresql+asyncpg://exeaws26:${var.db_password}@${module.database.endpoint}/exeaws26"
+  secret_key                  = var.secret_key
+  cognito_user_pool_id        = module.auth.user_pool_id
+  cognito_client_id           = module.auth.client_id
+  s3_bucket_name              = module.storage.bucket_name
+  alb_dns_name                = module.networking.alb_dns_name
+  public_domain               = var.public_domain
+  bedrock_embedding_model_id  = var.bedrock_embedding_model_id
+  bedrock_generation_model_id = var.bedrock_generation_model_id
 }
 
 # ── CD credentials for GitHub Actions ─────────────────────────────────────────

@@ -36,6 +36,20 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "content" {
   }
 }
 
+# Required for browser-side PUT of presigned avatar/media uploads (see
+# frontend settings page's direct-to-S3 upload flow) and GET of media URLs.
+resource "aws_s3_bucket_cors_configuration" "content" {
+  bucket = aws_s3_bucket.content.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
 resource "aws_s3_bucket_versioning" "content" {
   bucket = aws_s3_bucket.content.id
 
