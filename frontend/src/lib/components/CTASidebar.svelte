@@ -4,7 +4,9 @@
     up to 2 enrolled AlbumCards, up to 3 recommended SnippetCards, and an AgentChat teaser
     pinned to the bottom. On AgentChat submit, creates a new chat session and navigates to
     /library?session=<id>&draft=<message>, handing the typed message off to be sent once
-    the session's chat window has loaded.
+    the session's chat window has loaded. If createChatSession() fails, the navigation is
+    skipped and a small inline error (mentorError) appears above AgentChat — the typed text
+    itself can't be recovered since AgentChat clears its own input on submit.
   Used in: / (authenticated branch)
   Props:
     - user (UserResponse): current user — greeting uses first_name, falling back to
@@ -44,6 +46,11 @@
   $: emptySlotCount = displayedAlbums.length > 0 ? 2 - displayedAlbums.length : 0;
   $: displayedSnippets = snippets.slice(0, 3);
 
+  // Set when createChatSession() fails during the Mentor teaser hand-off, so the user sees
+  // *something* instead of the request silently vanishing (AgentChat clears its own input on
+  // submit, so by the time we know the request failed the typed text is already gone).
+  let mentorError = '';
+
   async function toggleSnippetSave(contentId: number, currentlySaved: boolean) {
     if (currentlySaved) {
       savedSnippetIds.update((s) => {
@@ -62,8 +69,14 @@
 
   async function handleAgentSubmit(event: CustomEvent<string>) {
     const message = event.detail;
-    const session = await createChatSession();
-    goto(`/library?session=${session.id}&draft=${encodeURIComponent(message)}`);
+    mentorError = '';
+    try {
+      const session = await createChatSession();
+      goto(`/library?session=${session.id}&draft=${encodeURIComponent(message)}`);
+    } catch (err) {
+      mentorError = "Couldn't send that to your mentor — please try again.";
+      console.error(err);
+    }
   }
 </script>
 
@@ -108,6 +121,9 @@
 
       <div class="spacer"></div>
 
+      {#if mentorError}
+        <p class="mentor-error" role="alert">{mentorError}</p>
+      {/if}
       <AgentChat on:submit={handleAgentSubmit} />
     </div>
   </PageCard>
@@ -208,5 +224,12 @@
   /* Pushes AgentChat to the bottom of the sidebar */
   .spacer {
     flex: 1;
+  }
+
+  .mentor-error {
+    font-size: 0.8rem;
+    color: #b3261e;
+    margin: 0;
+    font-family: 'Ubuntu', sans-serif;
   }
 </style>

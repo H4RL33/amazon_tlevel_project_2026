@@ -44,4 +44,45 @@ describe('CTASidebar mentor hand-off', () => {
       `/library?session=7&draft=${encodeURIComponent('What is a T-Level?')}`
     );
   });
+
+  it('shows an inline error and does not navigate when createChatSession fails', async () => {
+    const { goto } = await import('$app/navigation');
+    const { createChatSession } = await import('$lib/api/chat');
+    vi.mocked(goto).mockClear();
+    vi.mocked(createChatSession).mockRejectedValueOnce(new Error('network error'));
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(CTASidebar, {
+      props: {
+        user: {
+          id: 1,
+          cognito_sub: 'sub-1',
+          email: 'harley@example.com',
+          first_name: 'Harley',
+          last_name: 'Welsh',
+          username: null,
+          avatar_url: null,
+          created_at: '2026-07-01T00:00:00Z',
+        },
+        albums: [],
+        snippets: [],
+      },
+    });
+
+    const input = screen.getByPlaceholderText('Ask your mentor anything...') as HTMLInputElement;
+    input.value = 'What is a T-Level?';
+    input.dispatchEvent(new Event('input'));
+    const form = input.closest('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(goto).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("Couldn't send that to your mentor — please try again.")
+    ).toBeInTheDocument();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
